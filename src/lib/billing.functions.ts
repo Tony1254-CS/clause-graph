@@ -149,7 +149,10 @@ export const getOrgUsage = createServerFn({ method: "GET" })
  */
 export const changeSubscriptionPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { newPlanId: PlanId }) => data)
+  .inputValidator((data: { newPlanId: PlanId; environment?: PaddleEnv }) => ({
+    newPlanId: data.newPlanId,
+    environment: (data.environment === "live" ? "live" : "sandbox") as PaddleEnv,
+  }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const target = PLANS[data.newPlanId];
@@ -167,6 +170,7 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
       .from("subscriptions")
       .select("paddle_subscription_id, environment, status, price_id")
       .eq("org_id", orgId)
+      .eq("environment", data.environment)
       .in("status", ["active", "trialing", "past_due"])
       .order("created_at", { ascending: false })
       .limit(1)
