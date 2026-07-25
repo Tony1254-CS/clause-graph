@@ -206,8 +206,4 @@ src/
 
 ---
 
-## 🙏 Credits
 
-Built on **Lovable Cloud**, powered by **TanStack Start**, styled with **Tailwind v4 + shadcn/ui**, animated with restraint. Regulatory citations sourced from public regulator publications; enforcement cases summarized from public filings.
-
-> _"The best legal-tech is invisible until the moment it isn't."_ — ClauseGraph
