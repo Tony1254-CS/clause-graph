@@ -26,7 +26,10 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
  */
 export const createBillingPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data?: { environment?: PaddleEnv }) => ({
+    environment: (data?.environment === "live" ? "live" : "sandbox") as PaddleEnv,
+  }))
+  .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
     const { data: prof } = await supabase
@@ -43,6 +46,7 @@ export const createBillingPortalSession = createServerFn({ method: "POST" })
         "paddle_customer_id, paddle_subscription_id, environment",
       )
       .eq("org_id", orgId)
+      .eq("environment", data.environment)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
