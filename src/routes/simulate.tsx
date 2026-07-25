@@ -9,6 +9,7 @@ import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
 import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
+import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 
 export const Route = createFileRoute("/simulate")({
   head: () => ({
