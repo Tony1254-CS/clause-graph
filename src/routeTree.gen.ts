@@ -16,7 +16,9 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
+import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
@@ -28,6 +30,7 @@ import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings.account'
 import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
+import { Route as AuthenticatedPredictiveRegulationIdRouteImport } from './routes/_authenticated/predictive.$regulationId'
 import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -65,9 +68,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWhatIfRoute = AuthenticatedWhatIfRouteImport.update({
+  id: '/what-if',
+  path: '/what-if',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
   id: '/simulate',
   path: '/simulate',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPredictiveRoute = AuthenticatedPredictiveRouteImport.update({
+  id: '/predictive',
+  path: '/predictive',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
@@ -130,6 +143,12 @@ const AuthenticatedRegulationsRegIdRoute =
     path: '/regulations/$regId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPredictiveRegulationIdRoute =
+  AuthenticatedPredictiveRegulationIdRouteImport.update({
+    id: '/$regulationId',
+    path: '/$regulationId',
+    getParentRoute: () => AuthenticatedPredictiveRoute,
+  } as any)
 const AuthenticatedContractsContractIdRoute =
   AuthenticatedContractsContractIdRouteImport.update({
     id: '/$contractId',
@@ -155,8 +174,11 @@ export interface FileRoutesByFullPath {
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -176,8 +198,11 @@ export interface FileRoutesByTo {
   '/backtest': typeof AuthenticatedBacktestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -200,8 +225,11 @@ export interface FileRoutesById {
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
+  '/_authenticated/what-if': typeof AuthenticatedWhatIfRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/_authenticated/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -224,8 +252,11 @@ export interface FileRouteTypes {
     | '/contracts'
     | '/dashboard'
     | '/feed'
+    | '/predictive'
     | '/simulate'
+    | '/what-if'
     | '/contracts/$contractId'
+    | '/predictive/$regulationId'
     | '/regulations/$regId'
     | '/settings/account'
     | '/settings/billing'
@@ -245,8 +276,11 @@ export interface FileRouteTypes {
     | '/backtest'
     | '/dashboard'
     | '/feed'
+    | '/predictive'
     | '/simulate'
+    | '/what-if'
     | '/contracts/$contractId'
+    | '/predictive/$regulationId'
     | '/regulations/$regId'
     | '/settings/account'
     | '/settings/billing'
@@ -268,8 +302,11 @@ export interface FileRouteTypes {
     | '/_authenticated/contracts'
     | '/_authenticated/dashboard'
     | '/_authenticated/feed'
+    | '/_authenticated/predictive'
     | '/_authenticated/simulate'
+    | '/_authenticated/what-if'
     | '/_authenticated/contracts/$contractId'
+    | '/_authenticated/predictive/$regulationId'
     | '/_authenticated/regulations/$regId'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/billing'
@@ -342,11 +379,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/what-if': {
+      id: '/_authenticated/what-if'
+      path: '/what-if'
+      fullPath: '/what-if'
+      preLoaderRoute: typeof AuthenticatedWhatIfRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/simulate': {
       id: '/_authenticated/simulate'
       path: '/simulate'
       fullPath: '/simulate'
       preLoaderRoute: typeof AuthenticatedSimulateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/predictive': {
+      id: '/_authenticated/predictive'
+      path: '/predictive'
+      fullPath: '/predictive'
+      preLoaderRoute: typeof AuthenticatedPredictiveRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feed': {
@@ -426,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRegulationsRegIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/predictive/$regulationId': {
+      id: '/_authenticated/predictive/$regulationId'
+      path: '/$regulationId'
+      fullPath: '/predictive/$regulationId'
+      preLoaderRoute: typeof AuthenticatedPredictiveRegulationIdRouteImport
+      parentRoute: typeof AuthenticatedPredictiveRoute
+    }
     '/_authenticated/contracts/$contractId': {
       id: '/_authenticated/contracts/$contractId'
       path: '/$contractId'
@@ -460,13 +518,30 @@ const AuthenticatedContractsRouteWithChildren =
     AuthenticatedContractsRouteChildren,
   )
 
+interface AuthenticatedPredictiveRouteChildren {
+  AuthenticatedPredictiveRegulationIdRoute: typeof AuthenticatedPredictiveRegulationIdRoute
+}
+
+const AuthenticatedPredictiveRouteChildren: AuthenticatedPredictiveRouteChildren =
+  {
+    AuthenticatedPredictiveRegulationIdRoute:
+      AuthenticatedPredictiveRegulationIdRoute,
+  }
+
+const AuthenticatedPredictiveRouteWithChildren =
+  AuthenticatedPredictiveRoute._addFileChildren(
+    AuthenticatedPredictiveRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
   AuthenticatedBacktestRoute: typeof AuthenticatedBacktestRoute
   AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedPredictiveRoute: typeof AuthenticatedPredictiveRouteWithChildren
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
+  AuthenticatedWhatIfRoute: typeof AuthenticatedWhatIfRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsBillingRoute: typeof AuthenticatedSettingsBillingRoute
@@ -479,7 +554,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedPredictiveRoute: AuthenticatedPredictiveRouteWithChildren,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
+  AuthenticatedWhatIfRoute: AuthenticatedWhatIfRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
   AuthenticatedSettingsBillingRoute: AuthenticatedSettingsBillingRoute,

@@ -12,6 +12,10 @@ export type SimulationResult = {
   fallback?: boolean;
 };
 
+export type RunType = "reactive" | "forecast" | "what_if";
+
 export type SimulateInput = {
   regulationText: string;
+  runType?: RunType;
+  regulationId?: string;
 };
