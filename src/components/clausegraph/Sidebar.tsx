@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck, Users, Wallet, UserCog, Radar, FlaskConical } from "lucide-react";
+import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck, Users, Wallet, UserCog, Radar, FlaskConical, Network } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
-  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions" | "/predictive" | "/what-if" | "/settings/team" | "/settings/billing" | "/settings/account";
+  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/supply-chain" | "/backtest" | "/actions" | "/predictive" | "/what-if" | "/settings/team" | "/settings/billing" | "/settings/account";
   match?: string;
 };
 
@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { label: "Contracts", icon: FileText, to: "/contracts", match: "/contracts" },
   { label: "Regulatory Feed", icon: Rss, to: "/feed" },
   { label: "Simulate Impact", icon: Zap, to: "/simulate" },
+  { label: "Supply Chain", icon: Network, to: "/supply-chain" },
   { label: "Predictive Radar", icon: Radar, to: "/predictive", match: "/predictive" },
   { label: "What-If Sandbox", icon: FlaskConical, to: "/what-if" },
   { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
