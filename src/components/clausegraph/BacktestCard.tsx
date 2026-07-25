@@ -94,7 +94,7 @@ export function BacktestCard({ bt }: { bt: BacktestCase }) {
           {bt.reconstructed_clauses.map((c) => (
             <li
               key={c.id}
-              className="rounded-[10px] border border-[var(--hairline)] p-2.5 text-[12px] leading-[1.55] text-foreground/85"
+              className="rounded-[12px] border border-[var(--hairline)] p-2.5 text-[12px] leading-[1.55] text-foreground/85"
             >
               <span className="font-mono text-[10px] text-brass mr-2">{c.id}</span>
               {c.text}
@@ -103,10 +103,11 @@ export function BacktestCard({ bt }: { bt: BacktestCase }) {
         </ul>
       </div>
 
+
       <button
         onClick={onRun}
         disabled={status === "loading"}
-        className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed duration-150 ease-out transition-all"
       >
         {status === "loading" ? (
           <>
@@ -122,14 +123,17 @@ export function BacktestCard({ bt }: { bt: BacktestCase }) {
       </button>
 
       {error && (
-        <p className="flex items-center gap-2 text-[12px] text-[var(--risk)]">
-          <AlertTriangle className="h-3.5 w-3.5" strokeWidth={1.6} />
+        <p className="flex items-center gap-2 text-[12px] text-muted-foreground">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--risk)]" />
+          <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
           {error}
         </p>
       )}
 
+
       {result && (
-        <div className="rounded-[14px] border border-[var(--hairline-strong)] p-4 bg-[rgba(255,255,255,0.02)]">
+        <div className="rounded-[20px] border border-[var(--hairline-strong)] p-4 bg-[rgba(255,255,255,0.02)]">
+
           <div className="flex items-center justify-between gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
               Reconstructed scenario · analyzed live
@@ -145,7 +149,7 @@ export function BacktestCard({ bt }: { bt: BacktestCase }) {
           )}
           <ul className="mt-3 flex flex-col gap-2.5">
             {result.impacts.map((i) => (
-              <li key={i.contract_id} className="rounded-[10px] border border-[var(--hairline)] p-2.5">
+              <li key={i.contract_id} className="rounded-[12px] border border-[var(--hairline)] p-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass">
                     {i.contract_id}
