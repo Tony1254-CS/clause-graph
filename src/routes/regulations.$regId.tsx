@@ -147,15 +147,23 @@ function DetailError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   return (
     <AppShell>
-      <div className="glass-panel p-8 text-center max-w-md">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-destructive">Error</p>
-        <p className="mt-2 text-foreground">{error.message}</p>
+      <div className="glass-panel p-8 max-w-md">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          Couldn't load regulation
+        </p>
+        <p className="mt-2 font-display text-[20px] leading-[1.2] text-foreground">
+          This ontology entry isn't responding right now.
+        </p>
+        <p className="mt-2 text-[13px] leading-[1.55] text-muted-foreground">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--risk)] mr-2 align-middle" />
+          {error.message}
+        </p>
         <button
           onClick={() => {
             router.invalidate();
             reset();
           }}
-          className="mt-4 rounded-[12px] bg-brass px-4 py-2 text-sm text-[color:var(--primary-foreground)]"
+          className="mt-4 rounded-[12px] bg-brass px-4 py-2 text-sm text-[color:var(--primary-foreground)] duration-150 ease-out transition-all hover:bg-[color:var(--brass-strong)]"
         >
           Retry
         </button>
@@ -163,3 +171,4 @@ function DetailError({ error, reset }: { error: Error; reset: () => void }) {
     </AppShell>
   );
 }
+
