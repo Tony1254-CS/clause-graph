@@ -309,7 +309,12 @@ function ForecastDetail() {
               <ActionPlanPanel
                 regulationText={hypo?.amendment_text ?? ""}
                 summary={result.summary}
-                impacts={result.impacts}
+                impacts={result.impacts.map((i) => ({
+                  contract_id: i.contract_id,
+                  contract_name: contractsById.get(i.contract_id)?.name ?? i.contract_id,
+                  severity: i.severity,
+                  suggested_amendment: i.suggested_amendment,
+                }))}
                 variant="forecast"
               />
             )}
