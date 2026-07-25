@@ -54,6 +54,10 @@ function TeamPage() {
     },
     onError: (err) => {
       setNotice(null);
+      if (handlePlanLimitError(err, "seats")) {
+        setError(null);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Invite failed");
     },
   });
