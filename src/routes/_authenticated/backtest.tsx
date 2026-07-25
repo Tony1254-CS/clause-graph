@@ -3,7 +3,7 @@ import { AppShell } from "@/components/clausegraph/AppShell";
 import { BacktestCard } from "@/components/clausegraph/BacktestCard";
 import { backtestCases } from "@/data/backtest-cases";
 
-export const Route = createFileRoute("/backtest")({
+export const Route = createFileRoute("/_authenticated/backtest")({
   head: () => ({
     meta: [
       { title: "Backtested Validation — ClauseGraph" },

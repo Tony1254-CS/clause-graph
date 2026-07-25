@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { ClauseRow } from "@/components/clausegraph/ClauseRow";
 import { contractQuery, formatUSD } from "@/data/queries";
 
-export const Route = createFileRoute("/contracts/$contractId")({
+export const Route = createFileRoute("/_authenticated/contracts/$contractId")({
   head: ({ loaderData }) => {
     const data = loaderData as { name: string; counterparty: string; clauses: unknown[] } | undefined;
     const name = data?.name ?? "Contract";
