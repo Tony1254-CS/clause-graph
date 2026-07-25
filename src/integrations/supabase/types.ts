@@ -14,16 +14,384 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      backtest_cases: {
+        Row: {
+          case_date: string
+          company: string
+          created_at: string
+          fallback: Json
+          fine_usd: number
+          id: string
+          position: number
+          reconstructed_clauses: Json
+          reconstructed_prompt: string
+          regulation: string
+          source: string
+          summary: string
+        }
+        Insert: {
+          case_date: string
+          company: string
+          created_at?: string
+          fallback: Json
+          fine_usd: number
+          id: string
+          position?: number
+          reconstructed_clauses: Json
+          reconstructed_prompt: string
+          regulation: string
+          source: string
+          summary: string
+        }
+        Update: {
+          case_date?: string
+          company?: string
+          created_at?: string
+          fallback?: Json
+          fine_usd?: number
+          id?: string
+          position?: number
+          reconstructed_clauses?: Json
+          reconstructed_prompt?: string
+          regulation?: string
+          source?: string
+          summary?: string
+        }
+        Relationships: []
+      }
+      clauses: {
+        Row: {
+          confidence: number | null
+          contract_id: string
+          created_at: string
+          id: string
+          linked_regs: string[]
+          position: number
+          text: string
+        }
+        Insert: {
+          confidence?: number | null
+          contract_id: string
+          created_at?: string
+          id?: string
+          linked_regs?: string[]
+          position?: number
+          text: string
+        }
+        Update: {
+          confidence?: number | null
+          contract_id?: string
+          created_at?: string
+          id?: string
+          linked_regs?: string[]
+          position?: number
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clauses_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          counterparty: string
+          created_at: string
+          extraction_status: string
+          id: string
+          is_sample: boolean
+          name: string
+          org_id: string
+          source_file_url: string | null
+          uploaded_by: string | null
+          value: number
+        }
+        Insert: {
+          counterparty: string
+          created_at?: string
+          extraction_status?: string
+          id?: string
+          is_sample?: boolean
+          name: string
+          org_id: string
+          source_file_url?: string | null
+          uploaded_by?: string | null
+          value?: number
+        }
+        Update: {
+          counterparty?: string
+          created_at?: string
+          extraction_status?: string
+          id?: string
+          is_sample?: boolean
+          name?: string
+          org_id?: string
+          source_file_url?: string | null
+          uploaded_by?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plan: string
+          stripe_customer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plan?: string
+          stripe_customer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: string
+          stripe_customer_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regulations: {
+        Row: {
+          created_at: string
+          id: string
+          jurisdiction: string
+          obligations: Json
+          org_id: string | null
+          summary: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          jurisdiction: string
+          obligations?: Json
+          org_id?: string | null
+          summary: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jurisdiction?: string
+          obligations?: Json
+          org_id?: string | null
+          summary?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sample_clauses: {
+        Row: {
+          id: string
+          linked_regs: string[]
+          position: number
+          sample_contract_id: string
+          text: string
+        }
+        Insert: {
+          id: string
+          linked_regs?: string[]
+          position?: number
+          sample_contract_id: string
+          text: string
+        }
+        Update: {
+          id?: string
+          linked_regs?: string[]
+          position?: number
+          sample_contract_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sample_clauses_sample_contract_id_fkey"
+            columns: ["sample_contract_id"]
+            isOneToOne: false
+            referencedRelation: "sample_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sample_contracts: {
+        Row: {
+          counterparty: string
+          id: string
+          name: string
+          position: number
+          value: number
+        }
+        Insert: {
+          counterparty: string
+          id: string
+          name: string
+          position?: number
+          value: number
+        }
+        Update: {
+          counterparty?: string
+          id?: string
+          name?: string
+          position?: number
+          value?: number
+        }
+        Relationships: []
+      }
+      simulation_runs: {
+        Row: {
+          created_at: string
+          id: string
+          input_regulation_text: string
+          org_id: string
+          result_json: Json
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_regulation_text: string
+          org_id: string
+          result_json: Json
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_regulation_text?: string
+          org_id?: string
+          result_json?: Json
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulation_runs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulation_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_org_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _org_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +518,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "member"],
+    },
   },
 } as const
