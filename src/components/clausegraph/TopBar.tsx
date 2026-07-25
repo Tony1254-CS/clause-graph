@@ -47,6 +47,14 @@ export function TopBar() {
             <span className="font-display text-[22px] leading-none tracking-tight text-foreground truncate max-w-[42ch]">
               {orgName}
             </span>
+            {profile?.org?.plan && (
+              <Link
+                to="/settings/billing"
+                className="rounded-full border border-brass/30 bg-brass/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass hover:border-brass/60 transition-colors"
+              >
+                {profile.org.plan}
+              </Link>
+            )}
           </div>
         </div>
 

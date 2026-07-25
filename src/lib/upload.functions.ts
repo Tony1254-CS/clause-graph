@@ -47,6 +47,13 @@ export const startContractExtraction = createServerFn({ method: "POST" })
     if (pErr) throw pErr;
     if (!profile?.org_id) throw new Error("Organization not found");
 
+    // Enforce plan quota (Free 3, Pro 50, Team unlimited)
+    const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
+      _org: profile.org_id,
+      _action: "upload_contract",
+    });
+    if (quotaErr) throw new Error(quotaErr.message);
+
     const { data: inserted, error: iErr } = await supabase
       .from("contracts")
       .insert({

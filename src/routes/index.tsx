@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Zap, Network } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Network, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PLANS, type PlanId } from "@/lib/plans";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -112,6 +113,64 @@ function Landing() {
           />
         </div>
       </section>
+
+      <section className="mx-auto max-w-[1200px] px-6 pb-24">
+        <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">Pricing</p>
+            <h2 className="mt-3 font-display text-[36px] tracking-tight text-foreground">
+              Simple, transparent tiers.
+            </h2>
+          </div>
+          <p className="font-mono text-[11px] text-muted-foreground max-w-[36ch]">
+            30-day money-back guarantee. Billed by Paddle, our merchant of record.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {(Object.keys(PLANS) as PlanId[]).map((id) => {
+            const p = PLANS[id];
+            return (
+              <div key={id} className="glass-panel p-6 flex flex-col gap-4">
+                <div>
+                  <h3 className="font-display text-[22px] text-foreground">{p.name}</h3>
+                  <p className="mt-1 text-[13px] text-muted-foreground">{p.tagline}</p>
+                </div>
+                <div>
+                  <span className="font-display text-[38px] text-foreground">${p.priceUsd}</span>
+                  <span className="ml-1 font-mono text-[12px] text-muted-foreground">/ month</span>
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px] text-foreground">
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brass" strokeWidth={2.2} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/auth"
+                  className="mt-auto inline-flex items-center justify-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2.5 text-[13px] text-foreground hover:border-brass hover:text-brass transition-colors"
+                >
+                  {p.priceUsd === 0 ? "Start free" : `Get ${p.name}`}
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <footer className="border-t border-[var(--hairline)]">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-6 py-8 text-[12.5px] text-muted-foreground">
+          <span className="font-mono text-[11px] uppercase tracking-[0.14em]">
+            © {new Date().getFullYear()} ClauseGraph
+          </span>
+          <div className="flex gap-5">
+            <Link to="/terms" className="hover:text-brass">Terms</Link>
+            <Link to="/privacy" className="hover:text-brass">Privacy</Link>
+            <Link to="/refund" className="hover:text-brass">Refunds</Link>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
