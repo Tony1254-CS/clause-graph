@@ -149,7 +149,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                       stroke={e.impacted ? "rgba(225,82,75,0.5)" : "var(--hairline-strong)"}
                       strokeWidth={e.impacted ? "1" : "0.6"}
                       opacity={e.impacted ? 0.9 : 0.7}
-                      style={{ transition: "stroke 400ms ease-out, opacity 400ms ease-out" }}
+                      style={edgeTransition}
+
                     />
                   ))}
                 </g>
