@@ -141,16 +141,21 @@ ${JSON.stringify(contractContext)}`;
     }
 
     // Persist for audit history (best-effort)
-    await supabase
-      .from("simulation_runs")
-      .insert({
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileRow?.org_id) {
+      const { error: insertErr } = await supabase.from("simulation_runs").insert({
+        org_id: profileRow.org_id,
         input_regulation_text: data.regulationText,
-        result_json: result,
+        result_json: result as unknown as Record<string, unknown>,
         triggered_by: userId,
-      })
-      .then(({ error }) => {
-        if (error) console.error("[simulate] persist error", error);
       });
+      if (insertErr) console.error("[simulate] persist error", insertErr);
+    }
+
 
     return result;
   });
