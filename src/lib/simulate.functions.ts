@@ -150,7 +150,7 @@ ${JSON.stringify(contractContext)}`;
       const { error: insertErr } = await supabase.from("simulation_runs").insert({
         org_id: profileRow.org_id,
         input_regulation_text: data.regulationText,
-        result_json: result as unknown as Record<string, unknown>,
+        result_json: JSON.parse(JSON.stringify(result)),
         triggered_by: userId,
       });
       if (insertErr) console.error("[simulate] persist error", insertErr);
