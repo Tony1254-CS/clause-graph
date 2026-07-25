@@ -242,18 +242,165 @@ function FeatureCard({
   icon: Icon,
   title,
   body,
+  i = 0,
 }: {
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   title: string;
   body: string;
+  i?: number;
 }) {
   return (
-    <div className="glass-panel p-6">
-      <Icon className="h-5 w-5 text-brass" strokeWidth={1.6} />
-      <h3 className="mt-4 font-display text-[18px] leading-[1.2] text-foreground">
+    <div
+      className="glass-panel p-6 hover-lift stagger-item"
+      style={{ ["--i" as string]: i }}
+    >
+      <div className="inline-grid h-10 w-10 place-items-center rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)]">
+        <Icon className="h-[18px] w-[18px] text-brass" strokeWidth={1.6} />
+      </div>
+      <h3 className="mt-5 font-display text-[19px] leading-[1.2] text-foreground">
         {title}
       </h3>
-      <p className="mt-2 text-[13.5px] leading-[1.6] text-muted-foreground">{body}</p>
+      <p className="mt-2 text-[13.5px] leading-[1.65] text-muted-foreground">{body}</p>
     </div>
   );
 }
+
+function HeroSeal() {
+  // Static-but-alive radar: concentric rings, orbiting nodes, one "hit" node in brass.
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[520px]">
+      {/* outer glow */}
+      <div
+        aria-hidden
+        className="absolute inset-6 rounded-full blur-3xl opacity-40"
+        style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 60%)" }}
+      />
+      {/* seal */}
+      <div className="absolute inset-0 rounded-full border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)] backdrop-blur-xl overflow-hidden">
+        {/* rim tick marks */}
+        <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full">
+          <defs>
+            <radialGradient id="seal-core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="var(--brass)" stopOpacity="0.22" />
+              <stop offset="60%" stopColor="var(--brass)" stopOpacity="0.02" />
+              <stop offset="100%" stopColor="var(--brass)" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="200" cy="200" r="196" fill="url(#seal-core)" />
+          {/* concentric rings */}
+          {[80, 130, 175].map((r, idx) => (
+            <circle
+              key={r}
+              cx="200"
+              cy="200"
+              r={r}
+              fill="none"
+              stroke="var(--hairline-strong)"
+              strokeWidth={idx === 2 ? 0.5 : 0.75}
+              strokeDasharray={idx === 1 ? "2 4" : undefined}
+            />
+          ))}
+          {/* sweeping arc */}
+          <g style={{ transformOrigin: "200px 200px", animation: "spin 14s linear infinite" }}>
+            <path
+              d="M 200 25 A 175 175 0 0 1 360 155"
+              fill="none"
+              stroke="var(--brass)"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              opacity="0.65"
+            />
+          </g>
+          {/* tick marks around rim */}
+          {Array.from({ length: 60 }).map((_, i) => {
+            const a = (i / 60) * Math.PI * 2;
+            const x1 = 200 + Math.cos(a) * 190;
+            const y1 = 200 + Math.sin(a) * 190;
+            const x2 = 200 + Math.cos(a) * (i % 5 === 0 ? 180 : 185);
+            const y2 = 200 + Math.sin(a) * (i % 5 === 0 ? 180 : 185);
+            return (
+              <line
+                key={i}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="var(--brass)"
+                strokeOpacity={i % 5 === 0 ? 0.55 : 0.22}
+                strokeWidth="0.8"
+              />
+            );
+          })}
+          {/* contract nodes */}
+          {[
+            { x: 200, y: 200, r: 5, hit: true, label: "Rule" },
+            { x: 268, y: 148, r: 3.5, hit: true },
+            { x: 138, y: 172, r: 3.2 },
+            { x: 292, y: 232, r: 3.8, hit: true },
+            { x: 156, y: 268, r: 3.2 },
+            { x: 232, y: 296, r: 3.2 },
+            { x: 108, y: 230, r: 2.8 },
+            { x: 300, y: 108, r: 2.8 },
+            { x: 88, y: 148, r: 2.6 },
+            { x: 328, y: 288, r: 2.6 },
+          ].map((n, idx) => (
+            <g key={idx}>
+              {n.hit && (
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r + 5}
+                  fill="var(--brass)"
+                  opacity="0.18"
+                />
+              )}
+              <circle
+                cx={n.x}
+                cy={n.y}
+                r={n.r}
+                fill={n.hit ? "var(--brass)" : "var(--foreground)"}
+                opacity={n.hit ? 1 : 0.55}
+              />
+              {/* connection to center for hits */}
+              {n.hit && idx !== 0 && (
+                <line
+                  x1="200"
+                  y1="200"
+                  x2={n.x}
+                  y2={n.y}
+                  stroke="var(--brass)"
+                  strokeOpacity="0.35"
+                  strokeWidth="0.8"
+                  strokeDasharray="2 3"
+                />
+              )}
+            </g>
+          ))}
+        </svg>
+        {/* center label */}
+        <div className="absolute inset-0 grid place-items-center pointer-events-none">
+          <div className="text-center">
+            <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-brass">Impact</div>
+            <div className="mt-1 font-display text-[36px] leading-none tracking-tight text-foreground">
+              $4.2M
+            </div>
+            <div className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
+              exposure · 3 contracts
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* corner readouts */}
+      <div className="absolute -top-2 left-4 rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)] backdrop-blur-md px-3 py-1.5">
+        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">Rule</div>
+        <div className="font-mono text-[11px] text-foreground">GDPR Art. 22</div>
+      </div>
+      <div className="absolute -bottom-2 right-4 rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)] backdrop-blur-md px-3 py-1.5">
+        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">Severity</div>
+        <div className="font-mono text-[11px] text-brass">HIGH · 3 hits</div>
+      </div>
+    </div>
+  );
+}
+
