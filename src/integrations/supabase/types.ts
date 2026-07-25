@@ -159,22 +159,49 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          paddle_customer_id: string | null
           plan: string
+          plan_renews_at: string | null
+          plan_status: string
           stripe_customer_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          paddle_customer_id?: string | null
           plan?: string
+          plan_renews_at?: string | null
+          plan_status?: string
           stripe_customer_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          paddle_customer_id?: string | null
           plan?: string
+          plan_renews_at?: string | null
+          plan_status?: string
           stripe_customer_id?: string | null
+        }
+        Relationships: []
+      }
+      paddle_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          received_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          received_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          received_at?: string
         }
         Relationships: []
       }
@@ -346,6 +373,65 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          org_id: string | null
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          org_id?: string | null
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          org_id?: string | null
+          paddle_customer_id?: string
+          paddle_subscription_id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -383,7 +469,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assert_within_quota: {
+        Args: { _action: string; _org: string }
+        Returns: undefined
+      }
       current_org_id: { Args: never; Returns: string }
+      get_org_usage: {
+        Args: { _org: string }
+        Returns: {
+          contracts: number
+          members: number
+          simulations: number
+        }[]
+      }
       has_role: {
         Args: {
           _org_id: string
