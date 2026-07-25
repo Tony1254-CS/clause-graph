@@ -63,7 +63,7 @@ const PRESETS = [
   },
 ];
 
-export function WhatIfSandbox() {
+function WhatIfSandbox() {
   const { data: contracts } = useSuspenseQuery(contractsQuery);
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
   const runSimulate = useServerFn(simulateImpact);

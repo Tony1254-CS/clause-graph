@@ -1,78 +1,67 @@
-## What I actually verified (not guesses)
+## Goal
 
-I queried the live database, the Paddle catalog (test + live), and read the billing/auth/server code. Findings below are each backed by a check.
+1. Park subscriptions: keep all Paddle/billing code in the repo, but nothing charges, gates, or limits anyone. Every workspace — existing and new — is effectively **Pro, unlimited, no trial clock**.
+2. Fix what's actually broken (verified in a sweep, not guessed).
+3. Rewrite the docs so they contain the real database SQL and a step-by-step "move off Lovable Cloud to my own Supabase" runbook.
 
-### 1. Regulation detail: obligations render as empty rows (your screenshots 1 & 2)
-Confirmed by query: all 10 regulations store `obligations` as a **plain string array** (`["data_minimization","purpose_limitation",...]`), but the UI renders `ob.text` and uses `key={ob.id}` — both `undefined`. So you get 5 empty numbered cards, plus duplicate-key React warnings. Every regulation page in the app is affected, in all jurisdictions.
+## What I verified before writing this
 
-### 2. "PRO" badge vs "Free" billing page (screenshot 3) — two conflicting sources of truth
-Confirmed by query: your org row is `plan=pro, plan_status=active, trial_ends_at=2026-08-24, paddle_customer_id=null`. The trial IS provisioned correctly. The mismatch is in the app:
-- The top-bar pill reads `organizations.plan` **directly from the database** through the browser client → shows PRO.
-- The billing page reads the same value through the `getOrgUsage` **server function** and falls back to `"free"` whenever that call fails, with the error silently swallowed (no error UI, no retry).
-- The screenshot proves the server call failed: it shows **Seats 0/1**, but your org has at least 1 member — so `usage.data` was `undefined`, not "free data".
-
-### 3. Why the server call fails on the Vercel deployment
-The red `PADDLE_LIVE_API_KEY is not configured` panel is the same root cause: every server function reads its config from server environment variables (`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `LOVABLE_API_KEY`, `PADDLE_LIVE_API_KEY`, webhook secrets). Those exist in Lovable but **are not set in the Vercel project**, so on `clause-graph.vercel.app` the auth middleware throws before any query runs. That takes down usage/plan, upload, simulate, supply-chain, predictive, action plans, and live checkout at once — "nothing is here".
-
-### 4. Trial users literally cannot pay you (worst commercial bug)
-On trial the org plan is `pro` with **no Paddle subscription**. On the billing page:
-- Pro is marked "Current" → its button is disabled → a trial user can never convert to paid Pro.
-- Clicking Team calls `changeSubscriptionPlan` (because plan ≠ free), which requires an existing Paddle subscription → throws `NO_ACTIVE_SUB`.
-- "Manage subscription" is shown for any non-free plan, including trials → throws "No subscription yet".
-
-### 5. Trial expiry is invisible to the UI
-`assert_within_quota` expires the trial lazily (only when someone uploads/simulates/invites). Read paths never do. So after day 30 a user keeps seeing "PRO", Pro quotas (50 contracts / 100 simulations / 3 seats) and Pro-labelled entitlements until they happen to trigger a write. Entitlement drift.
-
-### 6. Status banners built but never mounted
-`PlanStatusBanner` (past-due dunning, paused, scheduled workspace deletion, trial countdown) is not rendered anywhere in the app. Past-due and pending-deletion states are therefore completely invisible to users, even though the webhook writes `plan_status='past_due'`.
-
-### 7. Paid features are not gated at all
-Plan copy sells "Compliance action plans + PDF export" and the live feed as Pro features, but there is zero plan check anywhere except numeric quotas. Free users get action plans, PDF export, predictive radar, compliance-as-code and supply-chain. Also: action plans, compliance-as-code, backtest runs and what-if runs consume LLM credits with **no quota accounting at all** (only upload / simulate / supply-chain / invite call `assert_within_quota`).
-
-### 8. Smaller findings
-- Webhook `subscription.canceled` sets org to `free` immediately, ignoring remaining paid period (no grace access).
-- Webhook never clears `trial_ends_at` on first payment; entitlement currently survives on `paddle_customer_id` alone — fragile.
-- `changeSubscriptionPlan` compares plans by `price_id` but derives current price from an org-wide "latest subscription" without env filter; a sandbox row can shadow a live row (both envs share the table).
-- `getOrgUsage` reads no `deletion_scheduled_at`, so the deletion banner branch can never fire.
-- Missing `errorComponent` / `notFoundComponent` on `dashboard`, `simulate`, `backtest`, `actions`, `what-if`, `settings.*` — a failing server call there shows the generic crash screen instead of a retry.
-- Billing usage bars divide by `1,000,000` for unlimited plans (always ~0%) and can exceed 100% width visually on over-limit orgs.
+- `ARCHITECTURE.md` documents tables in prose (section 6.2) but contains **no `CREATE TABLE` / DDL anywhere** — so it can't be used to rebuild the database elsewhere. This is the gap you flagged; confirmed.
+- Plan enforcement is spread across 7 server-function files plus two Postgres functions (`resolve_org_plan`, `assert_within_quota`), so "everyone Pro" has to be switched off in the database *and* respected by the UI, not just hidden in the frontend.
+- I have **not** yet confirmed a specific new runtime bug from your latest screenshots, so step 1 below is an actual verification sweep. I won't assert a root cause I haven't reproduced.
 
 ---
 
-## Fix plan
+## A. Turn billing off without deleting it
 
-**A. Data model — obligations**
-Migrate `regulations.obligations` to the object shape the app expects (`[{id, text}]`) with real obligation sentences per regulation (GDPR 5/17/33, US SEC/CCPA/HIPAA/GLBA, Bangladesh DPA/BTRC/BB), and make `mapRegulation` tolerant: accept both string and object entries so no page can ever render blank rows again.
+**Database (one migration)**
+- `handle_new_user`: new signups get `plan='pro'`, `plan_status='active'`, and `trial_ends_at = NULL` — no countdown, nothing to expire.
+- `resolve_org_plan`: while billing is parked, always resolves to `pro` and never downgrades to `free`. The paid-subscription logic stays in the function body, disabled behind a single flag.
+- `assert_within_quota`: unlimited for every action (upload, simulate, invite, action plan, compliance code) — no `PLAN_LIMIT` error can fire.
+- Backfill: every existing organization set to `plan='pro'`, `plan_status='active'`, `trial_ends_at=NULL`, so no one is stuck on Free.
+- Single toggle (`billing_enabled = false`) in the resolver, so flipping it back on later re-enables real plans with no rewrite.
 
-**B. One source of truth for plan + trial**
-- Add a single `entitlement` server function (plan, effective plan after trial expiry, status, trial days left, has-paid-subscription, deletion date, quotas used/limit).
-- Server-side trial expiry on read: expire in the DB when `trial_ends_at < now()` and there is no active subscription, so reads and writes agree.
-- Top-bar pill, billing page, banners and all gates consume that one call. Pill shows `PRO · TRIAL · 24d` while on trial instead of a bare "PRO" that contradicts billing.
-- Surface query failure explicitly (error panel + Retry) instead of silently degrading to "Free".
+**App**
+- `getOrgUsage` returns Pro with unlimited limits and never silently degrades to Free on error.
+- TopBar badge: plain `PRO`, no trial text.
+- Billing page (`/settings/billing`): keep the file and the checkout code, but render a single calm panel — "Billing is not active yet. Every workspace has full Pro access." No pricing cards, no disabled buttons, no `PADDLE_LIVE_API_KEY is not configured` red panel.
+- Remove/neutralise `PlanLimitDialog` triggers and `PlanStatusBanner` plan states so no upgrade nag can appear anywhere.
+- Landing/pricing copy: plans shown as "included during early access" instead of paid tiers.
+- Paddle webhook route, `paddle.server.ts`, `plans.ts`, checkout hook: **left in place, untouched**, ready to reactivate.
 
-**C. Trial → paid conversion**
-- Treat "on trial, no Paddle subscription" as *not yet a customer*: Pro card shows **"Start Pro subscription"** (opens checkout), Team opens checkout too; `changeSubscriptionPlan` is only used when a real Paddle subscription exists.
-- Hide "Manage subscription" unless a Paddle subscription actually exists.
-- Show trial state on the plan card ("Trial · ends Aug 24 — subscribe to keep Pro").
+## B. Breakage sweep (fix everything found)
 
-**D. Entitlement gates**
-- Server-side: PDF/action-plan generation, compliance-as-code, predictive radar and what-if runs check plan on the server and return a `PLAN_LIMIT`-style error for Free.
-- Client-side: those buttons show an upgrade prompt via the existing `PlanLimitDialog` instead of failing silently.
-- Add quota accounting for action-plan / compliance-code / backtest / what-if runs so LLM spend is bounded on Free.
+Run the app on every authenticated route and every AI action, then fix what fails:
+- All 17 routes render with real data (dashboard, contracts, contract detail, regulations, feed, simulate, backtest, actions, what-if, predictive, predictive detail, supply-chain, settings ×3).
+- Every server function returns without a config/auth error; missing-env failures show a legible message instead of a raw variable name.
+- Regulation obligations render text (not empty numbered boxes) for all 10 regulations.
+- Sidebar reachability at 857×579 (your current viewport) and at 360px.
+- Console/network clean: no React key warnings, no failed RPCs, no 401 storms.
 
-**E. Banners + resilience**
-- Mount `PlanStatusBanner` in `AppShell` (past-due, paused, trial ending soon ≤7 days, scheduled deletion). Compact single-line style consistent with the current header — no stacked banners like before.
-- Add `errorComponent` + `notFoundComponent` with Retry to every remaining authenticated route.
-- Fix usage bars for unlimited plans and clamp over-limit states.
+Anything broken gets fixed in this pass — no deferrals.
 
-**F. Billing correctness**
-- Cancel keeps access until `current_period_end`, then downgrades (grace period), and clears `trial_ends_at` on first successful payment.
-- Filter subscription lookups by `environment` everywhere so test rows can never drive live behaviour.
+## C. Documentation rewrite
 
-**G. Deployment (the "nothing is here" fix)**
-- Make missing server env vars fail *loudly and legibly* in the UI ("Backend not configured for this deployment") instead of a red raw variable name.
-- Update `README.md` with the exact Vercel environment-variable checklist, including the Paddle live key and both webhook secrets, plus the webhook URL to register for the Vercel domain.
-- Note: I can't set Vercel environment variables for you — after this ships you must paste them into the Vercel project, or use the Lovable-published domain (`clause-graph.lovable.app`) where they're already injected.
+**`ARCHITECTURE.md`**
+- New **Database DDL** section with the complete, copy-pasteable SQL: every `CREATE TYPE`, `CREATE TABLE` (all 16 tables with exact columns, types, defaults, FKs), every `GRANT`, `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`, every `CREATE POLICY`, every function and trigger, plus indexes and the storage bucket definition.
+- ER diagram kept, corrected against the live schema.
+- Billing section marked **parked**, with exactly what to change to switch it back on.
+
+**`README.md`**
+- Feature list updated: all features available to everyone, no plan badges.
+- Billing described as "built, not activated".
+
+**New `MIGRATION.md` — Lovable Cloud → your own Supabase/host**
+Step-by-step, ordered, with commands:
+1. Create your own Supabase project; where to find URL, publishable key, service-role key, DB URL.
+2. Apply schema: run the DDL from `ARCHITECTURE.md` (or `supabase/migrations/`) in order.
+3. Move data: `pg_dump`/CSV export per table, plus the correct insert order for FK constraints.
+4. Storage: recreate the private `contract-files` bucket and its policies, copy objects.
+5. Auth: enable Email + Google, redirect URLs, and the caveat that existing users' password hashes/OAuth identities need Supabase's user migration path.
+6. Secrets: the exact env-var list for both client (`VITE_*`) and server, and which Lovable-injected ones you must now provide yourself (`SUPABASE_*`, `LOVABLE_API_KEY` → your own AI provider key).
+7. AI gateway: what to swap `LOVABLE_API_KEY` calls for (OpenAI/Gemini direct) and which files touch it.
+8. Hosting: Vercel/Cloudflare build settings, the required env vars, and the webhook URL to register if you later re-enable Paddle.
+9. Post-move verification checklist mirroring section B.
 
 ### Technical notes
-Migration for A/F touches `regulations.obligations` (data only) and adds a `SECURITY DEFINER` read-side trial-expiry function reused by `assert_within_quota`. No table drops. Entitlement checks live in `src/lib/*.server.ts` helpers called from existing server functions; UI changes are confined to `settings.billing.tsx`, `TopBar.tsx`, `AppShell.tsx`, `PlanStatusBanner.tsx`, `regulations.$regId.tsx`, and the route files gaining error boundaries.
+One migration (`handle_new_user`, `resolve_org_plan`, `assert_within_quota`, org backfill). Code changes limited to `billing.functions.ts`, `settings.billing.tsx`, `TopBar.tsx`, `PlanStatusBanner.tsx`, `PlanLimitDialog` call sites, `plans.ts` copy, landing pricing section, plus whatever the sweep in B turns up. No Paddle files deleted.

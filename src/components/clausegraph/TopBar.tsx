@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getOrgUsage } from "@/lib/billing.functions";
+import { BILLING_ENABLED } from "@/lib/plans";
 import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +20,11 @@ export function TopBar() {
     queryFn: () => getUsage(),
     staleTime: 30_000,
   });
-  const effectivePlan = usage?.plan ?? profile?.org?.plan;
+  // While billing is parked every workspace is Pro — never let a failed query
+  // make the badge disagree with what the app actually allows.
+  const effectivePlan = BILLING_ENABLED
+    ? (usage?.plan ?? profile?.org?.plan)
+    : "pro";
   const contractCount = contracts?.length ?? 0;
   const orgName = profile?.org?.name ?? "Workspace";
 
