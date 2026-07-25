@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SimulationResult, Severity, ImpactEntry } from "./simulate-types";
 
-const SEVERITIES: Severity[] = ["low", "medium", "high"];
-
 type BacktestRow = {
   id: string;
   company: string;
@@ -87,6 +85,7 @@ ${JSON.stringify(clauseCtx)}`;
         return { ...bt.fallback };
       }
       if (!parsed || typeof parsed !== "object") return { ...bt.fallback };
+      const severities: Severity[] = ["low", "medium", "high"];
       const rawArr = Array.isArray((parsed as { impacts?: unknown }).impacts)
         ? (parsed as { impacts: unknown[] }).impacts
         : [];
@@ -98,7 +97,7 @@ ${JSON.stringify(clauseCtx)}`;
         const id = String(o.contract_id ?? "");
         const sev = String(o.severity ?? "").toLowerCase() as Severity;
         const fix = String(o.suggested_amendment ?? "");
-        if (!validIds.has(id) || !SEVERITIES.includes(sev) || !fix) continue;
+        if (!validIds.has(id) || !severities.includes(sev) || !fix) continue;
         impacts.push({ contract_id: id, severity: sev, suggested_amendment: fix });
       }
       if (impacts.length === 0) return { ...bt.fallback };

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { bandFor, daysBetween, daysSince, fallbackHypothetical, windowFor } from "./predict.server";
 
 export type ProbabilityBand = "high" | "medium" | "low";
 
@@ -26,24 +27,6 @@ export type ForecastEntry = {
   window_months: 3 | 6 | 12 | 18;
   amendments: Amendment[];
 };
-
-const MS_PER_DAY = 86_400_000;
-
-function bandFor(p: number): ProbabilityBand {
-  if (p >= 0.7) return "high";
-  if (p >= 0.4) return "medium";
-  return "low";
-}
-
-function windowFor(avgIntervalDays: number | null, daysSinceLast: number | null): 3 | 6 | 12 | 18 {
-  if (!avgIntervalDays || daysSinceLast === null) return 18;
-  const remainingDays = Math.max(0, avgIntervalDays - daysSinceLast);
-  const remainingMonths = remainingDays / 30;
-  if (remainingMonths <= 3) return 3;
-  if (remainingMonths <= 6) return 6;
-  if (remainingMonths <= 12) return 12;
-  return 18;
-}
 
 export const predictAmendmentRisk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -88,17 +71,14 @@ export const predictAmendmentRisk = createServerFn({ method: "GET" })
       if (history.length >= 2) {
         let totalGap = 0;
         for (let i = 1; i < history.length; i++) {
-          totalGap +=
-            (new Date(history[i].amended_on).getTime() -
-              new Date(history[i - 1].amended_on).getTime()) /
-            MS_PER_DAY;
+          totalGap += daysBetween(history[i - 1].amended_on, history[i].amended_on);
         }
         avgIntervalDays = totalGap / (history.length - 1);
       }
 
       if (history.length > 0) {
         lastAmendedOn = history[history.length - 1].amended_on;
-        daysSinceLast = (now - new Date(lastAmendedOn).getTime()) / MS_PER_DAY;
+        daysSinceLast = daysSince(lastAmendedOn, now);
       }
 
       let baseProbability = 0;
@@ -142,24 +122,6 @@ export type HypotheticalAmendment = {
   based_on_patterns: string[];
   fallback: boolean;
 };
-
-function fallbackHypothetical(
-  regulationId: string,
-  title: string,
-  history: Amendment[],
-): HypotheticalAmendment {
-  const patterns = history
-    .slice(0, 3)
-    .map((h) => `${h.amended_on}: ${h.summary}`);
-  return {
-    regulation_id: regulationId,
-    amendment_text: `PROPOSED AMENDMENT TO ${title}. Building on the historical trajectory of this instrument, obligations are further tightened: notification, disclosure and remediation windows are shortened by approximately one third, and the personal-scope of covered entities is expanded to include material affiliates and processors. Enforcement authorities may impose enhanced monetary penalties for repeated non-conformity. This adversarial what-if scenario is generated from public amendment history and is not an actual proposal.`,
-    rationale:
-      "Fallback narrative composed from the regulation's historical amendment pattern. Live model call was unavailable, so this scenario is inferred deterministically rather than generated per-request.",
-    based_on_patterns: patterns,
-    fallback: true,
-  };
-}
 
 export const generateHypotheticalAmendment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

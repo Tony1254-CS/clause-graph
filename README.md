@@ -156,6 +156,12 @@ Limits are enforced at the database (`assert_within_quota`) — no client bypass
 
 Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
 
+### Vercel deployment notes
+
+ClauseGraph now detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
+
+Set the same production environment variables in Vercel that the app uses at runtime: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `LOVABLE_API_KEY`, and the Paddle variables used by billing/webhooks. Private backend values must stay in Vercel's encrypted environment-variable UI — never commit them.
+
 ---
 
 ## 🗂 Project Structure (condensed)

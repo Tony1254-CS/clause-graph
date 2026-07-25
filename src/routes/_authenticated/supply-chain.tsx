@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Network, Loader2, Waves, ShieldAlert } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   type ChainNode,
 } from "@/lib/supply-chain.functions";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
+import { Button } from "@/components/ui/button";
 
 const chainQuery = queryOptions({
   queryKey: ["supply-chain"],
@@ -35,7 +36,50 @@ export const Route = createFileRoute("/_authenticated/supply-chain")({
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(chainQuery),
   component: SupplyChainPage,
+  errorComponent: SupplyChainError,
+  notFoundComponent: SupplyChainNotFound,
 });
+
+function SupplyChainError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <AppShell>
+      <div className="glass-panel max-w-lg p-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--risk)]">
+          Supply chain unavailable
+        </p>
+        <h1 className="mt-2 font-display text-[24px] leading-[1.15] tracking-tight text-foreground">
+          The cascade graph did not load.
+        </h1>
+        <p className="mt-3 text-[13px] leading-[1.6] text-muted-foreground">{error.message}</p>
+        <Button
+          className="mt-5"
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    </AppShell>
+  );
+}
+
+function SupplyChainNotFound() {
+  return (
+    <AppShell>
+      <div className="glass-panel max-w-md p-8 text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Not found
+        </p>
+        <h1 className="mt-2 font-display text-[22px] leading-[1.15] text-foreground">
+          Supply chain route unavailable.
+        </h1>
+      </div>
+    </AppShell>
+  );
+}
 
 function formatUSD(n: number): string {
   return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;

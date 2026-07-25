@@ -1,16 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { getUserOrg } from "./account.server";
 import type { PaddleEnv } from "./paddle.server";
-
-async function getUserOrg(supabase: SupabaseClient, userId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data?.org_id as string | undefined) ?? null;
-}
 
 /** Schedule workspace deletion 30 days out. Admin-only (enforced in SQL). */
 export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
