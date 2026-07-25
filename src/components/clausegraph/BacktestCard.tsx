@@ -54,7 +54,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
   return (
     <article className="glass-panel p-6 flex flex-col gap-5">
       <header>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
           Enforcement case · {dateLabel}
         </p>
         <h3 className="mt-2 font-display text-[22px] leading-[1.15] tracking-tight text-foreground">
@@ -73,8 +73,8 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
 
       <p className="text-[13px] leading-[1.6] text-muted-foreground">{bt.summary}</p>
 
-      <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[rgba(201,166,107,0.04)] p-3.5">
-        <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-brass">
+      <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)] p-3.5">
+        <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-[var(--brass)]">
           <ShieldAlert className="h-3 w-3" strokeWidth={1.8} />
           Reconstruction — not this company's actual contracts
         </p>
@@ -114,7 +114,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
       <button
         onClick={onRun}
         disabled={status === "loading"}
-        className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed duration-150 ease-out transition-all"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2.5 text-[13px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {status === "loading" ? (
           <>
@@ -142,7 +142,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
         <div className="rounded-[20px] border border-[var(--hairline-strong)] p-4 bg-[rgba(255,255,255,0.02)]">
 
           <div className="flex items-center justify-between gap-2">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
               Reconstructed scenario · analyzed live
             </p>
             <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground border border-[var(--hairline)] rounded-full px-2 py-0.5">
@@ -158,7 +158,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
             {result.impacts.map((i) => (
               <li key={i.contract_id} className="rounded-[12px] border border-[var(--hairline)] p-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brass)]">
                     {i.contract_id}
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -170,7 +170,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
                   {clauseById.get(i.contract_id)}
                 </p>
                 <p className="mt-1.5 text-[12px] leading-[1.55] text-muted-foreground">
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-brass mr-1.5">
+                  <span className="mr-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-[var(--brass)]">
                     Fix →
                   </span>
                   {i.suggested_amendment}
