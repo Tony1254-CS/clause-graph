@@ -76,13 +76,20 @@ export const contractsQuery = queryOptions({
   queryFn: async (): Promise<Contract[]> => {
     const { data, error } = await supabase
       .from("contracts")
-      .select("id, name, counterparty, value, clauses(id, text, linked_regs, position)")
+      .select(
+        "id, name, counterparty, value, extraction_status, extraction_error, is_sample, source_file_url, clauses(id, text, linked_regs, position)",
+      )
       .order("created_at", { ascending: true });
     if (error) throw error;
     return (data ?? []).map((r) => mapContract(r as ContractRow));
   },
-  staleTime: 60_000,
+  staleTime: 30_000,
+  refetchInterval: (query) => {
+    const rows = query.state.data as Contract[] | undefined;
+    return rows?.some((c) => c.extraction_status === "processing") ? 3000 : false;
+  },
 });
+
 
 export const regulationsQuery = queryOptions({
   queryKey: ["regulations"],
