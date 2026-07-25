@@ -158,6 +158,12 @@ function BillingPage() {
         {error && (
           <div className="glass-panel border-risk/40 text-risk p-4 text-[13px]">{error}</div>
         )}
+        {notice && (
+          <div className="glass-panel p-4 text-[13px] text-foreground flex items-center gap-2">
+            {polling && <Loader2 className="h-3.5 w-3.5 animate-spin text-brass" />}
+            {notice}
+          </div>
+        )}
 
         <section className="glass-panel p-6">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -188,7 +194,8 @@ function BillingPage() {
               key={id}
               plan={PLANS[id]}
               current={currentPlan === id}
-              disabled={coLoading || !PLANS[id].priceId}
+              disabled={coLoading || changing !== null || !PLANS[id].priceId}
+              busy={changing === id}
               onSelect={() => handleSelect(id)}
             />
           ))}
