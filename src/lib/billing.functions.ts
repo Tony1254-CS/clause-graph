@@ -8,8 +8,10 @@ import { PLANS, BILLING_ENABLED, type PlanId } from "./plans";
  * internal price id required by Paddle.js checkout.
  */
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { priceId: string; environment: PaddleEnv }) => data)
   .handler(async ({ data }) => {
+    if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
     const res = await gatewayFetch(
       data.environment,
       `/prices?external_id=${encodeURIComponent(data.priceId)}`,
@@ -19,6 +21,7 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     if (!json.data?.length) throw new Error("Price not found");
     return json.data[0].id;
   });
+
 
 /**
  * Create a Paddle customer portal session so the user can update payment
@@ -30,7 +33,9 @@ export const createBillingPortalSession = createServerFn({ method: "POST" })
     environment: (data?.environment === "live" ? "live" : "sandbox") as PaddleEnv,
   }))
   .handler(async ({ data, context }) => {
+    if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
     const { supabase, userId } = context;
+
 
     const { data: prof } = await supabase
       .from("profiles")
@@ -167,7 +172,9 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
     environment: (data.environment === "live" ? "live" : "sandbox") as PaddleEnv,
   }))
   .handler(async ({ data, context }) => {
+    if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
     const { supabase, userId } = context;
+
     const target = PLANS[data.newPlanId];
     if (!target?.priceId) throw new Error("Invalid plan");
 

@@ -64,9 +64,25 @@ export const startContractExtraction = createServerFn({ method: "POST" })
     const contractId = inserted.id;
 
     // Fire-and-forget the AI extraction; the client polls extraction_status.
-    void runContractExtraction(contractId, data.rawText).catch((err) => {
+    // If even the failure-write inside the pipeline throws, mark the row failed
+    // here so the UI never polls a contract that is stuck on "processing".
+    void runContractExtraction(contractId, data.rawText).catch(async (err) => {
       console.error("extraction failed", contractId, err);
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin
+          .from("contracts")
+          .update({
+            extraction_status: "failed",
+            extraction_error: "Extraction could not be completed. Try uploading again.",
+          })
+          .eq("id", contractId)
+          .eq("extraction_status", "processing");
+      } catch (e) {
+        console.error("extraction status write failed", contractId, e);
+      }
     });
+
 
     return { id: contractId };
   });

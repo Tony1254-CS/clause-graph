@@ -31,17 +31,15 @@ export const Route = createFileRoute("/_authenticated/predictive/$regulationId")
       },
     ],
   }),
-  loader: ({ context, params }) => {
-    return Promise.all([
+  loader: async ({ context, params }) => {
+    const [, , forecasts] = await Promise.all([
       context.queryClient.ensureQueryData(contractsQuery),
       context.queryClient.ensureQueryData(regulationsQuery),
       context.queryClient.ensureQueryData(forecastsQuery()),
-    ]).then(([, , forecasts]) => {
-      const entry = forecasts.find((f) => f.regulation_id === params.regulationId);
-      if (!entry) throw notFound();
-      return { entry };
-    });
+    ]);
+    if (!forecasts.some((f) => f.regulation_id === params.regulationId)) throw notFound();
   },
+
   component: ForecastDetail,
   errorComponent: ({ error, reset }) => (
     <AppShell>
@@ -70,9 +68,13 @@ const SEV_DOT: Record<Severity, string> = {
 };
 
 function ForecastDetail() {
-  const { entry } = Route.useLoaderData();
+  const { regulationId } = Route.useParams();
+  const { data: forecasts } = useSuspenseQuery(forecastsQuery());
   const { data: contracts } = useSuspenseQuery(contractsQuery);
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
+  const entry = forecasts.find((f) => f.regulation_id === regulationId);
+  if (!entry) throw notFound();
+
   const runHypothetical = useServerFn(generateHypotheticalAmendment);
   const runSimulate = useServerFn(simulateImpact);
 
@@ -118,7 +120,7 @@ function ForecastDetail() {
     setHypoStatus("loading");
     setError(null);
     try {
-      const h = await runHypothetical({ data: { regulationId: entry.regulation_id } });
+      const h = await runHypothetical({ data: { regulationId } });
       setHypo(h);
       setHypoStatus("done");
     } catch (err) {
@@ -138,7 +140,7 @@ function ForecastDetail() {
         data: {
           regulationText: hypo.amendment_text,
           runType: "forecast",
-          regulationId: entry.regulation_id,
+          regulationId,
         },
       });
       const elapsed = Date.now() - started;
