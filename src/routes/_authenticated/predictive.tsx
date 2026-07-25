@@ -1,9 +1,10 @@
-import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatches, useRouter } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Radar } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { predictAmendmentRisk, type ForecastEntry, type ProbabilityBand } from "@/lib/predict.functions";
+import { Button } from "@/components/ui/button";
 
 export const forecastsQuery = () =>
   queryOptions({
@@ -42,7 +43,50 @@ export const Route = createFileRoute("/_authenticated/predictive")({
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(forecastsQuery()),
   component: PredictiveLayout,
+  errorComponent: PredictiveError,
+  notFoundComponent: PredictiveNotFound,
 });
+
+function PredictiveError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <AppShell>
+      <div className="glass-panel max-w-lg p-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--risk)]">
+          Predictive radar unavailable
+        </p>
+        <h1 className="mt-2 font-display text-[24px] leading-[1.15] tracking-tight text-foreground">
+          Forecast data did not load.
+        </h1>
+        <p className="mt-3 text-[13px] leading-[1.6] text-muted-foreground">{error.message}</p>
+        <Button
+          className="mt-5"
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    </AppShell>
+  );
+}
+
+function PredictiveNotFound() {
+  return (
+    <AppShell>
+      <div className="glass-panel max-w-md p-8 text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          Not found
+        </p>
+        <h1 className="mt-2 font-display text-[22px] leading-[1.15] text-foreground">
+          Forecast route unavailable.
+        </h1>
+      </div>
+    </AppShell>
+  );
+}
 
 const BAND_STYLE: Record<ProbabilityBand, { pill: string; label: string }> = {
   high: {
