@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <MobileRail />
           <div className="flex-1 min-w-0 flex flex-col">
             <TopBar />
+            <PlanStatusBanner />
             <main className="premium-scrollbar flex-1 min-h-0 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
               <div key={pathname} className="route-transition mx-auto w-full max-w-[1420px]">
                 {children}
