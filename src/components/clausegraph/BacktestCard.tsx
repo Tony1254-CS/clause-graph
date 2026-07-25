@@ -49,7 +49,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
     }
   }
 
-  const dateLabel = new Date(bt.date).toISOString().slice(0, 10);
+  const dateLabel = new Date(bt.case_date).toISOString().slice(0, 10);
 
   return (
     <article className="glass-panel p-6 flex flex-col gap-5">
