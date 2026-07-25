@@ -205,7 +205,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                         fill="var(--paper)"
                         stroke="var(--text-muted)"
                         strokeWidth="1"
-                        className="cursor-pointer transition-all duration-150"
+                        className="cursor-pointer transition-all duration-200"
                         onMouseEnter={() => setHover(n)}
                         onMouseLeave={() => setHover(null)}
                       />
