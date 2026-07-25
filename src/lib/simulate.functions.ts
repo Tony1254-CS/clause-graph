@@ -170,6 +170,7 @@ ${JSON.stringify(contractContext)}`;
         input_regulation_text: data.regulationText,
         result_json: JSON.parse(JSON.stringify(result)),
         triggered_by: userId,
+        run_type: data.runType,
       });
       if (insertErr) console.error("[simulate] persist error", insertErr);
     }
