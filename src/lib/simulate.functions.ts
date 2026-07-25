@@ -39,6 +39,20 @@ export const simulateImpact = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<SimulationResult> => {
     const { supabase, userId } = context;
 
+    // Enforce simulation quota against the caller's org
+    const { data: profileForQuota } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileForQuota?.org_id) {
+      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
+        _org: profileForQuota.org_id,
+        _action: "run_simulation",
+      });
+      if (quotaErr) throw new Error(quotaErr.message);
+    }
+
     const [{ data: contractRows, error: cErr }, { data: regRows, error: rErr }] =
       await Promise.all([
         supabase
