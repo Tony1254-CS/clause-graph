@@ -72,20 +72,25 @@ function BillingPage() {
   const currentPlan = (usage.data?.plan ?? "free") as PlanId;
   const userId = profile.data?.id;
   const orgId = profile.data?.org?.id;
+  const onTrial = !!usage.data?.on_trial;
+  const hasSubscription = !!usage.data?.has_subscription;
 
   async function handleSelect(planId: PlanId) {
     setError(null);
     setNotice(null);
-    if (planId === currentPlan) return;
     const price = PLANS[planId].priceId;
     if (!price || !userId || !orgId) return;
+    // On a trial (or any state without a real subscription) the user must be
+    // able to buy the plan they're trialling — never treat it as "current".
+    if (planId === currentPlan && hasSubscription) return;
 
-    // If already on a paid plan, swap items on the existing subscription
-    // (no double-billing).
-    if (currentPlan !== "free") {
+    // Only swap items when a real paid subscription exists.
+    if (hasSubscription) {
       setChanging(planId);
       try {
-        const res = await changePlan({ data: { newPlanId: planId } });
+        const res = await changePlan({
+          data: { newPlanId: planId, environment: getPaddleEnvironment() },
+        });
         if (res.changed) {
           setNotice(
             res.upgraded
@@ -102,7 +107,7 @@ function BillingPage() {
       return;
     }
 
-    // Free → paid: open a fresh checkout.
+    // Free or trialling → open a fresh checkout.
     try {
       await openCheckout({
         priceId: price,
@@ -119,7 +124,7 @@ function BillingPage() {
     setError(null);
     setPortalLoading(true);
     try {
-      const { url } = await portal();
+      const { url } = await portal({ data: { environment: getPaddleEnvironment() } });
       window.open(url, "_blank", "noopener");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not open portal");
