@@ -93,10 +93,12 @@ Each feature below lists **what it does**, **when to use it**, **where to find i
 - **Where**: `/settings/team`
 - **Powered by**: `team.functions.ts`, `user_roles` table
 
-### 13. Billing (Free / Pro / Enterprise)
-- **What**: Paddle-powered upgrade/downgrade with **pro-rated swaps** via the Paddle Node SDK. `past_due` dunning banner, one-click cancel. Every new user gets a **30-day Pro trial**; expiry auto-downgrades on the next quota check.
+### 13. Billing — parked (everything is free right now)
+- **What**: Subscriptions are fully built but **switched off**. Every workspace runs on Pro with unlimited contracts, simulations and seats. `/settings/billing` shows a plain "early access — nothing to pay" panel instead of pricing cards, and no upgrade prompt exists anywhere in the app.
+- **Under the hood**: the Paddle integration stays intact — checkout, pro-rated plan swaps via the Paddle Node SDK, customer portal, dunning, and the HMAC-verified webhook. Two switches turn it on: `public.billing_enabled()` in the database and `BILLING_ENABLED` in `src/lib/plans.ts`. Flip both and the paid experience returns with no rebuild.
 - **Where**: `/settings/billing`
 - **Powered by**: `billing.functions.ts`, `usePaddleCheckout.ts`, webhook `/api/public/payments/webhook`
+
 
 ### 14. Workspace Deletion (30-day grace)
 - **What**: Admin schedules deletion; workspace remains restorable for 30 days. Admins can cancel any time before the deadline.
