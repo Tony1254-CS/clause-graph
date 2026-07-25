@@ -18,7 +18,23 @@ export const generateActionPlan = createServerFn({ method: "POST" })
       impacts: input.impacts,
     };
   })
-  .handler(async ({ data }): Promise<ActionPlan> => {
+  .handler(async ({ data, context }): Promise<ActionPlan> => {
+    // Server-side entitlement gate: action plans are a paid/trial feature and
+    // draw on the monthly allowance.
+    const { supabase, userId } = context;
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (prof?.org_id) {
+      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
+        _org: prof.org_id,
+        _action: "generate_action_plan",
+      });
+      if (quotaErr) throw new Error(quotaErr.message);
+    }
+
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) return { ...fallbackActionPlan };
 
