@@ -47,7 +47,22 @@ export const generateComplianceCode = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const apiKey = process.env.LOVABLE_API_KEY;
 
+    // Server-side entitlement gate: compliance-as-code is a paid/trial feature.
+    const { data: gateProfile } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (gateProfile?.org_id) {
+      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
+        _org: gateProfile.org_id,
+        _action: "generate_compliance_code",
+      });
+      if (quotaErr) throw new Error(quotaErr.message);
+    }
+
     let result: ComplianceCode | null = null;
+
 
     if (apiKey) {
       try {
