@@ -710,6 +710,7 @@ export type Database = {
         Args: { _by: string; _org: string }
         Returns: string
       }
+      resolve_org_plan: { Args: { _org: string }; Returns: string }
       seed_supply_chain: { Args: { _org: string }; Returns: undefined }
     }
     Enums: {
