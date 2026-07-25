@@ -131,6 +131,18 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               await handleSubscriptionCanceled(event.data as any, env);
               break;
+            case EventName.TransactionPaymentFailed: {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const d = event.data as any;
+              const orgId = d?.customData?.orgId as string | undefined;
+              if (orgId) {
+                await getSupabase()
+                  .from("organizations")
+                  .update({ plan_status: "past_due" })
+                  .eq("id", orgId);
+              }
+              break;
+            }
             default:
               console.log("[paddle] unhandled event:", event.eventType);
           }

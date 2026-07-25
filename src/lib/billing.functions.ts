@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "./paddle.server";
+import { PLANS, type PlanId } from "./plans";
 
 /**
  * Resolves a human-readable price id (e.g. "pro_monthly") to the Paddle
