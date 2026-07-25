@@ -36,3 +36,25 @@ export function ContractCard({ contract }: { contract: Contract }) {
     </Link>
   );
 }
+
+function StatusBadge({ contract }: { contract: Contract }) {
+  const s = contract.extraction_status;
+  if (s === "complete") return null;
+  const map = {
+    processing: { label: "Analyzing…", color: "text-brass border-[var(--hairline-strong)]" },
+    pending: { label: "Pending", color: "text-muted-foreground border-[var(--hairline)]" },
+    failed: { label: "Extraction failed", color: "text-[var(--risk)] border-[var(--risk)]/40" },
+  } as const;
+  const cfg = map[s];
+  return (
+    <span
+      className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${cfg.color}`}
+    >
+      {s === "processing" && (
+        <span className="h-1.5 w-1.5 rounded-full bg-brass animate-pulse" />
+      )}
+      {cfg.label}
+    </span>
+  );
+}
+
