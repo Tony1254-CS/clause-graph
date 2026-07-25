@@ -1,85 +1,48 @@
-## Plan: premium UI rebuild + correct hover sidebar
+## Fix messy UI: pure black + platinum ice, no sidebar scrollbar
 
-### Goals
-- Make the app feel clean, modern, premium, and “alive” without visual clutter.
-- Fix the navigation ergonomics: users should not scroll the whole page to reach navbar items.
-- Restore the behavior you asked for: sidebar expands on hover/focus and auto-minimizes when the cursor leaves.
-- Keep all existing product features and routes intact.
+### 1. Kill the sidebar scrollbar
+- In `src/components/clausegraph/Sidebar.tsx`, remove the `premium-scrollbar` + `overflow-y-auto` on the nav list. The rail already holds 12 items; at 76px collapsed / 268px expanded with tight icon spacing they fit vertically on standard viewports.
+- Reduce per-item vertical padding and gap so the full nav column fits without any scroll region on viewports down to ~640px tall.
+- Move "Jurisdiction" chip out of the sidebar footer entirely (or hide when collapsed) — it's the main reason the rail overflows.
+- Same treatment for `MobileRail`.
 
-### 1. Replace the current visual system
-- Rework `src/styles.css` into a dark-first premium liquid-glass theme inspired by the reference image, without copying it.
-- Use a controlled palette:
-  - near-black graphite/teal background
-  - luminous cyan as the primary living accent
-  - warm off-white text
-  - muted steel/ash secondary text
-  - risk-red only for severity/exposure states
-- Remove the cheap/messy background blobs/orbs and replace them with a subtle full-screen atmospheric gradient/grid treatment.
-- Tighten border radii, borders, shadows, and blur so panels look like polished glass, not noisy cards.
-- Preserve light mode, but make dark mode the flagship experience.
+### 2. Repalette to pure black + platinum ice
+Rewrite tokens in `src/styles.css`:
+- `--page-bg: #000000` (pure black, was graphite `#05090d`)
+- `--shell-bg: #0a0a0a` with subtle white-alpha overlay for glass
+- `--surface-glass: rgba(255,255,255,0.04)`, `--surface-glass-strong: rgba(255,255,255,0.08)`
+- `--hairline: rgba(232,236,241,0.10)`, `--hairline-strong: rgba(232,236,241,0.22)`
+- Accent (replaces cyan `--brass`/`--aura`): `--ink-accent: #e8ecf1` (platinum), `--ink-accent-strong: #ffffff`
+- `--text-primary: #f4f6f8`, `--text-muted: #7a8391`
+- `--risk: #e1524b` (unchanged, severity only)
+- Remove every cyan gradient, cyan glow, and cyan grid tint. Replace with neutral white-alpha at 3–8%.
 
-### 2. Rebuild the app shell layout
-- Change `AppShell` to a true viewport app layout:
-  - outer page does not need to scroll just to reach navigation
-  - sidebar, top bar, banners, main content, and footer have clear independent areas
-  - main content gets its own scroll container
-- Reduce crowding in the top area so the dashboard breathes on short screens like the current preview height.
-- Make spacing and typography more editorial and less dense.
+### 3. Strip the noisy atmosphere
+- Remove the two big radial cyan gradients + grid lines from `body` and `AppShell` overlays.
+- Replace with a single, near-invisible vignette: `radial-gradient(ellipse at top, rgba(255,255,255,0.03), transparent 60%)` on the shell only. No grid, no orbs.
+- Drop the `linear-gradient(110deg,…aura…)` sweep in `AppShell`.
 
-### 3. Fix the sidebar properly
-- Rebuild `Sidebar` as a hover-expanding rail:
-  - collapsed width around 72–80px
-  - expanded width around 250–280px
-  - expands on `mouseenter` and `focus-within`
-  - collapses on `mouseleave` and when focus exits
-  - expansion overlays the content instead of pushing/reflowing the whole page
-- Split sidebar into three zones:
-  - logo pinned at top
-  - scrollable nav list in the middle
-  - settings/account pinned at bottom
-- Ensure the nav list itself scrolls when needed, not the entire page.
-- Show labels only when expanded; keep clean icons when collapsed.
-- Add active route styling that feels premium and readable.
+### 4. Retone accent usage across components
+Anywhere currently using `--brass`, `--aura`, or cyan color-mix (TopBar CTA, ThemeToggle active state, GraphMedallion rings, ContractCard hover, RegulationPill, FederalRegisterFeed live dot, PlanStatusBanner, PaymentTestModeBanner underline, ClauseRow, BacktestCard, ActionPlanPanel, ComplianceCodePanel, UploadContract):
+- Swap to `--ink-accent` (platinum white) for active/hover/focus states, rings, and key numerals.
+- Primary CTA "Simulate Impact": white fill, black text, subtle white glow — Tesla-style.
+- Graph medallion rings: neutral white at descending opacity (14% → 4%), no cyan.
+- Live/pulse indicators: white with low-opacity halo instead of cyan.
+- Keep risk-red strictly for severity states.
 
-### 4. Redesign top bar and action area
-- Simplify `TopBar` so it no longer feels crowded:
-  - cleaner ClauseGraph wordmark
-  - compact workspace/plan status
-  - refined light/dark toggle
-  - premium “Simulate Impact” CTA
-  - calmer user menu
-- Make trial/payment banners visually integrated instead of heavy bars dominating the first screen.
+### 5. Typography tightening
+- Keep Sora / Inter / JetBrains Mono, but reduce uppercase-tracking usage. Currently every label is `uppercase tracking-[0.18em]` — it reads as cluttered. Restrict uppercase micro-labels to section headers only; body labels return to sentence case.
 
-### 5. Refresh dashboard hero / medallion treatment
-- Restyle `GraphMedallion` into a premium radar/seal centerpiece:
-  - subtle cyan rings and depth
-  - smooth breathing pulse only where meaningful
-  - restrained graph nodes/edges
-  - risk-red appears only after impact simulation
-- Improve headline scale and copy hierarchy so it looks intentional, not crowded.
+### 6. Verify
+- Confirm 76 → 268px hover expand still works, no scrollbar visible in nav.
+- Confirm no cyan remains via `rg -n "brass|aura|22dce6|19cce2|#22d|#19c" src/`.
+- Screenshot dashboard + one interior route to confirm the black+platinum look reads clean.
 
-### 6. Apply the new surface language across repeated content
-- Update the most visible ClauseGraph cards/panels to match the new system:
-  - contract cards
-  - clause rows
-  - regulation/feed panels
-  - action/compliance panels where needed
-- Keep functionality unchanged; this is a presentation/system pass.
+### Files touched
+- `src/styles.css` (token rewrite, remove cyan gradients)
+- `src/components/clausegraph/Sidebar.tsx` (remove scrollbar, compact spacing)
+- `src/components/clausegraph/AppShell.tsx` (remove atmospheric overlays)
+- `src/components/clausegraph/TopBar.tsx`, `GraphMedallion.tsx`, `ContractCard.tsx`, `ClauseRow.tsx`, `RegulationPill.tsx`, `FederalRegisterFeed.tsx`, `PlanStatusBanner.tsx`, `BacktestCard.tsx`, `ActionPlanPanel.tsx`, `ComplianceCodePanel.tsx`, `UploadContract.tsx`
+- `src/components/theme-toggle.tsx`, `src/components/PaymentTestModeBanner.tsx`
 
-### 7. Responsive and interaction checks
-- Verify at the current short desktop preview size that all nav items are reachable.
-- Verify tablet/mobile behavior still works.
-- Check hover expand/collapse, keyboard focus, route active states, and dark/light toggle.
-- Run the project checks after implementation.
-
-### Technical notes
-- Files expected to change:
-  - `src/styles.css`
-  - `src/components/clausegraph/AppShell.tsx`
-  - `src/components/clausegraph/Sidebar.tsx`
-  - `src/components/clausegraph/TopBar.tsx`
-  - `src/components/theme-toggle.tsx`
-  - `src/components/clausegraph/GraphMedallion.tsx`
-  - selected high-visibility ClauseGraph cards/panels if their old styling clashes
-- No backend, billing, auth, AI, or data-model changes.
-- Existing routes and features remain intact.
+No backend, data, or feature changes.
