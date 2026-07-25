@@ -1,92 +1,140 @@
+# Phase 6 — Stripe Billing & Phase 7 — Observability / Launch
 
-# Phase 2.5 + Phase 3 — Team invites & Contract Upload Pipeline
+Phase 2 (auth + multi-tenancy), Phase 2.5 (team invites), and Phase 3 (contract upload pipeline) are live. Time to gate usage behind plans and finish launch polish.
 
-Phase 2 (auth + multi-tenancy + RLS) is live. Two things remain from the full production plan before we can start billing:
-
-1. **Team invites** — the last unfinished piece of Phase 2 §9.
-2. **Contract upload pipeline** — Phase 3: turn uploaded PDFs/DOCX into `contracts` + `clauses` rows with linked regulations, replacing the sample data.
-
-Stripe billing (Phase 6) and infra/observability (Phase 7) get separate plans after this lands.
+Payment provider check: `recommend_payment_provider` returned **Paddle** as eligible (standard B2B SaaS). Earlier in the build the user explicitly picked **built-in Stripe** and Stripe is what this plan uses. Say the word if you'd rather switch to Paddle before I enable — Paddle handles tax/compliance globally as merchant of record, Stripe gives per-transaction flexibility.
 
 ---
 
-## Part A — Team invites (finish Phase 2 §9)
+## Phase 6 — Stripe Billing
 
-Goal: an admin can invite a teammate by email, teammate signs up, lands in the same org (not a new one).
+Goal: three plans (Free, Pro, Team) with quotas that gate uploads/simulations; Stripe Checkout + Customer Portal; org-scoped billing state.
 
-- **`settings.team.tsx` route** (under `_authenticated/`): lists current members from `profiles` + `user_roles` (RLS-scoped, so admins and members both see just their org). Admin-only "Invite" form and "Remove" button; UI hides admin-only controls via `has_role`.
-- **`inviteTeammate` server fn** (`src/lib/team.functions.ts`, `requireSupabaseAuth`): verifies caller is admin for `current_org_id()` via `context.supabase.rpc('has_role', ...)`, then dynamically imports `supabaseAdmin` and calls `auth.admin.inviteUserByEmail(email, { data: { invited_org_id, full_name } })`. Never uses admin client to check the role.
-- **`removeTeammate` server fn**: same admin check, then deletes `user_roles` row and nulls / reassigns `profiles.org_id` (or blocks removing the last admin).
-- **`handle_new_user` trigger**: already reads `raw_user_meta_data.invited_org_id` and attaches the user as `member` — verified. No migration needed unless we tighten it further.
-- **Invite email**: use Supabase's built-in invite mailer (already covered in Phase 2 plan). Resend/branded email deferred.
-- **TopBar account menu**: add a "Team" link visible to all members; admin-only "Invite" quick action.
+### 1. Plans & quotas
 
-Verification: two accounts, admin invites second, second signs up via the emailed link and lands in the same org's dashboard with the admin's contracts visible under the same RLS.
+| Plan | Contracts | Simulations / month | Teammates | Price |
+|---|---|---|---|---|
+| Free | 3 | 5 | 1 | $0 |
+| Pro | 50 | 100 | 3 | $49 / mo |
+| Team | Unlimited | Unlimited | Unlimited | $199 / mo |
 
----
+- `organizations.plan` already exists (`free` default). Add `stripe_customer_id text`, `stripe_subscription_id text`, `plan_renews_at timestamptz`, `plan_status text` (active/past_due/canceled).
+- `simulation_runs` already timestamps every run → month counts computed by SQL, no denormalized counter needed.
 
-## Part B — Contract Upload Pipeline (Phase 3)
+### 2. Enable Stripe
 
-Goal: a user uploads a contract file, we extract clauses via LLM, link each clause to relevant regulations from the org's ontology, and the contract shows up in `/contracts` alongside sample data.
+- Call `enable_stripe_payments` (Lovable-managed, no API key from user).
+- Set tax handling to **full compliance handling** (`managed_payments: true`) since it's digital SaaS.
+- Create 2 products with `batch_create_product` (Pro, Team; monthly recurring, tax code `txcd_10103001` — SaaS).
 
-### 1. Storage bucket
+### 3. Server-side quota enforcement
 
-- Create a **private** bucket `contract-files` via `supabase--storage_create_bucket` (public=false).
-- RLS on `storage.objects`: authenticated users can INSERT/SELECT/DELETE only under path prefix `${current_org_id()}/…`. Enforced via policies on `storage.objects` that parse the path.
+Add a `public.assert_within_quota(_org uuid, _action text)` SQL function (SECURITY DEFINER) that:
+- Reads `organizations.plan`.
+- Counts `contracts` (org-scoped) for `_action = 'upload_contract'`.
+- Counts `simulation_runs` this month for `_action = 'run_simulation'`.
+- Raises exception with `HINT: PLAN_LIMIT` if over.
 
-### 2. Upload UI (`/contracts` route)
+Call it at the top of `startContractExtraction` and `simulateImpact` server fns. Same helper called from `inviteTeammate` for seat count.
 
-- Add a "Upload contract" button on `/contracts/index`. Dropzone accepts `.pdf`, `.docx`, `.txt` up to ~10 MB.
-- Client-side: validate file, ask user for **Contract name** and **Counterparty** (required) and **Contract value USD** (optional numeric, mono field). Uses the app's existing glass-panel form styling.
-- Client uploads to Storage at `${org_id}/${uuid}.${ext}` using the browser Supabase client (RLS approves because path prefix matches `current_org_id()`).
-- After upload, client calls `startContractExtraction({ data: { fileKey, name, counterparty, value } })` server fn.
+### 4. Checkout & portal
 
-### 3. `contracts` row + extraction pipeline
+- `/api/public/stripe/checkout` server route (auth-gated inside handler — reads bearer, resolves org, calls Stripe SDK to create a Checkout Session with `client_reference_id = org_id`). Returns `{ url }`.
+- `/api/public/stripe/portal` — creates a Customer Portal session for the org's existing `stripe_customer_id`.
+- Both use the built-in Stripe SDK; no BYOK secret needed.
 
-- `startContractExtraction` (auth server fn):
-  1. Verifies file exists in storage under the caller's org path.
-  2. Inserts a `contracts` row (`org_id`, `name`, `counterparty`, `value`, `source_file_url = fileKey`, `extraction_status = 'processing'`, `is_sample = false`, `uploaded_by = userId`).
-  3. Kicks off extraction in the same request (synchronous for MVP — see "Async decision" below).
-- **Text extraction** (server-only): PDFs via `pdfjs-dist` (Worker-compatible; no native binaries), DOCX via `mammoth`, TXT read as-is. All run inside the server fn on the TanStack worker runtime. Bail early on encrypted PDFs with a clear error.
-- **Clause segmentation + regulation linking** — one LLM call per contract via `google/gemini-3.6-flash` through Lovable AI Gateway:
-  - Input: extracted text + the org's regulation ontology (rows visible via RLS: curated shared library + org-added).
-  - Output (structured JSON): `{ clauses: [{ text, position, confidence, linked_reg_ids: string[] }] }`.
-  - Bounded response schema so we don't accept hallucinated reg IDs — filter output to only IDs that exist in the ontology.
-- Insert `clauses` rows in order; update `contracts.extraction_status` to `'complete'` (or `'failed'` with an error message column — add via migration if not present).
+### 5. Webhook
 
-### 4. Contract detail + status
+- `/api/public/stripe/webhook` server route.
+- Verify signature against Lovable-provided webhook secret.
+- Handle: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`.
+- Update `organizations.plan / plan_status / stripe_customer_id / stripe_subscription_id / plan_renews_at` via `supabaseAdmin` (import inside handler).
+- Idempotent: track processed event ids in `stripe_events` table.
 
-- `/contracts` list: cards show `extraction_status` badge (`processing`, `complete`, `failed`) with a small brass spinner while processing. Poll via TanStack Query `refetchInterval: 3s` when status is `processing`.
-- `/contracts/$id`: unchanged UI, but replaces the "sample data" banner when `is_sample = false`. Add a small "Re-run extraction" admin-only action for failures.
-- Delete contract action (admin or uploader): removes the row (`clauses` cascade) and the storage object. Confirmation dialog.
+### 6. Billing UI
 
-### 5. Simulate against real contracts
+- New route `/settings/billing` (admin-only view; members see current plan read-only).
+- Glass panel with current plan card, usage meters (contracts X/Y, sims X/Y this month), and:
+  - Free → "Upgrade to Pro" / "Upgrade to Team" buttons hitting the checkout route.
+  - Paid → "Manage subscription" button hitting the portal route.
+- Quota-exceeded errors from server fns caught in the UI and shown as a paywall dialog with an upgrade CTA (no dead ends).
 
-Already wired in Phase 2 to read from `context.supabase` — no code change needed. Real uploaded contracts appear in the medallion graph and simulate results automatically, replacing sample data as users upload.
+### 7. Sidebar & TopBar
 
-### 6. Async decision (kept simple, revisitable)
+- Add "Billing" nav item (admin-only, small `Wallet` icon).
+- TopBar badge next to workspace name: plan chip in brass (`FREE` / `PRO` / `TEAM`).
 
-For MVP we run extraction synchronously inside the server fn (typical contract fits under the ~30s worker timeout with Flash). If a user uploads something large that times out, `extraction_status` stays `processing`; the "Re-run extraction" action retries. A proper job queue is deferred until we hit that limit — this keeps the plan shippable without new infra.
+### 8. Migration
 
-### 7. Migrations required
+Single migration:
+- `ALTER organizations ADD stripe_customer_id, stripe_subscription_id, plan_renews_at, plan_status`.
+- `CREATE TABLE stripe_events (event_id primary key, received_at)` + grants + RLS (service_role only).
+- `CREATE FUNCTION public.assert_within_quota(uuid, text)` + `has_role`-scoped grant to `authenticated`.
 
-One migration:
-- `contracts.extraction_error text null` — for failure messages.
-- Storage RLS policies on `storage.objects` for the `contract-files` bucket (org-prefix path check).
-- Optional: index on `contracts(org_id, created_at desc)` for the list view.
+### 9. Verification
 
-Bucket itself is created by tool call, not SQL.
-
-### 8. Verification
-
-- Upload a PDF as user A → row appears in `/contracts` with `processing` → flips to `complete` within ~15s → clauses render with regulation pills.
-- User B in a different org cannot list or fetch user A's contract or download the file (RLS + storage RLS both deny).
-- Failed extraction (encrypted PDF, garbage file) surfaces `extraction_error` in the UI without crashing the page.
-- Simulate Impact medallion now colors real uploaded contracts, not sample ones.
+- Free org hits contract limit → upload UI shows paywall.
+- Upgrade to Pro via checkout in Stripe test mode → webhook flips `plan` → limits lift immediately.
+- Cancel via portal → `plan_status = canceled` at period end; still `pro` until `plan_renews_at`.
+- Two orgs cannot see each other's Stripe state (RLS + `service_role`-only writes).
 
 ---
 
-## What comes after this plan
+## Phase 7 — Observability & Launch Polish
 
-- **Phase 6 — Stripe Billing** (separate plan): recommend Stripe (digital SaaS), enable seamless payments, plans (`free`, `pro`, `team`), quotas on `contracts` count / `simulation_runs` per month, checkout on `settings.billing`, webhook route under `/api/public/stripe`, `organizations.plan` + `stripe_customer_id` sync.
-- **Phase 7 — Observability & polish** (separate plan): Sentry, uptime checks, Cloud backups review, publish + custom domain.
+Small, no-ceremony pass to make the app production-shippable.
+
+### 1. Error tracking
+
+- Wire **Sentry** (browser + server functions). Store DSN via `add_secret` (`SENTRY_DSN` server, `VITE_SENTRY_DSN` public). Init in `__root.tsx` and inside a shared `withSentry` wrapper for critical server fns (`simulateImpact`, `startContractExtraction`, Stripe webhook).
+- Scrub PII: never send contract text, only ids/status/duration.
+
+### 2. Structured logging
+
+- Small `logger.server.ts` helper — one-line JSON logs with `level`, `org_id`, `user_id`, `route`, `duration_ms`. Use in every server fn / route. Cloudflare Worker logs pick these up.
+
+### 3. Rate limits (soft)
+
+- In-memory sliding-window limiter keyed by `user_id` on `simulateImpact` and `startContractExtraction`: 10/min, 60/hour. Returns a friendly 429 message. Complementary to plan quotas — this catches abuse, quotas catch usage.
+
+### 4. Health check
+
+- `GET /api/public/health` returns `{ ok: true, db: <ms>, ai: <ms>|null, ts }` — pings DB and (optionally, once/min cached) the AI gateway. Wire an uptime monitor (UptimeRobot / BetterStack free tier) against `project--<id>.lovable.app/api/public/health`.
+
+### 5. Legal + landing
+
+- `/privacy` and `/terms` static routes (glass-panel layout, one-file each, boilerplate the user can edit).
+- Landing page (`/`) polish pass: pricing section reading from same source of truth as billing UI so plans stay in sync; add TOS/privacy links in footer.
+
+### 6. SEO / share
+
+- Verify every route has unique `head()` title + description + og image (already handled per route in Phase 2/3 — spot-check `dashboard`, `contracts`, `simulate`, `feed`, `backtest`, `actions`, `settings/team`, `settings/billing`).
+- Sitemap route `/api/sitemap.xml` listing the public pages.
+
+### 7. Backups & data ops
+
+- Confirm Lovable Cloud automatic backups are on (surface a note in Settings → Danger Zone with a "Contact us to restore" line).
+- Add an admin-only "Export org data" server fn returning a JSON dump of the org's contracts + clauses + simulation_runs — GDPR-friendly and useful for account moves.
+
+### 8. Publish
+
+- Set custom domain (if user provides one) via `preview_ui--publish` once above is green.
+- Turn off "Edit with Lovable" badge (`publish_settings--set_badge_visibility`) if user prefers.
+
+### 9. Verification
+
+- Sentry sees a forced test error from the browser and from a server fn.
+- Health endpoint 200 with sane numbers.
+- Uptime monitor connected.
+- Legal pages reachable while signed out.
+- Pricing on landing matches billing UI.
+
+---
+
+## Sequencing
+
+I'll ship Phase 6 first (self-contained value; requires enabling Stripe), then Phase 7 (no external tools beyond a Sentry DSN if you want error tracking).
+
+Two decisions I need before starting Phase 6:
+1. **Stripe or Paddle?** (Paddle was the eligibility recommendation; Stripe was your earlier pick.)
+2. **Plan prices** — I've proposed Free / $49 Pro / $199 Team. Confirm or tell me your numbers.
