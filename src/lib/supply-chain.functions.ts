@@ -36,7 +36,10 @@ export type CascadeResult = {
   summary: string;
   remediation: string[];
   fallback: boolean;
+  /** Persisted audit-trail row id, so generated artifacts can link back to it. */
+  run_id?: string;
 };
+
 
 export const getSupplyChain = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -241,15 +244,21 @@ ${JSON.stringify(edges)}`;
     const result: CascadeResult = { hits, summary, remediation, total_indirect_exposure, fallback };
 
     if (profile?.org_id) {
-      const { error } = await supabase.from("simulation_runs").insert({
-        org_id: profile.org_id,
-        input_regulation_text: data.regulationText,
-        result_json: JSON.parse(JSON.stringify(result)),
-        triggered_by: userId,
-        run_type: "supply_chain",
-      });
+      const { data: row, error } = await supabase
+        .from("simulation_runs")
+        .insert({
+          org_id: profile.org_id,
+          input_regulation_text: data.regulationText,
+          result_json: JSON.parse(JSON.stringify(result)),
+          triggered_by: userId,
+          run_type: "supply_chain",
+        })
+        .select("id")
+        .maybeSingle();
       if (error) console.error("[supply-chain] persist error", error);
+      if (row?.id) result.run_id = row.id as string;
     }
+
 
     return result;
   });

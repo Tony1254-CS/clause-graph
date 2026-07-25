@@ -273,7 +273,80 @@ export function formatUSD(n: number): string {
   }).format(n);
 }
 
+// --- Simulation history & compliance artifacts -------------------------
+
+export type SimulationRunRow = {
+  id: string;
+  created_at: string;
+  run_type: "reactive" | "forecast" | "what_if" | "supply_chain" | string;
+  input_regulation_text: string;
+  result: import("@/lib/simulate-types").SimulationResult & {
+    hits?: Array<{ node_id: string; severity: string; hop: number }>;
+    total_indirect_exposure?: number;
+    remediation?: string[];
+  };
+};
+
+export const simulationRunsQuery = queryOptions({
+  queryKey: ["simulation-runs"],
+  queryFn: async (): Promise<SimulationRunRow[]> => {
+    const { data, error } = await supabase
+      .from("simulation_runs")
+      .select("id, created_at, run_type, input_regulation_text, result_json")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      created_at: r.created_at,
+      run_type: (r.run_type ?? "reactive") as SimulationRunRow["run_type"],
+      input_regulation_text: r.input_regulation_text ?? "",
+      result: (r.result_json ?? {}) as SimulationRunRow["result"],
+    }));
+  },
+  staleTime: 15_000,
+});
+
+export type ComplianceArtifactRow = {
+  id: string;
+  created_at: string;
+  regulation_id: string | null;
+  gap: string | null;
+  stack: string | null;
+  runbook: string | null;
+  audit_script: { language?: string; filename?: string; code?: string } | null;
+  remediation: { language?: string; filename?: string; code?: string } | null;
+  test_cases: string[] | null;
+};
+
+export const complianceArtifactsQuery = queryOptions({
+  queryKey: ["compliance-artifacts"],
+  queryFn: async (): Promise<ComplianceArtifactRow[]> => {
+    const { data, error } = await supabase
+      .from("compliance_artifacts")
+      .select(
+        "id, created_at, regulation_id, gap, stack, runbook, audit_script, remediation, test_cases",
+      )
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      created_at: r.created_at,
+      regulation_id: r.regulation_id ?? null,
+      gap: r.gap ?? null,
+      stack: r.stack ?? null,
+      runbook: r.runbook ?? null,
+      audit_script: (r.audit_script ?? null) as ComplianceArtifactRow["audit_script"],
+      remediation: (r.remediation ?? null) as ComplianceArtifactRow["remediation"],
+      test_cases: (r.test_cases ?? null) as string[] | null,
+    }));
+  },
+  staleTime: 15_000,
+});
+
 // --- Team members & role -----------------------------------------------
+
 
 export type TeamMember = {
   id: string;

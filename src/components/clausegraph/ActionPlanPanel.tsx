@@ -140,6 +140,8 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
   const [plan, setPlan] = useState<ActionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [doneFixes, setDoneFixes] = useState<Set<string>>(new Set());
+
 
   async function onGenerate() {
     if (status === "loading") return;
@@ -325,36 +327,55 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
           Technical fix checklist
         </p>
         <ul className="flex flex-col gap-2">
-          {plan.tech_fixes.map((t, idx) => (
-            <li
-              key={`${t.title}-${idx}`}
-              className="rounded-[12px] border border-[var(--hairline)] p-3 flex gap-3"
-            >
-
-              <input
-                type="checkbox"
-                className="mt-1 h-3.5 w-3.5 accent-[var(--brass)] cursor-pointer"
-                aria-label={`Mark ${t.title} done`}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[t.priority]}`}
-                  />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)]">
-                    {t.priority}
-                  </span>
-                  <span className="text-[13px] text-foreground">{t.title}</span>
+          {plan.tech_fixes.map((t, idx) => {
+            const key = `${t.title}-${idx}`;
+            const done = doneFixes.has(key);
+            return (
+              <li
+                key={key}
+                className={`rounded-[12px] border p-3 flex gap-3 transition-ui ${
+                  done
+                    ? "border-[var(--hairline)] opacity-60"
+                    : "border-[var(--hairline)]"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={done}
+                  onChange={(e) =>
+                    setDoneFixes((prev) => {
+                      const next = new Set(prev);
+                      if (e.target.checked) next.add(key);
+                      else next.delete(key);
+                      return next;
+                    })
+                  }
+                  className="mt-1 h-3.5 w-3.5 accent-[var(--brass)] cursor-pointer"
+                  aria-label={`Mark ${t.title} done`}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[t.priority]}`} />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)]">
+                      {t.priority}
+                    </span>
+                    <span
+                      className={`text-[13px] text-foreground ${done ? "line-through decoration-[var(--hairline-strong)]" : ""}`}
+                    >
+                      {t.title}
+                    </span>
+                  </div>
+                  {t.detail && (
+                    <p className="mt-1 text-[12px] leading-[1.55] text-muted-foreground">
+                      {t.detail}
+                    </p>
+                  )}
                 </div>
-                {t.detail && (
-                  <p className="mt-1 text-[12px] leading-[1.55] text-muted-foreground">
-                    {t.detail}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
+
       </section>
     </div>
   );
