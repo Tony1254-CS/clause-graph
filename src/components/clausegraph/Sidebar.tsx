@@ -57,7 +57,7 @@ function useIsActive(item: NavItem) {
   return pathname === base || pathname.startsWith(base + "/");
 }
 
-function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
+function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean; index: number }) {
   const isActive = useIsActive(item);
   const Icon = item.icon;
   return (
@@ -65,7 +65,7 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-colors duration-200 ease-out ${
+      className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-ui will-change-transform hover:translate-x-[1px] ${
         isActive
           ? "text-[var(--ink)]"
           : "text-[var(--text-muted)] hover:text-[var(--ink)]"
@@ -73,17 +73,19 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
     >
       <span
         aria-hidden
-        className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--brass)] transition-opacity duration-200 ${
-          isActive ? "opacity-100" : "opacity-0"
+        className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--brass)] origin-center transition-all duration-300 ${
+          isActive ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"
         }`}
+        style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
       />
       <span className="grid h-9 w-10 shrink-0 place-items-center">
-        <Icon className="h-[17px] w-[17px]" strokeWidth={1.5} />
+        <Icon className="h-[17px] w-[17px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
       </span>
       <span
-        className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
+        className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-300 ease-out ${
           expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
         }`}
+        style={{ transitionDelay: expanded ? `${index * 22}ms` : "0ms" }}
       >
         {item.label}
       </span>
