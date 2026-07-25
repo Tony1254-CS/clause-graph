@@ -130,9 +130,11 @@ type Props = {
   regulationText: string;
   summary?: string;
   impacts: ActionPlanInput["impacts"];
+  variant?: "reactive" | "forecast";
 };
 
-export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
+export function ActionPlanPanel({ regulationText, summary, impacts, variant = "reactive" }: Props) {
+  const isForecast = variant === "forecast";
   const runPlan = useServerFn(generateActionPlan);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [plan, setPlan] = useState<ActionPlan | null>(null);
@@ -168,10 +170,12 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
       <div className="glass-panel p-5 flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
-            Next step
+            {isForecast ? "Anticipatory step" : "Next step"}
           </p>
           <p className="mt-1 text-[13px] text-foreground">
-            Turn this simulation into a structured remediation plan.
+            {isForecast
+              ? "Draft a preemptive remediation plan before this amendment could be enacted."
+              : "Turn this simulation into a structured remediation plan."}
           </p>
         </div>
         <button
