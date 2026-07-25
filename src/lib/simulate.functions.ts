@@ -34,7 +34,11 @@ export const simulateImpact = createServerFn({ method: "POST" })
     const text = String(input?.regulationText ?? "").trim();
     if (!text) throw new Error("Regulation text is required");
     if (text.length > 20000) throw new Error("Regulation text too long");
-    return { regulationText: text };
+    const rt = input?.runType;
+    const runType: "reactive" | "forecast" | "what_if" =
+      rt === "forecast" || rt === "what_if" ? rt : "reactive";
+    const regulationId = input?.regulationId ? String(input.regulationId) : undefined;
+    return { regulationText: text, runType, regulationId };
   })
   .handler(async ({ data, context }): Promise<SimulationResult> => {
     const { supabase, userId } = context;
