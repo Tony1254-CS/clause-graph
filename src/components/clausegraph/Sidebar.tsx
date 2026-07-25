@@ -135,8 +135,8 @@ export function Sidebar() {
         </Link>
 
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden py-1">
-          {NAV.map((item) => (
-            <RailIcon key={item.to} item={item} expanded={expanded} />
+          {NAV.map((item, i) => (
+            <RailIcon key={item.to} item={item} expanded={expanded} index={i} />
           ))}
         </nav>
       </aside>
