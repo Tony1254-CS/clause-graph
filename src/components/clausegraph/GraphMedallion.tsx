@@ -1,9 +1,12 @@
 import { useState } from "react";
 import type { Contract, Regulation } from "@/data/types";
+import type { Severity } from "@/lib/simulate-types";
 
 type Props = {
   contracts: Contract[];
   regulations: Regulation[];
+  impacts?: Map<string, Severity>;
+  pulsing?: boolean;
 };
 
 type Node = {
@@ -17,10 +20,21 @@ type Node = {
 const SIZE = 440;
 const CENTER = SIZE / 2;
 
-export function GraphMedallion({ contracts, regulations }: Props) {
+const SEV_COLOR: Record<Severity, string> = {
+  low: "rgba(225, 82, 75, 0.55)",
+  medium: "rgba(225, 82, 75, 0.8)",
+  high: "rgba(225, 82, 75, 1)",
+};
+
+const SEV_RADIUS: Record<Severity, number> = {
+  low: 5,
+  medium: 6.5,
+  high: 8,
+};
+
+export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Props) {
   const [hover, setHover] = useState<Node | null>(null);
 
-  // Deterministic circular layout: contracts on inner ring, regulations on outer.
   const innerRadius = 118;
   const outerRadius = 180;
 
@@ -49,16 +63,17 @@ export function GraphMedallion({ contracts, regulations }: Props) {
   const nodeById = new Map<string, Node>();
   [...contractNodes, ...regNodes].forEach((n) => nodeById.set(n.id, n));
 
-  const edges: Array<{ from: Node; to: Node; key: string }> = [];
+  const edges: Array<{ from: Node; to: Node; key: string; impacted: boolean }> = [];
   contracts.forEach((c) => {
     const from = nodeById.get(c.id)!;
+    const impacted = impacts?.has(c.id) ?? false;
     const seen = new Set<string>();
     c.clauses.forEach((cl) => {
       cl.linked_regs.forEach((rid) => {
         if (seen.has(rid)) return;
         seen.add(rid);
         const to = nodeById.get(rid);
-        if (to) edges.push({ from, to, key: `${c.id}-${rid}` });
+        if (to) edges.push({ from, to, key: `${c.id}-${rid}`, impacted });
       });
     });
   });
@@ -74,7 +89,12 @@ export function GraphMedallion({ contracts, regulations }: Props) {
         </h1>
         <p className="mt-3 text-[13.5px] text-muted-foreground leading-relaxed">
           {contracts.length} contracts · {regulations.length} regulations ·{" "}
-          {edges.length} citations. Select a regulation to simulate downstream exposure.
+          {edges.length} citations.{" "}
+          {impacts && impacts.size > 0
+            ? `${impacts.size} contracts in blast radius.`
+            : pulsing
+              ? "Simulating downstream exposure…"
+              : "Paste a regulation to simulate downstream exposure."}
         </p>
       </div>
 
@@ -82,7 +102,7 @@ export function GraphMedallion({ contracts, regulations }: Props) {
         <div className="absolute inset-0 rounded-full blur-3xl bg-[radial-gradient(circle,rgba(201,166,107,0.14),transparent_65%)]" />
 
         <div
-          className="relative rounded-full border border-[var(--hairline-strong)] p-3"
+          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 transition-shadow ${pulsing ? "rim-pulse" : ""}`}
           style={{ height: SIZE + 24, width: SIZE + 24, maxWidth: "80vw", maxHeight: "80vw" }}
         >
           <div className="relative h-full w-full rounded-full border border-[var(--hairline)] p-3">
@@ -92,12 +112,10 @@ export function GraphMedallion({ contracts, regulations }: Props) {
                 className="absolute inset-0 h-full w-full"
                 aria-label="Contract-regulation topology"
               >
-                {/* Radial rings */}
                 <circle cx={CENTER} cy={CENTER} r={outerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.5" />
                 <circle cx={CENTER} cy={CENTER} r={innerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.4" />
                 <circle cx={CENTER} cy={CENTER} r={50} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.3" />
 
-                {/* Edges */}
                 <g>
                   {edges.map((e) => (
                     <line
@@ -106,32 +124,50 @@ export function GraphMedallion({ contracts, regulations }: Props) {
                       y1={e.from.y}
                       x2={e.to.x}
                       y2={e.to.y}
-                      stroke="var(--hairline-strong)"
-                      strokeWidth="0.6"
-                      opacity="0.7"
+                      stroke={e.impacted ? "rgba(225,82,75,0.5)" : "var(--hairline-strong)"}
+                      strokeWidth={e.impacted ? "1" : "0.6"}
+                      opacity={e.impacted ? 0.9 : 0.7}
+                      style={{ transition: "stroke 400ms ease-out, opacity 400ms ease-out" }}
                     />
                   ))}
                 </g>
 
-                {/* Contract nodes (circles) */}
                 <g>
-                  {contractNodes.map((n) => (
-                    <circle
-                      key={n.id}
-                      cx={n.x}
-                      cy={n.y}
-                      r={hover?.id === n.id ? 5.5 : 3.5}
-                      fill="var(--surface-raised)"
-                      stroke="var(--text-muted)"
-                      strokeWidth="1"
-                      className="cursor-pointer transition-all duration-150"
-                      onMouseEnter={() => setHover(n)}
-                      onMouseLeave={() => setHover(null)}
-                    />
-                  ))}
+                  {contractNodes.map((n) => {
+                    const sev = impacts?.get(n.id);
+                    const isHover = hover?.id === n.id;
+                    const r = sev ? SEV_RADIUS[sev] : isHover ? 5.5 : 3.5;
+                    const fill = sev ? SEV_COLOR[sev] : "var(--surface-raised)";
+                    const stroke = sev ? "rgba(225,82,75,1)" : "var(--text-muted)";
+                    return (
+                      <g key={n.id}>
+                        {sev && (
+                          <circle
+                            cx={n.x}
+                            cy={n.y}
+                            r={r + 4}
+                            fill={SEV_COLOR[sev]}
+                            opacity={0.18}
+                            style={{ transition: "all 500ms ease-out" }}
+                          />
+                        )}
+                        <circle
+                          cx={n.x}
+                          cy={n.y}
+                          r={r}
+                          fill={fill}
+                          stroke={stroke}
+                          strokeWidth="1"
+                          className="cursor-pointer"
+                          style={{ transition: "all 500ms ease-out" }}
+                          onMouseEnter={() => setHover(n)}
+                          onMouseLeave={() => setHover(null)}
+                        />
+                      </g>
+                    );
+                  })}
                 </g>
 
-                {/* Regulation nodes (triangles) */}
                 <g>
                   {regNodes.map((n) => {
                     const size = hover?.id === n.id ? 7 : 5;
@@ -151,7 +187,6 @@ export function GraphMedallion({ contracts, regulations }: Props) {
                   })}
                 </g>
 
-                {/* Center */}
                 <circle cx={CENTER} cy={CENTER} r={3} fill="var(--brass)" />
               </svg>
 
@@ -175,7 +210,6 @@ export function GraphMedallion({ contracts, regulations }: Props) {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         <span className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full border border-[var(--text-muted)]" />
@@ -188,8 +222,8 @@ export function GraphMedallion({ contracts, regulations }: Props) {
           regulation
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-px w-6 bg-[var(--hairline-strong)]" />
-          citation
+          <span className="h-2 w-2 rounded-full bg-[var(--risk)]" />
+          in blast radius
         </span>
       </div>
     </div>
