@@ -65,14 +65,14 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] border transition-all duration-200 ease-out ${
+      className={`group relative grid h-9 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] border transition-all duration-200 ease-out ${
         isActive
-          ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)] shadow-[var(--glow-brass)]"
-          : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+          ? "border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)] text-[var(--ink)]"
+          : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
       }`}
     >
-      <span className="grid h-11 w-11 shrink-0 place-items-center">
-        <Icon className="h-5 w-5" strokeWidth={1.7} />
+      <span className="grid h-9 w-11 shrink-0 place-items-center">
+        <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
       </span>
       <span
         className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
