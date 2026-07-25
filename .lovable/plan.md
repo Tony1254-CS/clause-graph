@@ -1,97 +1,92 @@
-# Predictive Regulatory Blast Radius — Phase 8
+## Phase 9 — Full spec pivot of the regulatory ontology
 
-Add a Predictive Radar to ClauseGraph that forecasts which regulations are likely to change, generates a plausible hypothetical amendment via LLM, and runs the existing blast-radius simulation against that forecast. Includes a What-If Sandbox for user-authored hypotheticals.
+Replace the current 10 US-financial regulations with the exact mix your spec calls for (3 GDPR, 4 US, 3 Bangladesh), rewrite the seeded contract corpus to cite the new IDs, and re-seed the amendment history that the Predictive Radar reads from.
 
-## Scope
+### The new 10 regulations
 
-**In:**
-1. Regulation amendment-history data model + seeded history for the 10 existing ontology entries.
-2. Heuristic prediction engine (time-since-last-amendment vs average interval + optional news-signal boost).
-3. LLM-generated hypothetical amendment text (grounded in past amendment summaries).
-4. Predictive Radar dashboard route with probability badges and timeframe.
-5. One-click "Simulate this forecast" → reuses existing simulate pipeline; results labeled as forecast.
-6. What-If Sandbox: free-form hypothetical rule input → same pipeline.
-7. Anticipatory Action Plan variant (reuses existing action-plan generator, prefixed as preemptive).
+**EU — GDPR (3)**
 
-**Out (roadmap, not built):**
-- Live RSS/news scraper (mocked as manual boost field for the demo).
-- Real EUR-Lex SPARQL pull (seed from static curated amendment history).
-- Trained ML model (heuristic only, per spec).
+```text
+REG-GDPR-5      GDPR Art. 5 — Principles / Data Minimization
+REG-GDPR-33     GDPR Art. 33 — Personal Data Breach Notification (72h)
+REG-GDPR-44     GDPR Art. 44 — General Principle for International Transfers
+```
 
-## Data model
+**US (4) — a broader mix, not just financial**
 
-New table `regulation_amendments` (org-agnostic reference data, readable by all authenticated users):
-- `regulation_id` (FK → `regulations.id`)
-- `amended_on` (date)
-- `summary` (text) — one line describing the change
-- `direction` (enum: `tightened` | `loosened` | `clarified` | `expanded`)
+```text
+REG-SEC-17A4    SEC Rule 17a-4 — Broker-Dealer Records (immutable retention)
+REG-CCPA-1798.120  CCPA §1798.120 — Right to Opt Out of Sale/Sharing
+REG-HIPAA-SEC   HIPAA Security Rule (45 CFR §164.306–.312)
+REG-SOX-302     SOX §302 — Officer Certification (kept from current set)
+```
 
-Seed 3–5 historical amendments per regulation across the 10 curated entries (GDPR 33 shortened deadlines, CCPA opt-out expansions, HIPAA Security Rule updates, Bangladesh Bank fintech circular revisions, etc.). Sourced from public records; realistic dates.
+**Bangladesh (3)** — preferring the three named in your spec, with permission to substitute if English sourcing is thin:
 
-Add optional column to `regulations`:
-- `news_signal_boost` (numeric 0–1, default 0) — manual editorial nudge used in the heuristic.
+```text
+REG-BB-DPS-2023   Bangladesh Bank Digital Payment Security Circular (2023)
+REG-BD-DSA-2018   Digital Security Act 2018 §26 — Data Breach & Identity Info
+REG-BD-LA-2006    Bangladesh Labour Act 2006 §26 — Notice of Termination
+```
 
-## Prediction heuristic (server function)
+Each entry: plain-language `summary` (2–3 sentences) + `obligations[]` (3–5 machine-readable tags like `data_minimization`, `72h_breach_notification`, `right_to_opt_out`). Written to be safe to paste verbatim into every LLM prompt.
 
-`predictAmendmentRisk` → for each regulation:
-1. Compute average interval between historical amendments.
-2. `ratio = time_since_last / avg_interval`.
-3. `base_probability = clamp(ratio / 1.0 × 0.7, 0, 0.7)` — caps at 70% from timing alone.
-4. `boost = news_signal_boost × 0.3`.
-5. `probability = base_probability + boost`.
-6. Bucket into High (>70%), Medium (40–70%), Low (<40%).
-7. `estimated_window`: derived from `avg_interval − time_since_last`, floored at 3 months, clamped to 3/6/12/18-month buckets.
+### The new 15 sample contracts
 
-Returns array sorted by probability desc.
+Rewritten so the citation graph is dense and demo-legible. Roughly:
 
-## Hypothetical amendment generation
+| # | Contract | Cites |
+| --- | --- | --- |
+| 1 | Data Processing Agreement — EU SaaS vendor | GDPR-5, GDPR-33, GDPR-44 |
+| 2 | Standard Contractual Clauses addendum | GDPR-44 |
+| 3 | Customer Terms of Service — EU consumers | GDPR-5, GDPR-33 |
+| 4 | Employee Privacy Notice — EU workforce | GDPR-5 |
+| 5 | Consumer Privacy Notice — California | CCPA-1798.120 |
+| 6 | Adtech Data-Sharing Agreement — US | CCPA-1798.120, GDPR-44 |
+| 7 | Business Associate Agreement (HIPAA) | HIPAA-SEC |
+| 8 | Cloud Hosting Master Agreement — health-data workload | HIPAA-SEC, GDPR-33 |
+| 9 | Broker-Dealer Recordkeeping SLA | SEC-17A4, SOX-302 |
+| 10 | Audit Committee Charter | SOX-302 |
+| 11 | Merchant Acquiring Agreement — Bangladesh | BB-DPS-2023 |
+| 12 | Mobile Wallet Terms of Use — Bangladesh consumers | BB-DPS-2023, DSA-2018 |
+| 13 | ISP Data-Retention Order Compliance Policy — Bangladesh | DSA-2018 |
+| 14 | Fixed-Term Employment Contract — Bangladesh knitwear plant | LA-2006 |
+| 15 | Cross-border Support Services Agreement — BD → EU data flow | LA-2006, GDPR-44 |
 
-New server function `generateHypotheticalAmendment(regulationId)`:
-- Fetches regulation text + amendment history summaries.
-- Calls Lovable AI Gateway (`google/gemini-3.6-flash`, project default) with a prompt anchored on past directional patterns: "Draft a plausible near-future amendment. Follow the historical direction of change. Output only the amended clause text (≤ 200 words). This is an adversarial what-if scenario, not a leak."
-- Returns `{ amendment_text, rationale, based_on_patterns[] }`.
+Each contract carries 3–4 clauses with real regulatory language (per your original spec: ≥8 contracts have explicit reg language, the rest are boilerplate).
 
-Result is cached per regulation in `simulation_runs` (existing table, extended `run_type` column: `reactive` | `forecast` | `what_if`).
+### Amendment history for the Predictive Radar
 
-## Blast-radius reuse
+Every one of the 10 new regs gets 3–5 dated entries in `regulation_amendments`, grounded in the actual public amendment record where possible (e.g. GDPR EDPB guidance updates on Art. 33, CCPA→CPRA amendment, Bangladesh Bank circular annexures). Each entry: `amended_on`, `summary`, `direction` (`tightened` / `loosened` / `clarified` / `expanded`). This drives the heuristic — the interval between amendments is what the Radar's probability model uses.
 
-The forecast simulation calls the existing `simulateImpact` server function with the generated amendment text — no duplicate pipeline. UI labels the medallion header "Forecast simulation — not yet enacted" and switches the exposure panel copy to future-tense ("will be exposed if this passes").
+### How this affects existing orgs
 
-## UI
+Every seeded row in the DB is marked `is_sample = true`. There are currently no user-uploaded contracts. Plan:
 
-New routes:
-- `/predictive` — Radar dashboard. Cards for each regulation showing: name, probability badge (High/Medium/Low in brass/amber/muted — **not red**, red stays reserved for exposure), estimated window, last-amended date, "Simulate forecast" button.
-- `/predictive/$regulationId` — Detail view. Shows historical amendments timeline, generated hypothetical text (in JetBrains Mono, framed as "adversarial what-if"), then embeds the existing simulate results component.
-- `/what-if` — Free-form textarea + "Simulate" button. Feeds directly into `simulateImpact`. Results tagged `what_if`.
+- `DELETE FROM clauses WHERE contract_id IN (SELECT id FROM contracts WHERE is_sample = true)`
+- `DELETE FROM contracts WHERE is_sample = true`
+- Re-run the same seeding logic `handle_new_user()` uses, per existing org, from the new `sample_contracts` + `sample_clauses` rows
 
-Sidebar: add "Predictive Radar" and "What-If Sandbox" entries. Both gated behind Pro plan (existing quota system).
+User-uploaded contracts (`is_sample = false`) are never touched — there are none today, but the query is scoped defensively.
 
-Action Plan panel: when invoked from a forecast run, header changes to "Anticipatory Action Plan" and language shifts to preemptive ("start remediation before enactment").
+### Migration structure (one migration, transactional)
 
-## Honesty guardrails (per spec section 6.3 tone)
+```text
+1. DELETE dependent rows (regulation_amendments, sample_clauses, is_sample clauses/contracts)
+2. DELETE FROM regulations
+3. INSERT 10 new regulations
+4. INSERT ~40 amendment history rows
+5. INSERT 15 sample_contracts + ~50 sample_clauses
+6. For each existing organization: re-copy sample rows into contracts/clauses (matching handle_new_user)
+```
 
-- Every forecast card carries a small mono caption: "Heuristic forecast from public amendment history. Not a leak, not a legal prediction."
-- Hypothetical amendment text always renders with a brass-outlined "GENERATED" tag adjacent to the mono block.
-- Confidence scores show the underlying reasoning on hover (avg interval, time since last, boost applied).
+### What does NOT change
 
-## Files
+- `backtest_cases`: self-contained (own reg strings, own reconstructed clause IDs) — untouched.
+- `handle_new_user()` trigger: already reads from `sample_contracts`/`sample_clauses`, so new signups automatically pick up the new corpus.
+- `predict.functions.ts` / `simulate.functions.ts` / Radar UI: they read whatever is in `regulations` + `regulation_amendments`, so no code changes needed — the pivot is data-only.
+- Federal Register widget: continues to fetch live from federalregister.gov.
 
-**New:**
-- `supabase` migration: `regulation_amendments` table + GRANTs + RLS (read for authenticated) + `news_signal_boost` column + amendment seed rows.
-- `src/lib/predict.functions.ts` — `predictAmendmentRisk`, `generateHypotheticalAmendment`.
-- `src/routes/predictive.tsx`, `src/routes/predictive.$regulationId.tsx`, `src/routes/what-if.tsx`.
-- `src/components/clausegraph/RadarCard.tsx`, `AmendmentTimeline.tsx`, `HypotheticalAmendmentBlock.tsx`.
+### Deliverable
 
-**Modified:**
-- `src/components/clausegraph/Sidebar.tsx` — nav entries.
-- `src/lib/simulate.functions.ts` — accept optional `run_type` param.
-- `src/components/clausegraph/ActionPlanPanel.tsx` — variant copy for forecast runs.
-- `src/data/queries.ts` — TanStack Query wrappers.
-
-## Verification
-
-- Radar page loads with ≥3 High/Medium regulations from seeded history.
-- Clicking one generates hypothetical text + runs simulation end-to-end.
-- What-If sandbox accepts free text and returns a blast graph.
-- Forecast runs are stored in `simulation_runs` with `run_type='forecast'` and count against Pro quotas.
-- Reduced-motion honored; risk-red still exclusive to exposure severity, not probability badges.
+A single Supabase migration containing all inserts and the cleanup + reseed of existing orgs. No frontend code changes needed after this — the entire app rerenders against the new ontology.
