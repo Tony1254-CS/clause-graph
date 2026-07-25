@@ -152,7 +152,7 @@ export function MobileRail() {
       >
         <div className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
       </Link>
-      <div className="premium-scrollbar flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-hidden">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
