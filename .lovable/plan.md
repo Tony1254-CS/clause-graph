@@ -1,139 +1,72 @@
-# Phase 2 — Real Data Wiring
 
-Prove the data model and navigation with separate routes, realistic seed data, and one live external feed. No AI, no simulation logic — that's Phase 3.
+## 1. Backtested Validation tab
 
-## Data model (seed)
+New route `/backtest` (replaces or joins existing nav) that showcases 3 real enforcement cases, each analyzed live through the existing Simulate Impact pipeline.
 
-Two typed JSON files under `src/data/`, matching the exact schema you specified. Author both as TS modules so imports are typed and tree-shake cleanly.
+**Cases (real, well-documented enforcement actions):**
+- Wells Fargo — $3.0B (2020, DOJ/SEC) — fake accounts, consumer protection violations (Dodd-Frank / FTC Act §5)
+- Goldman Sachs — $2.9B (2020, 1MDB, FCPA)
+- Credit Suisse — $475M (2022, Mozambique "tuna bond" bribery, FCPA / MAR)
 
-**`src/data/regulations.ts`** — 10 entries. Realistic US financial-regulation ontology drawn from the actual regulatory landscape:
+Each case ships with:
+- Real metadata: company, fine amount, date, regulation violated, one-paragraph public summary + source citation
+- A `reconstructed_scenario`: 2–4 short synthetic clauses phrased like real contract language matching the violation pattern, plus a short "proposed regulation" style prompt that mirrors the enforcement theory
 
-```ts
-type Obligation = { id: string; text: string };
-type Regulation = {
-  id: string;              // e.g. "REG-SEC-10B5"
-  jurisdiction: string;    // e.g. "SEC" | "CFTC" | "FINRA" | "OCC" | "Federal Reserve" | "EU-ESMA"
-  title: string;           // e.g. "Rule 10b-5 — Anti-fraud"
-  summary: string;         // 2–3 sentence plain-language summary
-  obligations: Obligation[]; // 2–4 obligations each
-};
+**UI:** three glass cards in a row (stacks on tablet). Each card:
+- Header: company + fine in Fraunces (mono for the dollar figure), date in mono
+- Regulation violated + short summary
+- **Prominent disclosure banner** (brass hairline, muted copy): *"Reconstruction, not this company's actual contracts. Clauses are synthetic, drafted to mirror the enforcement pattern."*
+- "Run Analysis" brass button
+- On click: card expands / a side region below fills with a mini blast-radius summary (total exposure across the reconstructed clauses, per-clause severity, suggested amendment) — same visual language as `/simulate`, framed as "reconstructed scenario, analyzed live"
+- Small "Analyzed live via gpt-4o" mono tag on the result to make it obvious it's not pre-written
+
+**Backend:** add a companion server fn `simulateBacktest` that accepts a `caseId`, loads the reconstructed scenario from a static file, and runs the same gateway call as `simulateImpact` but with the reconstructed clauses as the contract context (instead of the full portfolio). Falls back to a pre-saved response per case on error, matching the existing fallback pattern.
+
+## 2. Compliance Action Plan generator
+
+After a Simulate Impact run finishes (`status === "done"` in `simulate.tsx`), show a **"Generate Action Plan"** brass button under the side panel's affected-contracts list.
+
+**On click:** call a new server fn `generateActionPlan` that sends the simulation result + regulation text to gpt-4o and returns:
+```
+{
+  policy_draft: string,           // one paragraph of updated internal policy language
+  amendments: [{ contract_id, contract_name, suggestion, rationale }],
+  tech_fixes: [{ priority: "P0"|"P1"|"P2", title, detail }]
+}
 ```
 
-Coverage: SEC Rule 10b-5, Reg BI (Best Interest), Dodd-Frank §619 (Volcker), Reg SHO, Sarbanes-Oxley §302, MiFID II Art. 24, Basel III Capital, CFTC Swap Reporting (Part 45), FINRA Rule 4511 (Recordkeeping), GDPR Art. 32 (financial-data security).
+**UI — new glass panel** that slides in below the results (or a modal overlay, TBD by user later, defaulting to inline panel):
+- Header "Compliance Action Plan" + mono timestamp
+- **Standing disclaimer banner:** *"Draft output. Every amendment is marked for legal review — never a final position."*
+- Section: *Policy draft* — paragraph in Inter, monospace label above
+- Section: *Contract amendments* — list, each row shows contract id/name (mono), the suggestion, rationale, and a **"For legal review"** brass-outlined pill on every item
+- Section: *Technical fix checklist* — prioritized (P0/P1/P2 with colored dots, reserving red only for P0), each row a checkbox + title + detail
+- Toolbar at bottom right: **Copy to clipboard** (formatted markdown) and **Export PDF** buttons
 
-**`src/data/contracts.ts`** — 15 entries:
+**PDF export:** client-side using `jspdf` (small, no native deps, Worker-safe since it's client-only). Renders a plain typographic PDF — title, timestamp, sections mirroring the on-screen structure, with the disclaimer at top. No canvas-of-DOM approach, so glass effects aren't preserved but the content is clean and legal-review-ready.
 
-```ts
-type Clause = {
-  id: string;              // e.g. "CL-001-3"
-  text: string;            // 1–2 sentence clause text
-  linked_regs: string[];   // regulation IDs
-};
-type Contract = {
-  id: string;              // e.g. "CTR-001"
-  name: string;            // e.g. "ISDA Master Agreement — Nomura FX"
-  counterparty: string;
-  value: number;           // USD
-  clauses: Clause[];       // 3–6 clauses per contract
-};
-```
+**Fallback:** if the gateway call fails, use a pre-saved sample action plan (per the existing `simulate-fallback` pattern) so the flow never dead-ends.
 
-Realistic mix: ISDA masters, prime brokerage, MSFTA, custody, revolver credit agreements, distribution agreements, subscription docs. Values from $2M to $850M. Each contract's clauses cite 1–3 regulations from the ontology, so the graph has real cross-links.
+## Files
 
-## Routes
+New:
+- `src/data/backtest-cases.ts` — the 3 real cases + reconstructed scenarios + fallback results
+- `src/lib/action-plan-types.ts` — `ActionPlan`, `Amendment`, `TechFix`
+- `src/lib/action-plan-fallback.ts`
+- `src/lib/action-plan.functions.ts` — `generateActionPlan` server fn
+- `src/lib/backtest.functions.ts` — `simulateBacktest` server fn
+- `src/components/clausegraph/BacktestCard.tsx`
+- `src/components/clausegraph/ActionPlanPanel.tsx`
+- `src/routes/backtest.tsx`
 
-New route files (each with its own `head()` — unique title, description, og:title, og:description):
+Modified:
+- `src/routes/simulate.tsx` — add "Generate Action Plan" button + render `ActionPlanPanel`
+- `src/components/clausegraph/Sidebar.tsx` — add "Backtest" nav link (Actions stays for now)
 
-- `src/routes/contracts.tsx` — layout with `<Outlet />`
-- `src/routes/contracts.index.tsx` — Contracts list
-- `src/routes/contracts.$contractId.tsx` — Contract detail
-- `src/routes/feed.tsx` — Regulatory Feed (curated + live)
-- `src/routes/regulations.$regId.tsx` — Regulation detail (opened from clause pills)
-- `src/routes/index.tsx` — Dashboard (medallion, now graph-shaped)
+Package add: `jspdf`.
 
-Sidebar links become real `<Link>` components with `activeProps` styling. "Simulate Impact" and "Action Plans" nav items link to placeholder routes that render a "Coming in Phase 3" glass panel — the nav shape stays intact.
+## Non-goals
 
-## Data access
-
-Since all data is local + one public REST call, use TanStack Query directly in components (no server functions needed). All queries defined in `src/data/queries.ts`:
-
-- `contractsQuery` — returns local array
-- `contractQuery(id)` — returns one contract or throws `notFound()`
-- `regulationQuery(id)` — same
-- `regulationsQuery` — local array
-- `federalRegisterQuery` — `fetch('https://www.federalregister.gov/api/v1/documents?per_page=5&order=newest')`, `staleTime: 5 min`, gracefully degrades (returns `{ results: [], error }` on failure so the panel shows a "Live feed unavailable" state instead of crashing)
-
-Loaders call `context.queryClient.ensureQueryData(...)`. Components read via `useSuspenseQuery`. `notFoundComponent` and `errorComponent` set on every data route.
-
-## Views
-
-**Contracts list** (`/contracts`)
-Responsive grid of glass cards (2 cols tablet, 3 cols desktop). Each card:
-- Contract name in Fraunces (18px)
-- Counterparty in Inter muted (13px)
-- Value in JetBrains Mono, formatted `$127,500,000` (brass color, right-aligned)
-- Clause-count badge — small mono pill, hairline border, "6 clauses"
-- Hover: hairline opacity 18% → 32%, subtle translate-y
-
-**Contract detail** (`/contracts/$contractId`)
-- Header: name (Fraunces 32px), counterparty + value (mono) + contract ID (mono muted)
-- Clause list: each clause is a glass-panel-sm card
-  - Clause ID in mono (top-left, tiny)
-  - Clause text in Inter (15px, readable line-length)
-  - Below the text: row of brass-outlined pills — `<Link>` to `/regulations/$regId`, each showing the regulation ID in mono and short title in Inter, brass border, hover fills brass at 8% opacity
-
-**Regulation detail** (`/regulations/$regId`)
-- Jurisdiction chip (mono)
-- Title (Fraunces 28px), summary (Inter 15px, muted)
-- Obligations rendered as numbered list, each in a hairline-bordered row
-- "Cited by N clauses across M contracts" — computed from the corpus, links back to contracts
-
-**Regulatory Feed** (`/feed`)
-Two clearly distinct sections stacked vertically:
-
-1. **Curated ontology** — labeled `CURATED · ClauseGraph ontology` in mono/brass. 10 entries as glass-panel rows, each with jurisdiction chip + title + summary + obligation count. Clicking opens the regulation detail.
-2. **Live filings** — labeled `LIVE · Federal Register` with a small pulsing brass dot to signal live. Distinct visual treatment: no glass panel, instead flat rows on a slightly recessed surface (`surface-raised`) with dashed hairline separators — reads as "raw feed" vs. the polished ontology. Each row: publication date (mono), agency, title (Inter), external-link icon opening the FR document URL in a new tab. Loading skeleton + graceful error state.
-
-**Dashboard medallion** — the seal now renders a real (static, non-simulated) node/edge graph:
-- Nodes: 15 contracts + 10 regulations positioned via a deterministic circular layout (contracts on inner ring, regulations on outer ring)
-- Edges: drawn from `contract.clauses[].linked_regs` — every citation becomes a thin hairline line through the medallion
-- SVG-rendered inside the existing circular medallion
-- All nodes/edges rendered in text-muted / hairline colors — NO red, NO brass fills. Just structure.
-- Small legend below: "○ contract · △ regulation · — citation" in mono
-- Hover a node: tooltip with its ID + name (no navigation — that's Phase 3 territory)
-
-## File plan
-
-**Create**
-- `src/data/regulations.ts` (typed seed)
-- `src/data/contracts.ts` (typed seed)
-- `src/data/types.ts` (shared types)
-- `src/data/queries.ts` (query options factories)
-- `src/routes/contracts.tsx`, `contracts.index.tsx`, `contracts.$contractId.tsx`
-- `src/routes/regulations.$regId.tsx`
-- `src/routes/feed.tsx`
-- `src/routes/simulate.tsx`, `src/routes/actions.tsx` (placeholder "Phase 3" panels)
-- `src/components/clausegraph/ContractCard.tsx`
-- `src/components/clausegraph/ClauseRow.tsx`
-- `src/components/clausegraph/RegulationPill.tsx`
-- `src/components/clausegraph/JurisdictionChip.tsx`
-- `src/components/clausegraph/FederalRegisterFeed.tsx`
-- `src/components/clausegraph/GraphMedallion.tsx` (replaces static seal on dashboard)
-
-**Modify**
-- `src/components/clausegraph/Sidebar.tsx` — `<Link>` navigation + active state via `useRouterState`
-- `src/components/clausegraph/TopBar.tsx` — Simulate Impact button links to `/simulate`
-- `src/routes/index.tsx` — swap `BlastRadiusSeal` for `GraphMedallion`
-- `src/routes/__root.tsx` — no changes (fonts already loaded)
-
-## Federal Register call
-
-Client-side `fetch` (CORS is open on `federalregister.gov/api/v1`). Query key `["federal-register", "newest", 5]`, `staleTime: 5 * 60_000`, returns `{ results, error?: string }`. On failure the panel renders an inline "Live feed temporarily unavailable" message; the curated section keeps working.
-
-## Verification
-
-- Build passes
-- `/`, `/contracts`, `/contracts/CTR-001`, `/regulations/REG-SEC-10B5`, `/feed` all load
-- Playwright screenshot the dashboard (graph visible), contracts list, one contract detail, and the feed page
-- Confirm the live FR section is visually distinct from curated ontology
-- Confirm clicking a clause pill navigates to the regulation
+- No changes to the existing Simulate Impact model call, fallback, or medallion animation.
+- No changes to `/actions` placeholder route (the action plan lives on `/simulate` inline, which is where the user's mental context already is).
+- Copy-to-clipboard uses plain-text markdown; not rich HTML.
