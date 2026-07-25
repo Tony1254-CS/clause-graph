@@ -65,14 +65,14 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] border transition-all duration-200 ease-out ${
+      className={`group relative grid h-9 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] border transition-all duration-200 ease-out ${
         isActive
-          ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)] shadow-[var(--glow-brass)]"
-          : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+          ? "border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)] text-[var(--ink)]"
+          : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
       }`}
     >
-      <span className="grid h-11 w-11 shrink-0 place-items-center">
-        <Icon className="h-5 w-5" strokeWidth={1.7} />
+      <span className="grid h-9 w-11 shrink-0 place-items-center">
+        <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
       </span>
       <span
         className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
@@ -96,29 +96,29 @@ export function Sidebar() {
   }
 
   return (
-    <div className="relative hidden w-[76px] shrink-0 md:block">
+    <div className="relative hidden w-[68px] shrink-0 md:block">
       <aside
         ref={asideRef}
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
         onFocus={() => setExpanded(true)}
         onBlur={onBlur}
-        className={`absolute inset-y-0 left-0 z-30 flex flex-col border-r border-[var(--hairline)] bg-[var(--sidebar)]/95 px-4 py-5 shadow-[var(--shadow-lift)] backdrop-blur-2xl transition-[width] duration-200 ease-out ${
-          expanded ? "w-[268px]" : "w-[76px]"
+        className={`absolute inset-y-0 left-0 z-30 flex flex-col border-r border-[var(--hairline)] bg-[var(--sidebar)] px-3 py-4 shadow-[var(--shadow-lift)] transition-[width] duration-200 ease-out ${
+          expanded ? "w-[248px]" : "w-[68px]"
         }`}
       >
         <Link
           to="/dashboard"
           aria-label="ClauseGraph home"
-          className="mb-5 grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--surface-glass)]"
+          className="mb-3 grid h-10 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--surface-glass)]"
         >
-          <span className="grid h-11 w-11 shrink-0 place-items-center">
-            <span className="grid h-9 w-9 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] shadow-[var(--glow-brass)]">
-              <span className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
+          <span className="grid h-10 w-11 shrink-0 place-items-center">
+            <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)]">
+              <span className="h-3 w-3 rotate-45 border-2 border-current" />
             </span>
           </span>
           <span
-            className={`min-w-0 truncate pr-3 font-display text-[16px] font-semibold tracking-tight transition-all duration-200 ${
+            className={`min-w-0 truncate pr-3 font-display text-[15px] font-semibold tracking-tight transition-all duration-200 ${
               expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
             }`}
           >
@@ -126,30 +126,11 @@ export function Sidebar() {
           </span>
         </Link>
 
-        <nav className="premium-scrollbar flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overflow-x-hidden py-1 pr-1">
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden py-1">
           {NAV.map((item) => (
             <RailIcon key={item.to} item={item} expanded={expanded} />
           ))}
         </nav>
-
-        <div className="mt-4 shrink-0 border-t border-[var(--hairline)] pt-4">
-          <Link
-            to="/settings/account"
-            aria-label="Settings"
-            className="grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] text-[var(--text-muted)] transition-all duration-200 ease-out hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
-          >
-            <span className="grid h-11 w-11 shrink-0 place-items-center">
-              <Settings className="h-5 w-5" strokeWidth={1.7} />
-            </span>
-            <span
-              className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
-                expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
-              }`}
-            >
-              Settings
-            </span>
-          </Link>
-        </div>
       </aside>
     </div>
   );
@@ -171,7 +152,7 @@ export function MobileRail() {
       >
         <div className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
       </Link>
-      <div className="premium-scrollbar flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-hidden">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);

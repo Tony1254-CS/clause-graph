@@ -9,9 +9,9 @@ import { PlanLimitDialog } from "@/components/PlanLimitDialog";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-2 sm:p-4 lg:p-6">
-      <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] backdrop-blur-2xl sm:rounded-[28px]">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,color-mix(in_oklab,var(--aura)_8%,transparent)_46%,transparent_72%)] opacity-80" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,color-mix(in_oklab,var(--aura)_18%,transparent),transparent_34%)]" />
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[240px] bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.04),transparent_70%)]" />
+
 
         <div className="relative flex flex-1 min-h-0">
           <Sidebar />
