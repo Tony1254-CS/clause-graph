@@ -135,22 +135,22 @@ export function Sidebar() {
 
 export function MobileRail() {
   return (
-    <aside className="glass-panel md:hidden flex w-14 shrink-0 flex-col items-center py-4 gap-3 h-[calc(100dvh-48px)] sticky top-6">
+    <aside className="glass-panel md:hidden flex w-14 shrink-0 flex-col items-center py-4 gap-3 h-[calc(100dvh-48px)] sticky top-6 overflow-hidden">
       <Link
         to="/dashboard"
-        className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center"
+        className="h-8 w-8 shrink-0 rounded-full border border-[var(--hairline-strong)] grid place-items-center"
         aria-label="ClauseGraph home"
       >
         <div className="h-2 w-2 rounded-full bg-brass" />
       </Link>
-      <div className="flex flex-col gap-1.5 mt-2">
+      <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden flex flex-col items-center gap-1.5 mt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {NAV.map((item) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.to}
               to={item.to}
-              className="h-10 w-10 grid place-items-center rounded-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] outline-none focus-visible:ring-2 focus-visible:ring-brass/60 duration-150 ease-out transition-all"
+              className="h-10 w-10 shrink-0 grid place-items-center rounded-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] outline-none focus-visible:ring-2 focus-visible:ring-brass/60 duration-150 ease-out transition-all"
               aria-label={item.label}
             >
               <Icon className="h-4 w-4" strokeWidth={1.6} />
