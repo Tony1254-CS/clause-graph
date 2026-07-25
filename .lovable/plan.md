@@ -1,71 +1,77 @@
-## Goal
+# Documentation: ARCHITECTURE.md + README.md
 
-Kill the "trash" look: remove the two banners crowding the top, and replace the flat pure-black + white-only palette with a premium FlowState-inspired scheme — deep near-black background with a single vivid mint/cyan accent that actually pops. Clean up the sidebar so it reads as calm and expensive.
+Create two top-level markdown files that fully document ClauseGraph — from stack to schema to every feature. No code changes.
 
-## 1. Remove the two banners
+## File 1 — `ARCHITECTURE.md` (deep technical reference)
 
-In `src/components/clausegraph/AppShell.tsx`:
-- Delete `<PaymentTestModeBanner />` (the "PREVIEW RUNS IN TEST MODE — USE CARD 4242…" strip).
-- Delete `<PlanStatusBanner />` (the "You're on the Pro trial — 30 days left" strip).
-- Remove their imports.
+1. **Overview** — one-paragraph product summary + high-level system diagram (Mermaid).
+2. **Tech Stack** (exhaustive, with role of each):
+   - **Frontend:** React 19, TanStack Start v1, TanStack Router (file-based), TanStack Query, Vite 7, TypeScript (strict), Tailwind v4, shadcn/ui, Radix primitives, lucide-react, Sora / Manrope / JetBrains Mono, `next-themes` pattern via custom `theme-provider`.
+   - **Backend:** Lovable Cloud (Supabase Postgres + Auth + Storage + RLS), TanStack `createServerFn` for app-internal RPC, TanStack API routes under `src/routes/api/public/*` for webhooks.
+   - **AI:** Lovable AI Gateway — Gemini 2.5 Flash (contract extraction), GPT-4o (Simulate Impact, Action Plan, hypothetical amendments, Compliance-as-Code).
+   - **Billing:** Paddle (server: Node SDK; client: Paddle.js), sandbox + live webhook secrets.
+   - **External APIs:** Federal Register (`/api/v1/documents`).
+   - **Utility libs:** `jspdf`, `zod`, `date-fns`, `@tanstack/react-query`.
+   - **Runtime:** Cloudflare Workers (nodejs_compat) via TanStack Start SSR.
+3. **Folder Structure** — annotated tree, every directory and its role:
+   - `src/routes/` — every route file with purpose: `__root.tsx`, `index.tsx`, `auth.tsx`, and under `_authenticated/`: `dashboard`, `contracts`, `contracts.$id`, `regulations`, `simulate`, `backtest`, `action-plan`, `radar`, `sandbox`, `supply-chain`, `settings`. Plus `routes/api/public/paddle-webhook.ts`.
+   - `src/components/clausegraph/` — every component + its role (AppShell, Sidebar, TopBar, GraphMedallion, ContractCard, ClauseRow, RegulationPill, FederalRegisterFeed, BacktestCard, ActionPlanPanel, SupplyChainGraph, ComplianceCodePanel, PlanLimitDialog, PlanStatusBanner, theme-provider, etc.).
+   - `src/components/ui/` — shadcn primitives in use.
+   - `src/lib/` — every `*.functions.ts` server function file and its handler (simulate, action-plan, contract-upload, predict-amendment, supply-chain-trace, compliance-code, paddle-checkout, quota).
+   - `src/integrations/supabase/` — `client`, `client.server`, `auth-middleware`, `auth-attacher`, `types` (with note: auto-generated, don't edit).
+   - `src/data/` — seed sources (ontology, contracts, backtest cases, historical amendments).
+   - `src/hooks/`, `src/styles.css` (all design tokens), `src/start.ts`, `src/router.tsx`.
+4. **System Architecture** — Mermaid diagram: Browser ↔ TanStack SSR (Cloudflare Worker) ↔ Supabase (Postgres/Auth/Storage) ↔ AI Gateway / Paddle / Federal Register. Explains the three Supabase clients (browser publishable, `requireSupabaseAuth`, `supabaseAdmin`) and where each is used.
+5. **Data Flow Walk-throughs** — Mermaid sequence diagrams for:
+   - Contract upload → Storage → extraction serverFn → Gemini → `clauses` table.
+   - Simulate Impact → serverFn → GPT-4o → `simulation_runs` → medallion render.
+   - Paddle checkout → `/api/public/paddle-webhook` (HMAC verified) → `subscriptions` / `organizations` update.
+   - Quota check (`assert_within_quota`) trial → free downgrade path.
+   - Supply-chain recursive trace.
+6. **Database — Full Reference**
+   - Mermaid `erDiagram` covering every table: `organizations`, `profiles`, `user_roles`, `contracts`, `clauses`, `regulations`, `regulation_amendments`, `simulation_runs`, `backtest_cases`, `compliance_artifacts`, `supply_chain_nodes`, `supply_chain_edges`, `subscriptions`, `paddle_events`, `sample_contracts`, `sample_clauses`.
+   - Per-table reference: columns, types, FKs, indexes, RLS policies, GRANTs (queried via `supabase--read_query`).
+   - All DB functions in SQL fences: `has_role`, `current_org_id`, `handle_new_user`, `get_org_usage`, `assert_within_quota`, `request_workspace_deletion`, `cancel_workspace_deletion`, `seed_supply_chain`.
+   - `app_role` enum, storage bucket `contract-files`.
+7. **Auth & Multi-Tenancy** — Supabase Auth (email + Google OAuth via Lovable broker), `handle_new_user` trigger creates org + admin role + 30-day Pro trial + seeds sample contracts + supply chain, `user_roles` isolation, `has_role` security-definer function, org-scoped RLS via `current_org_id()`.
+8. **Billing & Entitlements** — Paddle products/prices, webhook signature verification, subscription lifecycle (`trialing`/`active`/`past_due`/`canceled`), dunning, pro-rated plan swap, quota table (Free 3/5/1, Pro 50/100/3, Enterprise ∞), 30-day soft-delete window.
+9. **AI Pipelines** — model per task, prompt shape, input/output contracts, fallbacks and error handling.
+10. **Design System** — Obsidian & Mint tokens (every CSS variable from `styles.css`), typography scale, radii (20 / 12), motion (150–200ms), glass recipe, sidebar rail behavior, medallion animation, light/dark theme wiring.
+11. **Routing Map** — table of every route: layout parent, auth requirement, purpose.
+12. **Environment & Secrets** — used env/secrets (`LOVABLE_API_KEY`, `PADDLE_*`, `SUPABASE_*` — noting service role is Cloud-managed and not user-fetchable).
+13. **Build, Dev, Deploy** — Vite dev flow, Cloudflare Worker runtime notes, `/api/public/*` prefix behavior.
+14. **Known Constraints** — Worker runtime limits, no Node-only libs, RLS/GRANT rule.
 
-The TopBar becomes the first thing under the shell edge — no stacked bars.
+## File 2 — `README.md` (product + feature guide)
 
-## 2. New palette — "Obsidian & Mint"
+1. **What is ClauseGraph** — 3-sentence pitch + hero screenshot placeholder.
+2. **Quick Start** — sign in → auto 30-day Pro trial → sample contracts + supply chain seeded → try Simulate Impact.
+3. **Feature Catalog** — one subsection per feature, each with: what it does, use case, where it lives in the UI, which route/component/serverFn powers it:
+   - Dashboard portfolio overview
+   - Contracts list & detail (clause ↔ regulation citations)
+   - Regulatory Feed (curated ontology + live Federal Register)
+   - Simulate Impact (paste regulation → blast radius on medallion)
+   - Backtested Validation (historical enforcement cases)
+   - Compliance Action Plan (structured report + PDF export)
+   - Predictive Regulatory Radar (6–18 month forecast)
+   - What-If Sandbox (LLM-drafted hypothetical rule → simulate)
+   - Cross-Enterprise Supply Chain Blast Radius (recursive dependency graph)
+   - Compliance-as-Code Autopilot (Python audit + Terraform fix)
+   - Contract Upload Pipeline (PDF → Storage → Gemini extraction → clauses)
+   - Team & Roles (admin/member, invites)
+   - Billing (Free / Pro / Enterprise, trial, upgrade/downgrade, dunning)
+   - Workspace deletion (30-day grace)
+   - Light/Dark theme
+4. **Regulatory Coverage** — the 10-regulation ontology (3 GDPR, 4 US, 3 Bangladesh) as a table.
+5. **Plans & Limits** — pricing table with quotas per plan.
+6. **Tech at a Glance** — short stack summary; link to `ARCHITECTURE.md`.
+7. **Project Structure** — condensed tree.
+8. **Security** — RLS, role separation, webhook signature verification, no PII on public routes.
+9. **Troubleshooting** — common issues (stale sample IDs after re-seed, trial expiry, OAuth setup).
+10. **Roadmap / Credits.**
 
-Rewrite the token block in `src/styles.css`:
-
-- `--page-bg`: `#07090C` (deep obsidian, not pure black — pure #000 is what's reading as flat/cheap)
-- `--shell-bg`: `#0C1014` (panel base, one step up from page)
-- `--shell-secondary`: `#111620`
-- `--surface-glass`: `rgba(255,255,255,0.03)`
-- `--surface-glass-strong`: `rgba(255,255,255,0.06)`
-- `--surface-raised`: `rgba(255,255,255,0.04)`
-- `--hairline`: `rgba(255,255,255,0.07)`
-- `--hairline-strong`: `rgba(94,234,212,0.22)` (mint-tinted hairline on interactive states)
-- `--ink` / `--text-primary`: `#EAF2EF` (warm off-white, not pure white)
-- `--text-muted`: `#7A8894`
-- `--brass` (kept as token name; now our mint accent): `#5EEAD4`
-- `--brass-strong`: `#8FF3E1`
-- `--aura`: `#5EEAD4`
-- `--glow-brass`: `0 20px 60px -24px rgba(94,234,212,0.45)`
-- `--risk`: `#F87171` (unchanged, still reserved for exposure only)
-
-Light mode gets a matching pass: warm paper `#F4F6F5` background, ink `#0B1220`, same mint accent at `#0EA48F` for contrast on light.
-
-The mint is used only on: active nav item, primary buttons (Simulate Impact), key data numerals, medallion rim/pulse, focus rings. Never as a fill on large surfaces.
-
-## 3. Sidebar cleanup
-
-In `src/components/clausegraph/Sidebar.tsx`:
-- Tighten rail width: collapsed `64px`, expanded `232px` (currently 68 / 248 — feels bulky).
-- Icon stroke down to `1.5`, size `17px`, muted color `#6A7684`.
-- Active state: mint dot (4px) on the left edge + `text-primary` label, no background fill. Removes the current "boxed" active look.
-- Hover state: label fades in, icon shifts to `text-primary`, no background box.
-- Remove any leftover glow / border on the aside; keep only a single right hairline.
-- Confirm all 12 items fit at 900px viewport height without any scrollbar (they do — verified by item count × 36px row).
-
-## 4. TopBar cleanup
-
-In `src/components/clausegraph/TopBar.tsx`:
-- Simulate Impact button: mint fill (`--brass`), black text, subtle mint glow on hover — matches the FlowState "Open workspace" button style.
-- Theme toggle: keep pill, but reduce to two smaller icons with mint indicator on active side.
-- Workspace label: uppercase tracking stays, but color drops to `text-muted` so "ClauseGraph" wordmark leads.
-
-## 5. Component sweep
-
-Any remaining hard-coded whites or old cyan references in:
-- `BlastRadiusSeal.tsx` / `GraphMedallion.tsx` — rim + pulse use `--brass` (now mint), risk nodes stay `--risk`.
-- `ActionPlanPanel.tsx`, `ComplianceCodePanel.tsx`, `SupplyChainGraph.tsx`, `BacktestCard.tsx` — already token-driven from the last pass, so they pick up the new mint automatically. Spot-check for any leftover `#ffffff` fills and swap to `var(--ink)`.
-
-## Technical notes
-
-- No business logic touched — pure CSS tokens + two component removals + sidebar/topbar restyle.
-- Trial-tracking logic in `PlanStatusBanner` isn't deleted, just unmounted, so re-enabling later is a one-line add.
-- `PaymentTestModeBanner` stays as a file (unused) in case sandbox mode messaging is wanted elsewhere.
-
-## Out of scope
-
-- No layout restructure of dashboard content.
-- No new pages, no data changes.
-- No touching auth, billing, or server functions.
+## Notes
+- Both files placed at repo root.
+- All SQL, code, and diagrams in fenced blocks with language tags.
+- Mermaid used for system, sequence, and ER diagrams.
+- Documentation only — no product code changes.
