@@ -219,7 +219,8 @@ src/
 | Symptom | Cause | Fix |
 |---|---|---|
 | "Contract not found" after a re-seed | Sample contract IDs were regenerated | Return to `/contracts` and open the newly-seeded item |
-| Trial banner disappears and quotas tighten | 30-day Pro trial expired, no paid subscription | Upgrade in `/settings/billing` — takes effect immediately |
+| Header says PRO but billing looked "Free" | Fixed — plan is now resolved server-side from one source; while billing is parked every workspace is Pro | Nothing to do; hard-refresh if a stale tab is open |
+| Blank panels on a self-hosted deployment | Server-side env vars missing on the host | Set the `SUPABASE_*` / AI key server variables (see deployment notes) |
 | "Unsupported provider" on Google sign-in | Google OAuth not enabled for the project | Ask the workspace owner to enable Google via the Connectors settings |
 | Simulate returns a canned result | AI Gateway rate-limited or unreachable — deterministic fallback served | Retry in a minute; check `LOVABLE_API_KEY` in your project secrets |
 | Upload stuck on "Extracting…" | Gemini timeout on a very large PDF | Split into smaller docs; the state auto-recovers on retry |
