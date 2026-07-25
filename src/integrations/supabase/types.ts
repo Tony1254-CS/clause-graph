@@ -157,6 +157,9 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deletion_requested_by: string | null
+          deletion_scheduled_at: string | null
           id: string
           name: string
           paddle_customer_id: string | null
@@ -167,6 +170,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deletion_requested_by?: string | null
+          deletion_scheduled_at?: string | null
           id?: string
           name: string
           paddle_customer_id?: string | null
@@ -177,6 +183,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deletion_requested_by?: string | null
+          deletion_scheduled_at?: string | null
           id?: string
           name?: string
           paddle_customer_id?: string | null
@@ -473,6 +482,10 @@ export type Database = {
         Args: { _action: string; _org: string }
         Returns: undefined
       }
+      cancel_workspace_deletion: {
+        Args: { _by: string; _org: string }
+        Returns: undefined
+      }
       current_org_id: { Args: never; Returns: string }
       get_org_usage: {
         Args: { _org: string }
@@ -489,6 +502,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      request_workspace_deletion: {
+        Args: { _by: string; _org: string }
+        Returns: string
       }
     }
     Enums: {

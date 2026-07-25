@@ -26,6 +26,7 @@ import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authe
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
+import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings.account'
 import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
 import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -117,6 +118,12 @@ const AuthenticatedSettingsBillingRoute =
     path: '/settings/billing',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsAccountRoute =
+  AuthenticatedSettingsAccountRouteImport.update({
+    id: '/settings/account',
+    path: '/settings/account',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRegulationsRegIdRoute =
   AuthenticatedRegulationsRegIdRouteImport.update({
     id: '/regulations/$regId',
@@ -151,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -194,6 +203,7 @@ export interface FileRoutesById {
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/simulate'
     | '/contracts/$contractId'
     | '/regulations/$regId'
+    | '/settings/account'
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/simulate'
     | '/contracts/$contractId'
     | '/regulations/$regId'
+    | '/settings/account'
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
@@ -259,6 +271,7 @@ export interface FileRouteTypes {
     | '/_authenticated/simulate'
     | '/_authenticated/contracts/$contractId'
     | '/_authenticated/regulations/$regId'
+    | '/_authenticated/settings/account'
     | '/_authenticated/settings/billing'
     | '/_authenticated/settings/team'
     | '/api/public/health'
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsBillingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/account': {
+      id: '/_authenticated/settings/account'
+      path: '/settings/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/regulations/$regId': {
       id: '/_authenticated/regulations/$regId'
       path: '/regulations/$regId'
@@ -448,6 +468,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
+  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsBillingRoute: typeof AuthenticatedSettingsBillingRoute
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
 }
@@ -460,6 +481,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
+  AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
   AuthenticatedSettingsBillingRoute: AuthenticatedSettingsBillingRoute,
   AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
 }

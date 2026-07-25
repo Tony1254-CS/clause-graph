@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, ExternalLink, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { profileQuery } from "@/data/queries";
-import { getOrgUsage, createBillingPortalSession } from "@/lib/billing.functions";
+import {
+  getOrgUsage,
+  createBillingPortalSession,
+  changeSubscriptionPlan,
+} from "@/lib/billing.functions";
 import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
@@ -24,21 +28,46 @@ export const Route = createFileRoute("/_authenticated/settings/billing")({
 });
 
 function BillingPage() {
+  const qc = useQueryClient();
   const profile = useQuery(profileQuery);
   const getUsage = useServerFn(getOrgUsage);
   const portal = useServerFn(createBillingPortalSession);
+  const changePlan = useServerFn(changeSubscriptionPlan);
   const usage = useQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
   const { openCheckout, loading: coLoading } = usePaddleCheckout();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [changing, setChanging] = useState<PlanId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("checkout") === "success") {
-      // Give the webhook a moment to land, then refresh.
-      setTimeout(() => usage.refetch(), 1500);
-    }
-  }, [usage]);
+    if (url.searchParams.get("checkout") !== "success") return;
+    // Poll usage query for up to 12s while the webhook lands.
+    setPolling(true);
+    setNotice("Finalizing your subscription…");
+    let attempts = 0;
+    const startPlan = usage.data?.plan ?? "free";
+    const iv = window.setInterval(async () => {
+      attempts += 1;
+      const fresh = await qc.fetchQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
+      if (fresh?.plan && fresh.plan !== startPlan) {
+        window.clearInterval(iv);
+        setPolling(false);
+        setNotice("Subscription active. Welcome aboard.");
+        // Clean up the query string
+        url.searchParams.delete("checkout");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      } else if (attempts >= 12) {
+        window.clearInterval(iv);
+        setPolling(false);
+        setNotice("Payment received — plan should reflect shortly.");
+      }
+    }, 1000);
+    return () => window.clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentPlan = (usage.data?.plan ?? "free") as PlanId;
   const userId = profile.data?.id;
@@ -46,8 +75,34 @@ function BillingPage() {
 
   async function handleSelect(planId: PlanId) {
     setError(null);
+    setNotice(null);
+    if (planId === currentPlan) return;
     const price = PLANS[planId].priceId;
     if (!price || !userId || !orgId) return;
+
+    // If already on a paid plan, swap items on the existing subscription
+    // (no double-billing).
+    if (currentPlan !== "free") {
+      setChanging(planId);
+      try {
+        const res = await changePlan({ data: { newPlanId: planId } });
+        if (res.changed) {
+          setNotice(
+            res.upgraded
+              ? "Upgrade applied — pro-rated charge on your card now."
+              : "Downgrade scheduled — takes effect on your next renewal.",
+          );
+        }
+        await qc.invalidateQueries({ queryKey: ["org-usage"] });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not change plan");
+      } finally {
+        setChanging(null);
+      }
+      return;
+    }
+
+    // Free → paid: open a fresh checkout.
     try {
       await openCheckout({
         priceId: price,
@@ -103,6 +158,12 @@ function BillingPage() {
         {error && (
           <div className="glass-panel border-risk/40 text-risk p-4 text-[13px]">{error}</div>
         )}
+        {notice && (
+          <div className="glass-panel p-4 text-[13px] text-foreground flex items-center gap-2">
+            {polling && <Loader2 className="h-3.5 w-3.5 animate-spin text-brass" />}
+            {notice}
+          </div>
+        )}
 
         <section className="glass-panel p-6">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -133,7 +194,8 @@ function BillingPage() {
               key={id}
               plan={PLANS[id]}
               current={currentPlan === id}
-              disabled={coLoading || !PLANS[id].priceId}
+              disabled={coLoading || changing !== null || !PLANS[id].priceId}
+              busy={changing === id}
               onSelect={() => handleSelect(id)}
             />
           ))}
@@ -170,11 +232,13 @@ function PlanCard({
   plan,
   current,
   disabled,
+  busy,
   onSelect,
 }: {
   plan: (typeof PLANS)[PlanId];
   current: boolean;
   disabled: boolean;
+  busy?: boolean;
   onSelect: () => void;
 }) {
   return (
@@ -216,7 +280,8 @@ function PlanCard({
             : "border border-[var(--hairline)] text-muted-foreground"
         }`}
       >
-        {current ? "Current plan" : plan.priceId ? `Upgrade to ${plan.name}` : "Included"}
+        {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {current ? "Current plan" : plan.priceId ? `Switch to ${plan.name}` : "Included"}
       </button>
     </div>
   );

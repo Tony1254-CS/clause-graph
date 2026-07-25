@@ -10,6 +10,7 @@ import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
+import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 
 export const Route = createFileRoute("/_authenticated/simulate")({
   head: () => ({
@@ -102,6 +103,10 @@ function SimulatePage() {
       setResult(res);
       setStatus("done");
     } catch (err) {
+      if (handlePlanLimitError(err, "simulations")) {
+        setStatus("idle");
+        return;
+      }
       setError(err instanceof Error ? err.message : "Simulation failed");
       setStatus("error");
     }

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "./paddle.server";
+import { PLANS, type PlanId } from "./plans";
 
 /**
  * Resolves a human-readable price id (e.g. "pro_monthly") to the Paddle
@@ -97,4 +98,68 @@ export const getOrgUsage = createServerFn({ method: "GET" })
       plan_status: (org?.plan_status as string) ?? "active",
       plan_renews_at: (org?.plan_renews_at as string | null) ?? null,
     };
+  });
+
+/**
+ * Change plan on an existing paid subscription. Swaps the items on the current
+ * Paddle subscription rather than creating a new one — avoids double-billing.
+ * Upgrades bill pro-rated immediately; downgrades take effect at next renewal.
+ */
+export const changeSubscriptionPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { newPlanId: PlanId }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const target = PLANS[data.newPlanId];
+    if (!target?.priceId) throw new Error("Invalid plan");
+
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", userId)
+      .maybeSingle();
+    const orgId = prof?.org_id as string | undefined;
+    if (!orgId) throw new Error("No workspace");
+
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("paddle_subscription_id, environment, status, price_id")
+      .eq("org_id", orgId)
+      .in("status", ["active", "trialing", "past_due"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!sub?.paddle_subscription_id) {
+      throw new Error("NO_ACTIVE_SUB");
+    }
+    if (sub.price_id === target.priceId) {
+      return { changed: false as const };
+    }
+
+    // Resolve target Paddle internal price id
+    const env = sub.environment as PaddleEnv;
+    const priceRes = await gatewayFetch(
+      env,
+      `/prices?external_id=${encodeURIComponent(target.priceId)}`,
+    );
+    const priceJson = (await priceRes.json()) as { data?: Array<{ id: string }> };
+    const paddlePriceId = priceJson.data?.[0]?.id;
+    if (!paddlePriceId) throw new Error("Target price not found in Paddle");
+
+    // Detect upgrade vs downgrade by monthly USD amount
+    const currentAmount =
+      (Object.values(PLANS).find((p) => p.priceId === sub.price_id)?.priceUsd) ?? 0;
+    const isUpgrade = target.priceUsd > currentAmount;
+
+    const { getPaddleClient } = await import("./paddle.server");
+    const paddle = getPaddleClient(env);
+    await paddle.subscriptions.update(sub.paddle_subscription_id as string, {
+      items: [{ priceId: paddlePriceId, quantity: 1 }],
+      prorationBillingMode: isUpgrade
+        ? "prorated_immediately"
+        : "prorated_next_billing_period",
+    });
+
+    return { changed: true as const, upgraded: isUpgrade };
   });

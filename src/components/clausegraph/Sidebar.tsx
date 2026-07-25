@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck, Users, Wallet } from "lucide-react";
+import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck, Users, Wallet, UserCog } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
-  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions" | "/settings/team" | "/settings/billing";
+  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions" | "/settings/team" | "/settings/billing" | "/settings/account";
   match?: string;
 };
 
@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
   { label: "Team", icon: Users, to: "/settings/team", match: "/settings/team" },
   { label: "Billing", icon: Wallet, to: "/settings/billing", match: "/settings/billing" },
+  { label: "Account", icon: UserCog, to: "/settings/account", match: "/settings/account" },
 ];
 
 
