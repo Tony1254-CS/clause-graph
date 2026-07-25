@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
 import { contractsQuery, regulationsQuery } from "@/data/queries";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -28,6 +29,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     context.queryClient.ensureQueryData(regulationsQuery);
   },
   component: Dashboard,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Dashboard unavailable" error={error} reset={reset} />
+  ),
 });
 
 function Dashboard() {

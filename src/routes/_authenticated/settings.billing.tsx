@@ -13,6 +13,7 @@ import {
 import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { getPaddleEnvironment } from "@/lib/paddle";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/settings/billing")({
   head: () => ({
@@ -26,6 +27,9 @@ export const Route = createFileRoute("/_authenticated/settings/billing")({
     ],
   }),
   component: BillingPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Billing unavailable" error={error} reset={reset} />
+  ),
 });
 
 function BillingPage() {
