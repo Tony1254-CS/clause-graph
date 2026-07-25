@@ -50,11 +50,26 @@ function Landing() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2.5">
+    <main className="relative min-h-screen overflow-hidden bg-background">
+      {/* Ambient atmosphere */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-[0.18] blur-[120px] ambient-drift"
+             style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 60%)" }} />
+        <div className="absolute top-[30%] -right-40 h-[620px] w-[620px] rounded-full opacity-[0.10] blur-[140px] ambient-drift"
+             style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 65%)", animationDelay: "-14s" }} />
+        <div className="absolute inset-0 opacity-[0.035]"
+             style={{
+               backgroundImage:
+                 "linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px)",
+               backgroundSize: "56px 56px",
+               maskImage: "radial-gradient(ellipse at 50% 20%, black 40%, transparent 75%)",
+             }} />
+      </div>
+
+      <header className="relative z-10 mx-auto flex max-w-[1240px] items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-2.5 animate-fade-up" style={{ animationDelay: "40ms" }}>
           <div className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center">
-            <div className="h-2 w-2 rounded-full bg-brass" />
+            <div className="h-2 w-2 rounded-full bg-brass mint-glow-pulse" />
           </div>
           <span className="font-display text-[19px] tracking-tight text-foreground">
             ClauseGraph
@@ -62,57 +77,105 @@ function Landing() {
         </div>
         <Link
           to="/auth"
-          className="inline-flex items-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-[13px] text-foreground transition-all duration-150 ease-out hover:border-brass hover:text-brass"
+          className="inline-flex items-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-[13px] text-foreground transition-ui press hover:border-brass hover:text-brass animate-fade-up"
+          style={{ animationDelay: "80ms" }}
         >
           Sign in
           <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
         </Link>
       </header>
 
-      <section className="mx-auto max-w-[1200px] px-6 pt-16 pb-24">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
-          Legal Compliance · Blast Radius Analysis
-        </p>
-        <h1 className="mt-4 font-display text-[56px] leading-[1.02] tracking-tight text-foreground max-w-[18ch]">
-          See the blast radius before the rule ships.
-        </h1>
-        <p className="mt-6 text-[16px] leading-[1.6] text-muted-foreground max-w-[58ch]">
-          Paste a proposed regulation. ClauseGraph maps it against your portfolio in seconds
-          — which contracts break, which clauses need redrafting, how much notional exposure
-          is at stake, and what to change.
-        </p>
+      <section className="relative z-10 mx-auto max-w-[1240px] px-6 pt-10 pb-24 lg:pt-16">
+        <div className="grid gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center">
+          {/* Left: hero copy */}
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass animate-fade-up inline-flex items-center gap-2">
+              <span className="inline-block h-[6px] w-[6px] rounded-full bg-brass mint-glow-pulse" />
+              Legal Compliance · Blast Radius Analysis
+            </p>
+            <h1
+              className="mt-5 font-display text-[clamp(40px,6vw,68px)] leading-[1.02] tracking-[-0.02em] text-foreground max-w-[16ch] animate-fade-up"
+              style={{ animationDelay: "80ms" }}
+            >
+              See the blast radius{" "}
+              <span className="italic text-brass">before</span> the rule ships.
+            </h1>
+            <p
+              className="mt-6 text-[16px] leading-[1.65] text-muted-foreground max-w-[54ch] animate-fade-up"
+              style={{ animationDelay: "140ms" }}
+            >
+              Paste a proposed regulation. ClauseGraph maps it against your portfolio in
+              seconds — which contracts break, which clauses need redrafting, how much
+              notional exposure is at stake, and what to change.
+            </p>
 
-        <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-2 rounded-[12px] bg-brass px-6 py-3 text-[14px] font-medium text-[color:var(--primary-foreground)] shadow-[0_0_24px_-6px_rgba(201,166,107,0.4)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)] active:scale-[0.98]"
-          >
-            <Zap className="h-4 w-4" strokeWidth={2.2} />
-            Get started
-          </Link>
-          <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            New workspaces come with 3 sample contracts
-          </span>
+            <div
+              className="mt-10 flex flex-wrap items-center gap-5 animate-fade-up"
+              style={{ animationDelay: "200ms" }}
+            >
+              <Link
+                to="/auth"
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-[14px] bg-brass px-6 py-3.5 text-[14px] font-medium text-[color:var(--primary-foreground)] shadow-[0_0_32px_-8px_rgba(94,234,212,0.55)] transition-ui press hover:-translate-y-[1px]"
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+                />
+                <Zap className="h-4 w-4" strokeWidth={2.2} />
+                Get started
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.2} />
+              </Link>
+              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                3 sample contracts · no credit card
+              </span>
+            </div>
+
+            {/* Stat row */}
+            <dl
+              className="mt-14 grid grid-cols-3 gap-6 max-w-[520px] animate-fade-up"
+              style={{ animationDelay: "260ms" }}
+            >
+              {[
+                { k: "< 8s", v: "Portfolio scan" },
+                { k: "10", v: "Regulations mapped" },
+                { k: "3", v: "Jurisdictions" },
+              ].map((s) => (
+                <div key={s.v} className="border-l border-[var(--hairline-strong)] pl-4">
+                  <div className="font-display text-[26px] leading-none tracking-tight text-foreground">{s.k}</div>
+                  <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">{s.v}</div>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* Right: animated blast-radius seal */}
+          <div className="relative min-w-0 animate-fade-up" style={{ animationDelay: "180ms" }}>
+            <HeroSeal />
+          </div>
         </div>
 
-        <div className="mt-24 grid gap-6 md:grid-cols-3">
+        <div className="mt-28 grid gap-6 md:grid-cols-3">
           <FeatureCard
             icon={Network}
             title="Portfolio topology"
             body="Every contract and every regulation rendered as a live citation graph. Click a node to trace what depends on it."
+            i={0}
           />
           <FeatureCard
             icon={Zap}
             title="Simulate Impact"
             body="Paste any proposed rule. See which agreements light up, ranked by exposure, with amendment language for legal review."
+            i={1}
           />
           <FeatureCard
             icon={ShieldCheck}
             title="Backtested"
             body="Reconstructed scenarios from Wells Fargo, Goldman, and Credit Suisse enforcement actions — analyzed live, next to the real fine."
+            i={2}
           />
         </div>
       </section>
+
 
       <section className="mx-auto max-w-[1200px] px-6 pb-24">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
