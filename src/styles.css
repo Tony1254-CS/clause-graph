@@ -5,22 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * ClauseGraph design system.
- * Colors from the brief, converted to oklch so they interop with the shadcn
- * token layer. Hex fidelity preserved via oklch equivalents.
+ * ClauseGraph — Liquid Glass Editorial (Paper & Ink)
+ * Light default, dark opt-in via .dark on <html>.
  */
 
 @theme inline {
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-2xl: 28px;
-  --radius-3xl: 32px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-2xl: 32px;
+  --radius-3xl: 36px;
 
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Sora", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -42,9 +41,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-brass: var(--brass);
+  /* Legacy accent names kept, remapped to ink so old classnames compose safely */
+  --color-brass: var(--ink);
   --color-risk: var(--risk);
-  --color-ink: var(--ink-base);
+  --color-ink: var(--ink);
   --color-surface-raised: var(--surface-raised);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -56,72 +56,134 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Light (default) — Paper & Ink */
 :root {
   --radius: 20px;
 
-  /* ClauseGraph raw palette */
-  --ink-base: oklch(0.16 0.015 258);           /* #0B0E14 */
-  --surface-raised: oklch(0.22 0.017 258);     /* #151922 */
-  --surface-glass: rgba(255, 255, 255, 0.06);
-  --brass: oklch(0.75 0.09 78);                /* #C9A66B */
-  --brass-strong: oklch(0.78 0.11 78);
-  --risk: oklch(0.65 0.19 25);                 /* #E1524B */
-  --text-primary: oklch(0.95 0.008 85);        /* #F2F0EA */
-  --text-muted: oklch(0.68 0.012 75);          /* #9C978E */
-  --hairline: rgba(201, 166, 107, 0.18);
-  --hairline-strong: rgba(201, 166, 107, 0.32);
-  --glow-brass: 0 0 60px -12px rgba(201, 166, 107, 0.28), 0 0 1px rgba(201, 166, 107, 0.35);
+  --page-bg: #e8e4dd;
+  --shell-bg: #f5f3ee;
+  --shell-secondary: #ede9e1;
+  --ink: #0d0d0d;
+  --ink-soft: #2d2d2d;
+  --text-primary: #0d0d0d;
+  --text-muted: #6b6960;
+  --paper: #f5f3ee;
+  --paper-soft: #e8e4dd;
+
+  --surface-raised: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.55);
+  --surface-glass-strong: rgba(255, 255, 255, 0.7);
+
+  --hairline: rgba(13, 13, 13, 0.06);
+  --hairline-strong: rgba(13, 13, 13, 0.12);
+  --shadow-soft: 0 24px 60px -28px rgba(13, 13, 13, 0.18), 0 2px 6px -2px rgba(13, 13, 13, 0.06);
+  --shadow-lift: 0 32px 64px -24px rgba(13, 13, 13, 0.22);
+  --glow-brass: var(--shadow-soft);
+
+  --risk: #e11d48;
+  --success: #10b981;
 
   /* shadcn semantic mapping */
-  --background: var(--ink-base);
+  --background: var(--page-bg);
   --foreground: var(--text-primary);
-  --card: var(--surface-raised);
+  --card: var(--shell-bg);
   --card-foreground: var(--text-primary);
   --popover: var(--surface-raised);
   --popover-foreground: var(--text-primary);
-  --primary: var(--brass);
-  --primary-foreground: oklch(0.18 0.015 258);
-  --secondary: oklch(0.26 0.017 258);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-soft);
   --secondary-foreground: var(--text-primary);
-  --muted: oklch(0.24 0.015 258);
+  --muted: var(--paper-soft);
   --muted-foreground: var(--text-muted);
-  --accent: var(--brass);
-  --accent-foreground: oklch(0.18 0.015 258);
+  --accent: var(--ink);
+  --accent-foreground: var(--paper);
   --destructive: var(--risk);
-  --destructive-foreground: var(--text-primary);
+  --destructive-foreground: #ffffff;
   --border: var(--hairline);
-  --input: var(--hairline);
-  --ring: var(--brass);
+  --input: var(--hairline-strong);
+  --ring: var(--ink);
 
-  --sidebar: var(--surface-raised);
+  --sidebar: var(--paper-soft);
   --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--brass);
-  --sidebar-primary-foreground: oklch(0.18 0.015 258);
-  --sidebar-accent: oklch(0.26 0.017 258);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--paper);
+  --sidebar-accent: var(--shell-bg);
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--brass);
+  --sidebar-ring: var(--ink);
 }
 
+/* Dark — Ink base with paper-tinted foreground */
 .dark {
-  /* Single-mode app: dark values equal :root */
-  --background: var(--ink-base);
+  --page-bg: #1a1a1a;
+  --shell-bg: #0d0d0d;
+  --shell-secondary: #151515;
+  --ink: #f5f3ee;
+  --ink-soft: #e8e4dd;
+  --text-primary: #f5f3ee;
+  --text-muted: rgba(245, 243, 238, 0.55);
+  --paper: #0d0d0d;
+  --paper-soft: #151515;
+
+  --surface-raised: #1a1a1a;
+  --surface-glass: rgba(255, 255, 255, 0.04);
+  --surface-glass-strong: rgba(255, 255, 255, 0.08);
+
+  --hairline: rgba(245, 243, 238, 0.08);
+  --hairline-strong: rgba(245, 243, 238, 0.16);
+  --shadow-soft: 0 24px 60px -28px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 32px 64px -24px rgba(0, 0, 0, 0.7);
+  --glow-brass: var(--shadow-soft);
+
+  --background: var(--page-bg);
   --foreground: var(--text-primary);
+  --card: var(--shell-bg);
+  --card-foreground: var(--text-primary);
+  --popover: var(--shell-secondary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--paper);
+  --primary-foreground: #0d0d0d;
+  --secondary: var(--paper-soft);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--paper-soft);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--paper);
+  --accent-foreground: #0d0d0d;
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--paper);
+
+  --sidebar: var(--shell-secondary);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--paper);
+  --sidebar-primary-foreground: #0d0d0d;
+  --sidebar-accent: rgba(255, 255, 255, 0.05);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--paper);
 }
 
 @utility glass-panel {
   background: var(--surface-glass);
-  backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--hairline);
-  border-radius: 20px;
-  box-shadow: var(--glow-brass);
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
 }
 
 @utility glass-panel-sm {
   background: var(--surface-glass);
-  backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: 16px;
+}
+
+@utility glass-pill {
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
 }
 
 @utility hairline-b {
@@ -131,24 +193,18 @@
 @keyframes brass-rim-pulse {
   0%, 100% {
     box-shadow:
-      0 0 0 1px rgba(201, 166, 107, 0.35),
-      0 0 40px -8px rgba(201, 166, 107, 0.35);
+      0 0 0 1px var(--hairline-strong),
+      0 0 40px -8px rgba(13, 13, 13, 0.18);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(201, 166, 107, 0.85),
-      0 0 80px -4px rgba(201, 166, 107, 0.65);
+      0 0 0 1px var(--ink),
+      0 0 80px -4px rgba(13, 13, 13, 0.28);
   }
 }
 
 @utility rim-pulse {
   animation: brass-rim-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes risk-node-in {
-  0% { r: 3.5; opacity: 0.4; }
-  60% { r: 9; opacity: 1; }
-  100% { opacity: 1; }
 }
 
 @utility transition-ui {
@@ -162,23 +218,39 @@
     border-color: var(--color-border);
   }
 
+  html {
+    background-color: var(--page-bg);
+    color-scheme: light;
+    transition: background-color 400ms ease-out, color 400ms ease-out;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   html,
   body {
-    background-color: var(--color-background);
+    background-color: var(--page-bg);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.005em;
   }
 
   body {
     background-image:
-      radial-gradient(ellipse 80% 60% at 15% 0%, rgba(201, 166, 107, 0.06), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(201, 166, 107, 0.04), transparent 60%);
+      radial-gradient(ellipse 60% 45% at 88% -10%, rgba(13, 13, 13, 0.05), transparent 65%),
+      radial-gradient(ellipse 50% 40% at -5% 110%, rgba(13, 13, 13, 0.04), transparent 65%);
     background-attachment: fixed;
     min-height: 100dvh;
   }
 
-  /* Global keyboard focus ring — brass against ink-base, 2px offset */
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 60% 45% at 88% -10%, rgba(245, 243, 238, 0.04), transparent 65%),
+      radial-gradient(ellipse 50% 40% at -5% 110%, rgba(245, 243, 238, 0.03), transparent 65%);
+  }
+
   a:focus-visible,
   button:focus-visible,
   [role="button"]:focus-visible,
@@ -187,7 +259,7 @@
   select:focus-visible,
   summary:focus-visible,
   [tabindex]:not([tabindex="-1"]):focus-visible {
-    outline: 2px solid rgba(201, 166, 107, 0.7);
+    outline: 2px solid var(--ink);
     outline-offset: 2px;
     border-radius: 12px;
   }
@@ -208,18 +280,20 @@
 }
 
 @utility glass-input {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-glass-strong);
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  padding: 0.55rem 0.85rem;
+  padding: 0.6rem 0.9rem;
   color: var(--foreground);
-  font-size: 13.5px;
+  font-size: 14px;
   outline: none;
-  transition: border-color 180ms ease-out, background-color 180ms ease-out;
+  transition: border-color 180ms ease-out, background-color 180ms ease-out, box-shadow 180ms ease-out;
   &:focus {
-    border-color: var(--hairline-strong);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--ink);
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 3px var(--hairline);
   }
 }
 
-
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

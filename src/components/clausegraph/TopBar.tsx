@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopBar() {
   const { data: profile } = useQuery(profileQuery);
@@ -37,43 +38,44 @@ export function TopBar() {
     (profile?.full_name?.trim().charAt(0) || profile?.email?.trim().charAt(0) || "?").toUpperCase();
 
   return (
-    <header className="glass-panel flex items-center justify-between gap-4 px-6 py-4">
+    <header className="h-20 flex items-center justify-between gap-4 px-6 sm:px-10 border-b border-[var(--hairline)] relative z-10">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex min-w-0 flex-col">
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Workspace
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="font-display text-[22px] leading-none tracking-tight text-foreground truncate max-w-[42ch]">
-              {orgName}
-            </span>
-            {profile?.org?.plan && (
-              <Link
-                to="/settings/billing"
-                className="rounded-full border border-brass/30 bg-brass/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass hover:border-brass/60 transition-colors"
-              >
-                {profile.org.plan}
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <div className="hidden md:flex items-center gap-2 pl-4 ml-2 border-l border-[var(--hairline)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-brass shadow-[0_0_8px_var(--brass)]" />
-          <span className="font-mono text-[11px] text-muted-foreground">
-            <span className="text-foreground">{contractCount}</span>{" "}
-            active contract{contractCount === 1 ? "" : "s"} monitored
-          </span>
-        </div>
+        <h1 className="font-display text-[22px] font-semibold tracking-tight text-[var(--ink)]">
+          ClauseGraph
+        </h1>
+        <div className="hidden sm:block h-4 w-px bg-[var(--hairline-strong)]" />
+        <span className="hidden sm:inline text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)] truncate max-w-[32ch]">
+          {orgName}
+        </span>
+        {profile?.org?.plan && (
+          <Link
+            to="/settings/billing"
+            className="hidden md:inline-flex items-center rounded-full border border-[var(--hairline-strong)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ink)] hover:bg-[var(--surface-glass)] transition-colors"
+          >
+            {profile.org.plan}
+          </Link>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
+        <div className="hidden lg:flex glass-pill items-center gap-2 px-3 py-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          <span className="text-[11px] font-medium text-[var(--ink)]">
+            {contractCount} monitored
+          </span>
+        </div>
+
+        <ThemeToggle />
+
         <Link
           to="/simulate"
-          className="group inline-flex items-center gap-2 rounded-[12px] bg-brass px-5 py-2.5 text-[13px] font-medium text-[color:var(--primary-foreground)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)] active:scale-[0.98] shadow-[0_0_24px_-6px_rgba(201,166,107,0.4)]"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--ink)] px-4 py-2.5 text-[13px] font-semibold text-[var(--paper)] transition-all duration-200 ease-out hover:opacity-90 active:scale-[0.98]"
         >
           <Zap className="h-3.5 w-3.5" strokeWidth={2.2} />
-          Simulate Impact
+          <span className="hidden sm:inline">Simulate Impact</span>
         </Link>
 
         <div className="relative" ref={menuRef}>
@@ -82,27 +84,27 @@ export function TopBar() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            className="flex items-center gap-2 rounded-[12px] border border-[var(--hairline)] px-2 py-1.5 hover:border-[var(--hairline-strong)] transition-colors duration-150 ease-out"
+            className="flex items-center gap-2 rounded-full border border-[var(--hairline)] pl-1 pr-2 py-1 hover:border-[var(--hairline-strong)] transition-colors duration-200"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[rgba(201,166,107,0.12)] font-mono text-[11px] text-brass">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--ink)] text-[var(--paper)] text-[11px] font-semibold">
               {initial}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
+            <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={1.6} />
           </button>
           {menuOpen && (
             <div
               role="menu"
-              className="absolute right-0 top-[calc(100%+8px)] w-64 glass-panel p-2 z-20"
+              className="absolute right-0 top-[calc(100%+8px)] w-64 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)] p-2 shadow-[var(--shadow-lift)] z-20"
             >
               <div className="px-3 py-2 border-b border-[var(--hairline)]">
-                <div className="flex items-center gap-2 text-foreground">
-                  <UserIcon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
-                  <span className="text-[13px] truncate">
+                <div className="flex items-center gap-2 text-[var(--ink)]">
+                  <UserIcon className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={1.6} />
+                  <span className="text-[13px] truncate font-medium">
                     {profile?.full_name || profile?.email || "Signed in"}
                   </span>
                 </div>
                 {profile?.email && profile?.full_name && (
-                  <p className="mt-0.5 font-mono text-[10.5px] text-muted-foreground truncate">
+                  <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
                     {profile.email}
                   </p>
                 )}
@@ -111,9 +113,9 @@ export function TopBar() {
                 type="button"
                 onClick={handleSignOut}
                 role="menuitem"
-                className="mt-1 w-full inline-flex items-center gap-2 rounded-[10px] px-3 py-2 text-left text-[13px] text-foreground hover:bg-[rgba(255,255,255,0.04)] transition-colors duration-150 ease-out"
+                className="mt-1 w-full inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-[13px] text-[var(--ink)] hover:bg-[var(--paper-soft)] transition-colors duration-200"
               >
-                <LogOut className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
+                <LogOut className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={1.6} />
                 Sign out
               </button>
             </div>
