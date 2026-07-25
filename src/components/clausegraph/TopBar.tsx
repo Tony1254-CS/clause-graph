@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Zap, ChevronDown, LogOut, User as UserIcon, Activity } from "lucide-react";
+import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";

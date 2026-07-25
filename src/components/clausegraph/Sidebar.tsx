@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type FocusEvent } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -89,7 +89,7 @@ export function Sidebar() {
   const [expanded, setExpanded] = useState(false);
   const asideRef = useRef<HTMLElement | null>(null);
 
-  function onBlur(e: React.FocusEvent<HTMLElement>) {
+  function onBlur(e: FocusEvent<HTMLElement>) {
     const next = e.relatedTarget;
     if (next instanceof Node && asideRef.current?.contains(next)) return;
     setExpanded(false);
@@ -156,6 +156,12 @@ export function Sidebar() {
 }
 
 export function MobileRail() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (item: NavItem) => {
+    const base = item.match ?? item.to;
+    return pathname === base || pathname.startsWith(base + "/");
+  };
+
   return (
     <aside className="flex w-16 shrink-0 flex-col items-center border-r border-[var(--hairline)] bg-[var(--sidebar)]/95 py-4 backdrop-blur-2xl md:hidden">
       <Link
@@ -168,13 +174,13 @@ export function MobileRail() {
       <div className="premium-scrollbar flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto">
         {NAV.map((item) => {
           const Icon = item.icon;
-          const isActive = useIsActive(item);
+          const active = isActive(item);
           return (
             <Link
               key={item.to}
               to={item.to}
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border transition-all duration-200 ease-out ${
-                isActive
+                active
                   ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)]"
                   : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
               }`}
