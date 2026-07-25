@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
+import { Route as AuthenticatedSupplyChainRouteImport } from './routes/_authenticated/supply-chain'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
 import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
@@ -73,6 +74,12 @@ const AuthenticatedWhatIfRoute = AuthenticatedWhatIfRouteImport.update({
   path: '/what-if',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupplyChainRoute =
+  AuthenticatedSupplyChainRouteImport.update({
+    id: '/supply-chain',
+    path: '/supply-chain',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
   id: '/simulate',
   path: '/simulate',
@@ -176,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/feed': typeof AuthenticatedFeedRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/feed': typeof AuthenticatedFeedRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
@@ -227,6 +236,7 @@ export interface FileRoutesById {
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/predictive': typeof AuthenticatedPredictiveRouteWithChildren
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
+  '/_authenticated/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/_authenticated/what-if': typeof AuthenticatedWhatIfRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/_authenticated/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/predictive'
     | '/simulate'
+    | '/supply-chain'
     | '/what-if'
     | '/contracts/$contractId'
     | '/predictive/$regulationId'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/predictive'
     | '/simulate'
+    | '/supply-chain'
     | '/what-if'
     | '/contracts/$contractId'
     | '/predictive/$regulationId'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
     | '/_authenticated/feed'
     | '/_authenticated/predictive'
     | '/_authenticated/simulate'
+    | '/_authenticated/supply-chain'
     | '/_authenticated/what-if'
     | '/_authenticated/contracts/$contractId'
     | '/_authenticated/predictive/$regulationId'
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/what-if'
       fullPath: '/what-if'
       preLoaderRoute: typeof AuthenticatedWhatIfRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/supply-chain': {
+      id: '/_authenticated/supply-chain'
+      path: '/supply-chain'
+      fullPath: '/supply-chain'
+      preLoaderRoute: typeof AuthenticatedSupplyChainRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/simulate': {
@@ -541,6 +561,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedPredictiveRoute: typeof AuthenticatedPredictiveRouteWithChildren
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
+  AuthenticatedSupplyChainRoute: typeof AuthenticatedSupplyChainRoute
   AuthenticatedWhatIfRoute: typeof AuthenticatedWhatIfRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
@@ -556,6 +577,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedPredictiveRoute: AuthenticatedPredictiveRouteWithChildren,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
+  AuthenticatedSupplyChainRoute: AuthenticatedSupplyChainRoute,
   AuthenticatedWhatIfRoute: AuthenticatedWhatIfRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
@@ -580,3 +602,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
