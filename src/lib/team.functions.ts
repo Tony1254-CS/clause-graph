@@ -35,6 +35,13 @@ export const inviteTeammate = createServerFn({ method: "POST" })
     if (pErr) throw pErr;
     if (!profile?.org_id) throw new Error("Organization not found");
 
+    // Enforce seat quota
+    const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
+      _org: profile.org_id,
+      _action: "invite_teammate",
+    });
+    if (quotaErr) throw new Error(quotaErr.message);
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
       data: { invited_org_id: profile.org_id, full_name: data.fullName },
