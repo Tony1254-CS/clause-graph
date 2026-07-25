@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Simulate the blast radius of proposed regulations across your contract portfolio.",
+          "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
