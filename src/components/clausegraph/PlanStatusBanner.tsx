@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock, Gem } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
 
 type OrgStatus = {
