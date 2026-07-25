@@ -15,8 +15,8 @@ const H = 460;
 
 const SEV_COLOR: Record<CascadeHit["severity"], string> = {
   high: "var(--risk)",
-  medium: "rgba(225,82,75,0.75)",
-  low: "rgba(225,82,75,0.45)",
+  medium: "color-mix(in oklab, var(--risk) 75%, transparent)",
+  low: "color-mix(in oklab, var(--risk) 45%, transparent)",
 };
 
 export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, selectedId }: Props) {
@@ -50,12 +50,12 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
     >
       <defs>
         <radialGradient id="node-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(201,166,107,0.35)" />
-          <stop offset="100%" stopColor="rgba(201,166,107,0)" />
+          <stop offset="0%" stopColor="color-mix(in oklab, var(--brass) 35%, transparent)" />
+          <stop offset="100%" stopColor="transparent" />
         </radialGradient>
         <radialGradient id="hit-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(225,82,75,0.55)" />
-          <stop offset="100%" stopColor="rgba(225,82,75,0)" />
+          <stop offset="0%" stopColor="color-mix(in oklab, var(--risk) 55%, transparent)" />
+          <stop offset="100%" stopColor="transparent" />
         </radialGradient>
       </defs>
 
@@ -66,13 +66,13 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
         if (!a || !b) return null;
         const fromHit = hits.get(e.from_node_id);
         const toHit = hits.get(e.to_node_id);
-        const propagates = !!(fromHit && toHit);
+        const propagates = Boolean(fromHit && toHit);
         const midX = (a.x + b.x) / 2;
         const path = `M ${a.x} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${b.x} ${b.y}`;
-        const stroke = propagates
-          ? SEV_COLOR[toHit!.severity]
-          : "rgba(201,166,107,0.22)";
-        const delay = animating && propagates ? Math.max(fromHit!.hop, 0) * 220 : 0;
+        const stroke = propagates && toHit
+          ? SEV_COLOR[toHit.severity]
+          : "color-mix(in oklab, var(--brass) 22%, transparent)";
+        const delay = animating && propagates && fromHit ? Math.max(fromHit.hop, 0) * 220 : 0;
         return (
           <g key={e.id}>
             <path
@@ -103,8 +103,8 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
         const hit = hits.get(n.id);
         const isSelf = n.role === "self";
         const r = isSelf ? 30 : 24;
-        const stroke = hit ? SEV_COLOR[hit.severity] : "rgba(201,166,107,0.55)";
-        const fill = hit ? "rgba(225,82,75,0.10)" : "rgba(255,255,255,0.03)";
+        const stroke = hit ? SEV_COLOR[hit.severity] : "color-mix(in oklab, var(--brass) 55%, transparent)";
+        const fill = hit ? "color-mix(in oklab, var(--risk) 10%, transparent)" : "color-mix(in oklab, var(--foreground) 3%, transparent)";
         const delay = animating && hit ? hit.hop * 220 : 0;
         return (
           <g
