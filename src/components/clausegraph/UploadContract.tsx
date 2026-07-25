@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startContractExtraction } from "@/lib/upload.functions";
 import { profileQuery } from "@/data/queries";
 import { useQuery } from "@tanstack/react-query";
+import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 
 type Props = { onClose: () => void };
 
@@ -46,7 +47,13 @@ export function UploadContract({ onClose }: Props) {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       onClose();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Upload failed"),
+    onError: (err) => {
+      if (handlePlanLimitError(err, "contracts")) {
+        onClose();
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Upload failed");
+    },
   });
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
