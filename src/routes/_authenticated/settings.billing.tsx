@@ -250,16 +250,35 @@ function UsageStat({ label, value, limit }: { label: string; value: number; limi
 function PlanCard({
   plan,
   current,
+  trialing,
+  purchasable,
   disabled,
   busy,
   onSelect,
 }: {
   plan: (typeof PLANS)[PlanId];
   current: boolean;
+  trialing?: boolean;
+  purchasable?: boolean;
   disabled: boolean;
   busy?: boolean;
   onSelect: () => void;
 }) {
+  // A trialling plan is "current" visually, but must stay clickable so the
+  // user can convert the trial into a real subscription.
+  const locked = current && !trialing && !(purchasable && plan.priceId);
+  const label = !plan.priceId
+    ? current
+      ? "Current plan"
+      : "Included"
+    : trialing
+      ? `Subscribe to ${plan.name}`
+      : current
+        ? "Current plan"
+        : purchasable
+          ? `Subscribe to ${plan.name}`
+          : `Switch to ${plan.name}`;
+
   return (
     <div
       className={`glass-panel p-6 flex flex-col gap-4 ${
@@ -271,7 +290,7 @@ function PlanCard({
           <h3 className="font-display text-[22px] text-foreground">{plan.name}</h3>
           {current && (
             <span className="rounded-full border border-brass/40 bg-brass/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass">
-              Current
+              {trialing ? "Trial" : "Current"}
             </span>
           )}
         </div>
@@ -292,7 +311,7 @@ function PlanCard({
       <button
         type="button"
         onClick={onSelect}
-        disabled={current || disabled}
+        disabled={locked || disabled}
         className={`mt-auto inline-flex items-center justify-center gap-2 rounded-[12px] px-4 py-2.5 text-[13px] font-medium transition-all duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
           plan.priceId
             ? "bg-brass text-[color:var(--primary-foreground)] hover:bg-[color:var(--brass-strong)] active:scale-[0.98]"
@@ -300,7 +319,7 @@ function PlanCard({
         }`}
       >
         {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-        {current ? "Current plan" : plan.priceId ? `Switch to ${plan.name}` : "Included"}
+        {label}
       </button>
     </div>
   );
