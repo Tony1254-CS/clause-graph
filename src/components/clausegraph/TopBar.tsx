@@ -47,12 +47,12 @@ export function TopBar() {
         <span className="hidden max-w-[24ch] truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)] md:inline lg:max-w-[32ch]">
           {orgName}
         </span>
-        {profile?.org?.plan && (
+        {effectivePlan && (
           <Link
             to="/settings/billing"
             className="hidden items-center rounded-full border border-[var(--hairline-strong)] bg-[var(--surface-glass)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ink)] transition-colors hover:bg-[var(--surface-glass-strong)] lg:inline-flex"
           >
-            {profile.org.plan}
+            {effectivePlan}
           </Link>
         )}
       </div>
