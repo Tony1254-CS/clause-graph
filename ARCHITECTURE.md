@@ -285,6 +285,12 @@ Given a starting node (usually "Your Company"), the server function walks `suppl
 
 ## 6. Database — Full Reference
 
+This section is the **authoritative schema dump**. Everything below is the real
+DDL of the live database (verified against `information_schema`, `pg_policies`,
+`pg_constraint`, `pg_indexes` and `pg_get_functiondef`). Running §6.3 → §6.9 in
+order on an empty Supabase project reproduces the backend exactly — that is the
+path used by `MIGRATION.md`.
+
 ### 6.1 ER Diagram
 
 ```mermaid
@@ -292,113 +298,582 @@ erDiagram
   organizations ||--o{ profiles : "org_id"
   organizations ||--o{ user_roles : "org_id"
   organizations ||--o{ contracts : "org_id"
+  organizations ||--o{ regulations : "org_id (NULL = curated/global)"
   organizations ||--o{ simulation_runs : "org_id"
   organizations ||--o{ compliance_artifacts : "org_id"
   organizations ||--o{ supply_chain_nodes : "org_id"
   organizations ||--o{ supply_chain_edges : "org_id"
+  organizations ||--o{ subscriptions : "org_id"
 
   profiles }o--|| auth_users : "id = auth.users.id"
   user_roles }o--|| auth_users : "user_id"
+  subscriptions }o--|| auth_users : "user_id"
 
   contracts ||--o{ clauses : "contract_id"
   contracts }o--o| profiles : "uploaded_by"
 
   regulations ||--o{ regulation_amendments : "regulation_id"
-
   simulation_runs ||--o{ compliance_artifacts : "simulation_run_id"
 
   supply_chain_nodes ||--o{ supply_chain_edges : "from_node_id"
   supply_chain_nodes ||--o{ supply_chain_edges : "to_node_id"
 
-  subscriptions }o--|| auth_users : "user_id"
-
   sample_contracts ||--o{ sample_clauses : "sample_contract_id"
 ```
 
-### 6.2 Tables
+### 6.2 Table inventory
 
-All tables live in `public`. Every user-facing table:
-- Enables **RLS**.
-- Grants `SELECT, INSERT, UPDATE, DELETE ON <t> TO authenticated`.
-- Grants `ALL ON <t> TO service_role`.
-- `anon` grant only when explicitly public (e.g. `backtest_cases`, `sample_*`).
-
-| Table | Purpose | Key columns |
+| Table | Purpose | Tenanted by |
 |---|---|---|
-| `organizations` | Workspace tenant | `id`, `name`, `plan` (`free`/`pro`/`enterprise`), `trial_ends_at`, `deletion_scheduled_at`, `deletion_requested_by`, `stripe_customer_id` |
-| `profiles` | 1:1 with `auth.users` | `id`, `org_id`, `full_name`, `email` |
-| `user_roles` | Role isolation (never on profiles) | `user_id`, `org_id`, `role app_role` |
-| `contracts` | Uploaded or sample contracts | `id`, `org_id`, `name`, `counterparty`, `value`, `source_file_url`, `extraction_status`, `is_sample`, `uploaded_by`, `extraction_error` |
-| `clauses` | Extracted per contract | `id`, `contract_id`, `text`, `linked_regs text[]`, `confidence`, `position` |
-| `regulations` | 10-entry curated ontology | `id text pk`, `jurisdiction`, `title`, `summary`, `obligations text[]`, ... |
-| `regulation_amendments` | Historical amendment corpus for radar | `regulation_id`, `date`, `title`, `body`, `magnitude` |
-| `simulation_runs` | Persisted Simulate Impact results | `id`, `org_id`, `regulation_text`, `result_json`, `created_at` |
-| `backtest_cases` | Real enforcement cases | `id`, `company`, `regulation`, `fine_usd`, `case_date`, `summary`, `reconstructed_prompt`, `reconstructed_clauses jsonb`, `fallback jsonb` |
-| `compliance_artifacts` | Compliance-as-Code outputs | `id`, `org_id`, `regulation_id`, `simulation_run_id`, `gap`, `stack`, `audit_script jsonb`, `remediation jsonb`, `runbook`, `test_cases text[]` |
-| `supply_chain_nodes` | Enterprise nodes | `id`, `org_id`, `name`, `role`, `tier`, `jurisdiction`, `description` |
-| `supply_chain_edges` | Directed contracts between nodes | `org_id`, `from_node_id`, `to_node_id`, `contract_name`, `contract_value`, `key_clauses text[]`, `depends_on_regs text[]` |
-| `subscriptions` | Paddle subscriptions | `user_id`, `status`, `plan`, `current_period_end`, `paddle_subscription_id`, ... |
-| `paddle_events` | Webhook idempotency | `event_id pk`, `type`, `payload` |
-| `sample_contracts` / `sample_clauses` | Seed corpus copied per new workspace | position-ordered |
+| `organizations` | Workspace tenant + plan state | — (is the tenant) |
+| `profiles` | 1:1 with `auth.users`, holds `org_id` | `org_id` |
+| `user_roles` | Roles, kept off `profiles` on purpose | `user_id` + `org_id` |
+| `contracts` | Uploaded + seeded contracts | `org_id` |
+| `clauses` | Extracted clauses, cite regulation IDs | via `contract_id` |
+| `regulations` | Ontology; `org_id IS NULL` = curated global | `org_id` nullable |
+| `regulation_amendments` | Amendment history feeding the radar | global |
+| `simulation_runs` | Persisted blast-radius runs | `org_id` |
+| `compliance_artifacts` | Compliance-as-Code outputs | `org_id` |
+| `supply_chain_nodes` / `_edges` | Cross-enterprise graph | `org_id` |
+| `backtest_cases` | Real enforcement cases (public read) | global |
+| `sample_contracts` / `sample_clauses` | Seed corpus copied into each new workspace | global |
+| `subscriptions` | Paddle subscriptions (dormant while billing is parked) | `org_id` / `user_id` |
+| `paddle_events` | Webhook idempotency ledger | global |
 
-### 6.3 Enums
+### 6.3 Enum + shared trigger helper
 
 ```sql
 CREATE TYPE public.app_role AS ENUM ('admin', 'member');
 ```
 
-### 6.4 Storage
-
-Bucket **`contract-files`** — private. Objects keyed by `org_id/<uuid>.pdf`. Signed URLs generated inside `extractContract` server function.
-
-### 6.5 SQL Functions
+### 6.4 Tables — DDL
 
 ```sql
--- Role check (SECURITY DEFINER, avoids RLS recursion)
+-- ── Tenant ───────────────────────────────────────────────────────────────
+CREATE TABLE public.organizations (
+  id                     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                   text NOT NULL,
+  plan                   text NOT NULL DEFAULT 'free',        -- free | pro | team
+  plan_status            text NOT NULL DEFAULT 'active',      -- active | past_due | paused | canceled
+  plan_renews_at         timestamptz,
+  trial_ends_at          timestamptz,
+  paddle_customer_id     text,
+  stripe_customer_id     text,                                -- legacy, unused
+  deletion_scheduled_at  timestamptz,
+  deletion_requested_by  uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  deleted_at             timestamptz,
+  created_at             timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_org_deletion_scheduled_at ON public.organizations (deletion_scheduled_at)
+  WHERE deletion_scheduled_at IS NOT NULL;
+
+CREATE TABLE public.profiles (
+  id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  org_id     uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  full_name  text,
+  email      text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX profiles_org_id_idx ON public.profiles (org_id);
+
+CREATE TABLE public.user_roles (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  org_id     uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  role       public.app_role NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, org_id, role)
+);
+CREATE INDEX user_roles_user_org_idx ON public.user_roles (user_id, org_id);
+
+-- ── Portfolio ────────────────────────────────────────────────────────────
+CREATE TABLE public.contracts (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id            uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  name              text NOT NULL,
+  counterparty      text NOT NULL,
+  value             numeric NOT NULL DEFAULT 0,
+  source_file_url   text,
+  extraction_status text NOT NULL DEFAULT 'complete',  -- pending | complete | failed
+  extraction_error  text,
+  uploaded_by       uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  is_sample         boolean NOT NULL DEFAULT false,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX contracts_org_id_idx      ON public.contracts (org_id);
+CREATE INDEX contracts_org_created_idx ON public.contracts (org_id, created_at DESC);
+
+CREATE TABLE public.clauses (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  contract_id uuid NOT NULL REFERENCES public.contracts(id) ON DELETE CASCADE,
+  text        text NOT NULL,
+  linked_regs text[] NOT NULL DEFAULT '{}',
+  confidence  numeric,
+  position    integer NOT NULL DEFAULT 0,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX clauses_contract_id_idx ON public.clauses (contract_id);
+
+-- ── Ontology ─────────────────────────────────────────────────────────────
+CREATE TABLE public.regulations (
+  id                 text PRIMARY KEY,                 -- e.g. 'GDPR-ART17'
+  org_id             uuid REFERENCES public.organizations(id) ON DELETE CASCADE, -- NULL = curated
+  jurisdiction       text NOT NULL,
+  title              text NOT NULL,
+  summary            text NOT NULL,
+  obligations        jsonb NOT NULL DEFAULT '[]',      -- [{id, text}] (strings tolerated by the UI)
+  news_signal_boost  numeric NOT NULL DEFAULT 0 CHECK (news_signal_boost BETWEEN 0 AND 1),
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX regulations_org_id_idx ON public.regulations (org_id);
+
+CREATE TABLE public.regulation_amendments (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  regulation_id text NOT NULL REFERENCES public.regulations(id) ON DELETE CASCADE,
+  amended_on    date NOT NULL,
+  summary       text NOT NULL,
+  direction     text NOT NULL CHECK (direction IN ('tightened','loosened','clarified','expanded')),
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX regulation_amendments_reg_idx ON public.regulation_amendments (regulation_id, amended_on DESC);
+
+-- ── Simulation + artifacts ───────────────────────────────────────────────
+CREATE TABLE public.simulation_runs (
+  id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id                uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  input_regulation_text text NOT NULL,
+  result_json           jsonb NOT NULL,
+  run_type              text NOT NULL DEFAULT 'reactive'
+                          CHECK (run_type IN ('reactive','forecast','what_if','supply_chain')),
+  triggered_by          uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at            timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX simulation_runs_org_created_idx ON public.simulation_runs (org_id, created_at DESC);
+
+CREATE TABLE public.compliance_artifacts (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id            uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  regulation_id     text,
+  simulation_run_id uuid REFERENCES public.simulation_runs(id) ON DELETE SET NULL,
+  gap               text NOT NULL,
+  stack             text NOT NULL CHECK (stack IN ('aws','gcp','azure')),
+  audit_script      jsonb NOT NULL,
+  remediation       jsonb NOT NULL,
+  runbook           text,
+  test_cases        text[] NOT NULL DEFAULT '{}',
+  created_by        uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── Cross-enterprise graph ───────────────────────────────────────────────
+CREATE TABLE public.supply_chain_nodes (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id       uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  name         text NOT NULL,
+  role         text NOT NULL CHECK (role IN ('self','supplier','subprocessor','vendor')),
+  tier         integer NOT NULL DEFAULT 0,
+  jurisdiction text,
+  description  text,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.supply_chain_edges (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id          uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  from_node_id    uuid NOT NULL REFERENCES public.supply_chain_nodes(id) ON DELETE CASCADE,
+  to_node_id      uuid NOT NULL REFERENCES public.supply_chain_nodes(id) ON DELETE CASCADE,
+  contract_name   text NOT NULL,
+  contract_value  numeric NOT NULL DEFAULT 0,
+  key_clauses     text[] NOT NULL DEFAULT '{}',
+  depends_on_regs text[] NOT NULL DEFAULT '{}',
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── Reference corpora ────────────────────────────────────────────────────
+CREATE TABLE public.backtest_cases (
+  id                    text PRIMARY KEY,
+  company               text NOT NULL,
+  fine_usd              numeric NOT NULL,
+  case_date             date NOT NULL,
+  regulation            text NOT NULL,
+  summary               text NOT NULL,
+  source                text NOT NULL,
+  reconstructed_prompt  text NOT NULL,
+  reconstructed_clauses jsonb NOT NULL,
+  fallback              jsonb NOT NULL,
+  position              integer NOT NULL DEFAULT 0,
+  created_at            timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.sample_contracts (
+  id           text PRIMARY KEY,
+  name         text NOT NULL,
+  counterparty text NOT NULL,
+  value        numeric NOT NULL,
+  position     integer NOT NULL DEFAULT 0
+);
+
+CREATE TABLE public.sample_clauses (
+  id                 text PRIMARY KEY,
+  sample_contract_id text NOT NULL REFERENCES public.sample_contracts(id) ON DELETE CASCADE,
+  text               text NOT NULL,
+  linked_regs        text[] NOT NULL DEFAULT '{}',
+  position           integer NOT NULL DEFAULT 0
+);
+
+-- ── Billing (dormant while billing is parked) ────────────────────────────
+CREATE TABLE public.subscriptions (
+  id                     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  org_id                 uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+  paddle_subscription_id text NOT NULL UNIQUE,
+  paddle_customer_id     text NOT NULL,
+  product_id             text NOT NULL,
+  price_id               text NOT NULL,
+  status                 text NOT NULL DEFAULT 'active',
+  current_period_start   timestamptz,
+  current_period_end     timestamptz,
+  cancel_at_period_end   boolean DEFAULT false,
+  environment            text NOT NULL DEFAULT 'sandbox',   -- sandbox | live
+  created_at             timestamptz NOT NULL DEFAULT now(),
+  updated_at             timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_subscriptions_user_id   ON public.subscriptions (user_id);
+CREATE INDEX idx_subscriptions_org_id    ON public.subscriptions (org_id);
+CREATE INDEX idx_subscriptions_paddle_id ON public.subscriptions (paddle_subscription_id);
+
+CREATE TABLE public.paddle_events (
+  event_id    text PRIMARY KEY,
+  event_type  text NOT NULL,
+  received_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+### 6.5 GRANTs (mandatory — RLS alone is not enough)
+
+```sql
+-- Tenanted, user-writable tables
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  public.contracts, public.clauses, public.regulations,
+  public.simulation_runs, public.compliance_artifacts,
+  public.supply_chain_nodes, public.supply_chain_edges
+TO authenticated;
+
+-- Read-mostly tables
+GRANT SELECT ON public.organizations, public.profiles, public.user_roles,
+                public.regulation_amendments, public.backtest_cases,
+                public.sample_contracts, public.sample_clauses,
+                public.subscriptions TO authenticated;
+GRANT UPDATE ON public.organizations, public.profiles TO authenticated;
+GRANT INSERT, DELETE ON public.user_roles TO authenticated;
+
+-- Public (unauthenticated) reads: curated ontology + enforcement library only
+GRANT SELECT ON public.regulations, public.backtest_cases TO anon;
+
+-- Server-side / webhook writes
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+```
+
+### 6.6 RLS — every policy, verbatim
+
+```sql
+ALTER TABLE public.organizations         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contracts             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clauses               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.regulations           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.regulation_amendments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.simulation_runs       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.compliance_artifacts  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supply_chain_nodes    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supply_chain_edges    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.backtest_cases        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sample_contracts      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sample_clauses        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.paddle_events         ENABLE ROW LEVEL SECURITY; -- service_role only, no policies
+
+-- organizations
+CREATE POLICY "Members read own org" ON public.organizations
+  FOR SELECT TO authenticated USING (id = public.current_org_id());
+CREATE POLICY "Admins update own org" ON public.organizations
+  FOR UPDATE TO authenticated
+  USING (public.has_role(auth.uid(), id, 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), id, 'admin'));
+
+-- profiles
+CREATE POLICY "Read profiles in own org" ON public.profiles
+  FOR SELECT TO authenticated
+  USING (id = auth.uid() OR org_id = public.current_org_id());
+CREATE POLICY "Update own profile" ON public.profiles
+  FOR UPDATE TO authenticated USING (id = auth.uid()) WITH CHECK (id = auth.uid());
+
+-- user_roles
+CREATE POLICY "Read roles in own org" ON public.user_roles
+  FOR SELECT TO authenticated USING (org_id = public.current_org_id());
+CREATE POLICY "Admins insert roles in org" ON public.user_roles
+  FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), org_id, 'admin'));
+CREATE POLICY "Admins delete roles in org" ON public.user_roles
+  FOR DELETE TO authenticated USING (public.has_role(auth.uid(), org_id, 'admin'));
+
+-- contracts (same 4-policy shape for regulations, supply_chain_nodes, supply_chain_edges)
+CREATE POLICY "Members read own org contracts"   ON public.contracts
+  FOR SELECT TO authenticated USING (org_id = public.current_org_id());
+CREATE POLICY "Members insert own org contracts" ON public.contracts
+  FOR INSERT TO authenticated WITH CHECK (org_id = public.current_org_id());
+CREATE POLICY "Members update own org contracts" ON public.contracts
+  FOR UPDATE TO authenticated USING (org_id = public.current_org_id())
+  WITH CHECK (org_id = public.current_org_id());
+CREATE POLICY "Members delete own org contracts" ON public.contracts
+  FOR DELETE TO authenticated USING (org_id = public.current_org_id());
+
+-- clauses: tenanted through their parent contract
+CREATE POLICY "Members read own org clauses" ON public.clauses
+  FOR SELECT TO authenticated USING (EXISTS (
+    SELECT 1 FROM public.contracts c
+    WHERE c.id = clauses.contract_id AND c.org_id = public.current_org_id()));
+-- ... identical EXISTS predicate for INSERT (WITH CHECK), UPDATE and DELETE.
+
+-- regulations: curated rows (org_id IS NULL) are world-readable
+CREATE POLICY "Read curated or own org regs" ON public.regulations
+  FOR SELECT USING (org_id IS NULL OR org_id = public.current_org_id());
+
+-- simulation_runs (insert + read only; runs are an audit log, never edited)
+CREATE POLICY "Members read own org sims"   ON public.simulation_runs
+  FOR SELECT TO authenticated USING (org_id = public.current_org_id());
+CREATE POLICY "Members insert own org sims" ON public.simulation_runs
+  FOR INSERT TO authenticated WITH CHECK (org_id = public.current_org_id());
+
+-- compliance_artifacts (read / insert / delete)
+CREATE POLICY "org members read artifacts"   ON public.compliance_artifacts
+  FOR SELECT TO authenticated USING (org_id = public.current_org_id());
+CREATE POLICY "org members insert artifacts" ON public.compliance_artifacts
+  FOR INSERT TO authenticated WITH CHECK (org_id = public.current_org_id());
+CREATE POLICY "org members delete artifacts" ON public.compliance_artifacts
+  FOR DELETE TO authenticated USING (org_id = public.current_org_id());
+
+-- reference corpora
+CREATE POLICY "Anyone can read backtest cases" ON public.backtest_cases
+  FOR SELECT USING (true);
+CREATE POLICY "Authenticated can read sample contracts" ON public.sample_contracts
+  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated can read sample clauses" ON public.sample_clauses
+  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Any authenticated user can read amendment history"
+  ON public.regulation_amendments FOR SELECT TO authenticated USING (true);
+
+-- subscriptions: read-only to the owner/org; every write is service_role
+CREATE POLICY "subscriptions: self read" ON public.subscriptions
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid() OR org_id = public.current_org_id());
+```
+
+### 6.7 Functions — full source
+
+```sql
+-- Role check. SECURITY DEFINER so RLS on user_roles can't recurse.
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _org_id uuid, _role app_role)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND org_id = _org_id AND role = _role
-  )
+  SELECT EXISTS (SELECT 1 FROM public.user_roles
+                 WHERE user_id = _user_id AND org_id = _org_id AND role = _role)
 $$;
 
--- Current org for the calling user
+-- The single tenancy predicate used by nearly every policy.
 CREATE OR REPLACE FUNCTION public.current_org_id()
 RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT org_id FROM public.profiles WHERE id = auth.uid() LIMIT 1
 $$;
+
+-- MASTER SWITCH. false = billing parked: everyone is Pro, no quota can fire.
+-- Flip to `SELECT true` (and set src/lib/plans.ts BILLING_ENABLED = true) to
+-- turn paid plans back on. Nothing else needs to change.
+CREATE OR REPLACE FUNCTION public.billing_enabled()
+RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path = public AS $$ SELECT false $$;
+
+-- Effective plan, resolved server-side so reads and writes can never disagree.
+CREATE OR REPLACE FUNCTION public.resolve_org_plan(_org uuid)
+RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_plan text; v_trial_ends timestamptz; v_has_paid boolean;
+BEGIN
+  SELECT plan, trial_ends_at INTO v_plan, v_trial_ends
+    FROM public.organizations WHERE id = _org;
+  IF v_plan IS NULL THEN RETURN NULL; END IF;
+
+  -- Billing paused: every workspace is Pro, nothing expires.
+  IF NOT public.billing_enabled() THEN
+    IF v_plan <> 'pro' OR v_trial_ends IS NOT NULL THEN
+      UPDATE public.organizations
+        SET plan = 'pro', plan_status = 'active', trial_ends_at = NULL
+        WHERE id = _org;
+    END IF;
+    RETURN 'pro';
+  END IF;
+
+  -- Billing live: expire a lapsed trial unless a paid subscription backs it.
+  IF v_trial_ends IS NOT NULL AND v_trial_ends < now() THEN
+    SELECT EXISTS (
+      SELECT 1 FROM public.subscriptions s
+      WHERE (s.org_id = _org OR s.user_id IN (SELECT id FROM public.profiles WHERE org_id = _org))
+        AND s.status IN ('active','trialing','past_due')
+        AND (s.current_period_end IS NULL OR s.current_period_end > now())
+    ) INTO v_has_paid;
+    IF NOT v_has_paid THEN
+      UPDATE public.organizations
+        SET plan = 'free', plan_status = 'active', trial_ends_at = NULL WHERE id = _org;
+      v_plan := 'free';
+    ELSE
+      UPDATE public.organizations SET trial_ends_at = NULL WHERE id = _org;
+    END IF;
+  END IF;
+
+  RETURN v_plan;
+END; $$;
+
+-- Usage counters shown on Settings → Billing.
+CREATE OR REPLACE FUNCTION public.get_org_usage(_org uuid)
+RETURNS TABLE(contracts integer, simulations integer, members integer)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT
+    (SELECT count(*)::int FROM public.contracts WHERE org_id = _org AND is_sample = false),
+    (SELECT count(*)::int FROM public.simulation_runs
+       WHERE org_id = _org AND created_at >= date_trunc('month', now())),
+    (SELECT count(*)::int FROM public.profiles WHERE org_id = _org);
+$$;
+
+-- Quota gate. Returns immediately while billing is parked.
+CREATE OR REPLACE FUNCTION public.assert_within_quota(_org uuid, _action text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_plan text; v_count int; v_limit int;
+BEGIN
+  IF NOT public.billing_enabled() THEN RETURN; END IF;
+
+  v_plan := public.resolve_org_plan(_org);
+  IF v_plan IS NULL THEN RAISE EXCEPTION 'organization not found'; END IF;
+
+  IF _action = 'upload_contract' THEN
+    SELECT count(*) INTO v_count FROM public.contracts WHERE org_id = _org AND is_sample = false;
+    v_limit := CASE v_plan WHEN 'free' THEN 3 WHEN 'pro' THEN 50 ELSE 1000000 END;
+  ELSIF _action = 'run_simulation' THEN
+    SELECT count(*) INTO v_count FROM public.simulation_runs
+      WHERE org_id = _org AND created_at >= date_trunc('month', now());
+    v_limit := CASE v_plan WHEN 'free' THEN 5 WHEN 'pro' THEN 100 ELSE 1000000 END;
+  ELSIF _action = 'invite_teammate' THEN
+    SELECT count(*) INTO v_count FROM public.profiles WHERE org_id = _org;
+    v_limit := CASE v_plan WHEN 'free' THEN 1 WHEN 'pro' THEN 3 ELSE 1000000 END;
+  ELSIF _action IN ('generate_action_plan','generate_compliance_code') THEN
+    SELECT count(*) INTO v_count FROM public.simulation_runs
+      WHERE org_id = _org AND created_at >= date_trunc('month', now());
+    v_limit := CASE v_plan WHEN 'free' THEN 0 WHEN 'pro' THEN 100 ELSE 1000000 END;
+  ELSE
+    RAISE EXCEPTION 'unknown quota action: %', _action;
+  END IF;
+
+  IF v_count >= v_limit THEN
+    RAISE EXCEPTION 'PLAN_LIMIT: % (used %/%, plan %)', _action, v_count, v_limit, v_plan
+      USING HINT = 'PLAN_LIMIT';
+  END IF;
+END; $$;
+
+-- Admin-gated 30-day soft delete.
+CREATE OR REPLACE FUNCTION public.request_workspace_deletion(_org uuid, _by uuid)
+RETURNS timestamptz LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_when timestamptz;
+BEGIN
+  IF NOT public.has_role(_by, _org, 'admin') THEN
+    RAISE EXCEPTION 'FORBIDDEN: only admins can delete a workspace';
+  END IF;
+  v_when := now() + interval '30 days';
+  UPDATE public.organizations
+    SET deletion_scheduled_at = v_when, deletion_requested_by = _by WHERE id = _org;
+  RETURN v_when;
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.cancel_workspace_deletion(_org uuid, _by uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NOT public.has_role(_by, _org, 'admin') THEN
+    RAISE EXCEPTION 'FORBIDDEN: only admins can cancel deletion';
+  END IF;
+  UPDATE public.organizations
+    SET deletion_scheduled_at = NULL, deletion_requested_by = NULL WHERE id = _org;
+END; $$;
 ```
 
-`handle_new_user` — trigger on `auth.users` insert:
-1. If `raw_user_meta_data.invited_org_id` is set → join that org as `member`.
-2. Otherwise create a personal workspace (`<local>'s workspace`) on the `pro` plan with `trial_ends_at = now() + 30 days`, add the user as `admin`, seed sample contracts + clauses, and call `seed_supply_chain(org_id)`.
+`seed_supply_chain(_org)` — idempotent seed of 6 nodes / 5 edges (Your Company →
+Northwind Cloud → Meridian DataCenters → Rheinstrom Energy, and Your Company →
+Paylane Processor → GlobalCard Network) with real regulation dependencies
+(`GDPR-ART44`, `EU-CSRD`, `EU-DATA-CENTER-ENERGY`, `PCI-DSS`). Full source is in
+the migration history and is reproduced in `MIGRATION.md`.
 
-`get_org_usage(_org)` → `(contracts, simulations, members)` for the current month.
-
-`assert_within_quota(_org, _action)` — see §5.4. Raises `PLAN_LIMIT` with a `HINT` for the client dialog.
-
-`request_workspace_deletion(_org, _by)` / `cancel_workspace_deletion` — admin-gated; sets/clears `deletion_scheduled_at = now() + 30 days`.
-
-`seed_supply_chain(_org)` — idempotent seed of 6 nodes and 5 edges representing a Cloud → DataCenter → Energy chain and a Payments → CardNetwork chain, with real regulation dependencies (GDPR-ART44, EU-CSRD, PCI-DSS, EU-DATA-CENTER-ENERGY).
-
-### 6.6 RLS Pattern (canonical)
+### 6.8 Signup trigger
 
 ```sql
--- Members read only their org
-CREATE POLICY "Members read own org contracts"
-ON public.contracts FOR SELECT TO authenticated
-USING (org_id = public.current_org_id());
+-- Provisions the whole workspace on first sign-up.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  new_org_id uuid; invited_org_id uuid; local_part text; ws_name text;
+  s_contract record; new_contract_id uuid; v_trial timestamptz;
+BEGIN
+  -- Billing paused: provision Pro outright, with no trial expiry.
+  v_trial := CASE WHEN public.billing_enabled() THEN now() + interval '30 days' ELSE NULL END;
 
--- Admin-only writes (example)
-CREATE POLICY "Admins delete own org contracts"
-ON public.contracts FOR DELETE TO authenticated
-USING (public.has_role(auth.uid(), org_id, 'admin'));
+  invited_org_id := NULLIF((NEW.raw_user_meta_data->>'invited_org_id')::text, '')::uuid;
+  IF invited_org_id IS NOT NULL
+     AND EXISTS (SELECT 1 FROM public.organizations WHERE id = invited_org_id) THEN
+    INSERT INTO public.profiles (id, org_id, full_name, email)
+      VALUES (NEW.id, invited_org_id, NEW.raw_user_meta_data->>'full_name', NEW.email);
+    INSERT INTO public.user_roles (user_id, org_id, role)
+      VALUES (NEW.id, invited_org_id, 'member');
+    RETURN NEW;
+  END IF;
+
+  local_part := split_part(COALESCE(NEW.email, 'user'), '@', 1);
+  ws_name := local_part || '''s workspace';
+
+  INSERT INTO public.organizations (name, plan, plan_status, trial_ends_at)
+    VALUES (ws_name, 'pro', 'active', v_trial) RETURNING id INTO new_org_id;
+  INSERT INTO public.profiles (id, org_id, full_name, email)
+    VALUES (NEW.id, new_org_id, NEW.raw_user_meta_data->>'full_name', NEW.email);
+  INSERT INTO public.user_roles (user_id, org_id, role)
+    VALUES (NEW.id, new_org_id, 'admin');
+
+  FOR s_contract IN SELECT * FROM public.sample_contracts ORDER BY position LOOP
+    INSERT INTO public.contracts (org_id, name, counterparty, value,
+                                  extraction_status, is_sample, uploaded_by)
+    VALUES (new_org_id, s_contract.name, s_contract.counterparty, s_contract.value,
+            'complete', true, NEW.id)
+    RETURNING id INTO new_contract_id;
+
+    INSERT INTO public.clauses (contract_id, text, linked_regs, position, confidence)
+    SELECT new_contract_id, sc.text, sc.linked_regs, sc.position, 1.0
+    FROM public.sample_clauses sc
+    WHERE sc.sample_contract_id = s_contract.id ORDER BY sc.position;
+  END LOOP;
+
+  PERFORM public.seed_supply_chain(new_org_id);
+  RETURN NEW;
+END; $$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
 
-Cross-table policies use `EXISTS (... c.org_id = current_org_id())` (see `clauses`).
+This is the **only** trigger the app owns; everything else listed in
+`pg_trigger` belongs to Supabase's own `storage` / `realtime` schemas.
 
----
+### 6.9 Storage
+
+Bucket **`contract-files`** — private. Object keys are `<org_id>/<uuid>.pdf`.
+Uploads go through the browser client; reads use short-lived signed URLs minted
+inside the `extractContract` server function. No public bucket exists.
+
+```sql
+INSERT INTO storage.buckets (id, name, public) VALUES ('contract-files', 'contract-files', false);
+```
+
 
 ## 7. Auth & Multi-Tenancy
 
