@@ -171,7 +171,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                             r={r + 4}
                             fill={SEV_COLOR[sev]}
                             opacity={0.18}
-                            style={{ transition: "all 500ms ease-out" }}
+                            style={nodeTransition}
+
                           />
                         )}
                         <circle
@@ -182,7 +183,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                           stroke={stroke}
                           strokeWidth="1"
                           className="cursor-pointer"
-                          style={{ transition: "all 500ms ease-out" }}
+                          style={nodeTransition}
                           onMouseEnter={() => setHover(n)}
                           onMouseLeave={() => setHover(null)}
                         />
@@ -215,7 +216,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
 
               {hover && (
                 <div
-                  className="absolute pointer-events-none rounded-[8px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] max-w-[220px]"
+                  className="absolute pointer-events-none rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] max-w-[220px]"
                   style={{
                     left: `${(hover.x / SIZE) * 100}%`,
                     top: `${(hover.y / SIZE) * 100}%`,
