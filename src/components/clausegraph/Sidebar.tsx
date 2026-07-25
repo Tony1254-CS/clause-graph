@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FileText, Rss, Zap, ListChecks } from "lucide-react";
+import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
-  to: "/" | "/contracts" | "/feed" | "/simulate" | "/actions";
+  to: "/" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions";
   match?: string;
 };
 
@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { label: "Contracts", icon: FileText, to: "/contracts", match: "/contracts" },
   { label: "Regulatory Feed", icon: Rss, to: "/feed" },
   { label: "Simulate Impact", icon: Zap, to: "/simulate" },
+  { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
 ];
 

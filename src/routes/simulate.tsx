@@ -9,6 +9,7 @@ import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
 import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
+import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 
 export const Route = createFileRoute("/simulate")({
   head: () => ({
@@ -252,6 +253,24 @@ function SimulatePage() {
             </>
           )}
         </aside>
+
+        {status === "done" && result && (
+          <div className="lg:col-span-2">
+            <ActionPlanPanel
+              regulationText={text}
+              summary={result.summary}
+              impacts={sortedImpacts.map((i) => {
+                const c = contractsById.get(i.contract_id);
+                return {
+                  contract_id: i.contract_id,
+                  contract_name: c?.name ?? i.contract_id,
+                  severity: i.severity,
+                  suggested_amendment: i.suggested_amendment,
+                };
+              })}
+            />
+          </div>
+        )}
       </div>
     </AppShell>
   );
