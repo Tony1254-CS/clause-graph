@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { fallbackActionPlan } from "./action-plan-fallback";
 import type { ActionPlan, ActionPlanInput, TechPriority } from "./action-plan-types";
+
 
 const PRIORITIES: TechPriority[] = ["P0", "P1", "P2"];
 
@@ -39,6 +41,8 @@ function coerce(raw: unknown): ActionPlan | null {
 }
 
 export const generateActionPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((input: ActionPlanInput) => {
     if (!input || typeof input !== "object") throw new Error("Invalid input");
     const text = String(input.regulationText ?? "").trim();

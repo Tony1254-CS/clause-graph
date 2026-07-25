@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
 import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
 import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
@@ -31,6 +32,11 @@ const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/actions': typeof AuthenticatedActionsRoute
   '/backtest': typeof AuthenticatedBacktestRoute
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedRouteRouteWithChildren
   '/actions': typeof AuthenticatedActionsRoute
   '/backtest': typeof AuthenticatedBacktestRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/actions': typeof AuthenticatedActionsRoute
   '/_authenticated/backtest': typeof AuthenticatedBacktestRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/actions'
     | '/backtest'
     | '/contracts'
+    | '/dashboard'
     | '/feed'
     | '/simulate'
     | '/contracts/$contractId'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/actions'
     | '/backtest'
+    | '/dashboard'
     | '/feed'
     | '/simulate'
     | '/contracts/$contractId'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/actions'
     | '/_authenticated/backtest'
     | '/_authenticated/contracts'
+    | '/_authenticated/dashboard'
     | '/_authenticated/feed'
     | '/_authenticated/simulate'
     | '/_authenticated/contracts/$contractId'
@@ -160,6 +172,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof AuthenticatedFeedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts': {
@@ -228,6 +247,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
   AuthenticatedBacktestRoute: typeof AuthenticatedBacktestRoute
   AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
@@ -237,6 +257,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActionsRoute: AuthenticatedActionsRoute,
   AuthenticatedBacktestRoute: AuthenticatedBacktestRoute,
   AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
