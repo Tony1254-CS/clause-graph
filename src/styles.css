@@ -216,11 +216,10 @@
   font-size: 13.5px;
   outline: none;
   transition: border-color 180ms ease-out, background-color 180ms ease-out;
-}
-@utility glass-input {
   &:focus {
     border-color: var(--hairline-strong);
     background: rgba(255, 255, 255, 0.06);
   }
 }
+
 
