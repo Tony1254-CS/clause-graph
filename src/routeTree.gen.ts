@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SimulateRouteImport } from './routes/simulate'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as ContractsRouteImport } from './routes/contracts'
+import { Route as BacktestRouteImport } from './routes/backtest'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ContractsIndexRouteImport } from './routes/contracts.index'
@@ -31,6 +32,11 @@ const FeedRoute = FeedRouteImport.update({
 const ContractsRoute = ContractsRouteImport.update({
   id: '/contracts',
   path: '/contracts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BacktestRoute = BacktestRouteImport.update({
+  id: '/backtest',
+  path: '/backtest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActionsRoute = ActionsRouteImport.update({
@@ -62,6 +68,7 @@ const ContractsContractIdRoute = ContractsContractIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
+  '/backtest': typeof BacktestRoute
   '/contracts': typeof ContractsRouteWithChildren
   '/feed': typeof FeedRoute
   '/simulate': typeof SimulateRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
+  '/backtest': typeof BacktestRoute
   '/feed': typeof FeedRoute
   '/simulate': typeof SimulateRoute
   '/contracts/$contractId': typeof ContractsContractIdRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
+  '/backtest': typeof BacktestRoute
   '/contracts': typeof ContractsRouteWithChildren
   '/feed': typeof FeedRoute
   '/simulate': typeof SimulateRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/actions'
+    | '/backtest'
     | '/contracts'
     | '/feed'
     | '/simulate'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/actions'
+    | '/backtest'
     | '/feed'
     | '/simulate'
     | '/contracts/$contractId'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/actions'
+    | '/backtest'
     | '/contracts'
     | '/feed'
     | '/simulate'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActionsRoute: typeof ActionsRoute
+  BacktestRoute: typeof BacktestRoute
   ContractsRoute: typeof ContractsRouteWithChildren
   FeedRoute: typeof FeedRoute
   SimulateRoute: typeof SimulateRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/contracts'
       fullPath: '/contracts'
       preLoaderRoute: typeof ContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backtest': {
+      id: '/backtest'
+      path: '/backtest'
+      fullPath: '/backtest'
+      preLoaderRoute: typeof BacktestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actions': {
@@ -208,6 +228,7 @@ const ContractsRouteWithChildren = ContractsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActionsRoute: ActionsRoute,
+  BacktestRoute: BacktestRoute,
   ContractsRoute: ContractsRouteWithChildren,
   FeedRoute: FeedRoute,
   SimulateRoute: SimulateRoute,
