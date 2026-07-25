@@ -259,23 +259,16 @@
 
   body {
     background-image:
-      linear-gradient(90deg, color-mix(in oklab, var(--hairline) 28%, transparent) 1px, transparent 1px),
-      linear-gradient(180deg, color-mix(in oklab, var(--hairline) 22%, transparent) 1px, transparent 1px),
-      radial-gradient(ellipse 70% 55% at 78% 10%, color-mix(in oklab, var(--aura) 13%, transparent), transparent 62%),
-      radial-gradient(ellipse 60% 50% at 18% 90%, color-mix(in oklab, var(--aura) 8%, transparent), transparent 68%);
-    background-size: 72px 72px, 72px 72px, auto, auto;
+      radial-gradient(ellipse 60% 45% at 50% 0%, color-mix(in oklab, var(--hairline) 30%, transparent), transparent 70%);
     background-attachment: fixed;
     min-height: 100dvh;
   }
 
   .dark body {
     background-image:
-      linear-gradient(90deg, rgba(137, 248, 246, 0.035) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(137, 248, 246, 0.028) 1px, transparent 1px),
-      radial-gradient(ellipse 70% 58% at 78% 6%, rgba(34, 220, 230, 0.16), transparent 62%),
-      radial-gradient(ellipse 55% 50% at 14% 92%, rgba(34, 220, 230, 0.08), transparent 68%),
-      linear-gradient(135deg, #05090d 0%, #061016 42%, #030608 100%);
-    background-size: 72px 72px, 72px 72px, auto, auto, auto;
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 65%),
+      radial-gradient(ellipse 50% 40% at 85% 100%, rgba(255, 255, 255, 0.025), transparent 70%);
+    background-color: #000000;
   }
 
   a:focus-visible,
