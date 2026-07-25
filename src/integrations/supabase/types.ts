@@ -249,11 +249,47 @@ export type Database = {
           },
         ]
       }
+      regulation_amendments: {
+        Row: {
+          amended_on: string
+          created_at: string
+          direction: string
+          id: string
+          regulation_id: string
+          summary: string
+        }
+        Insert: {
+          amended_on: string
+          created_at?: string
+          direction: string
+          id?: string
+          regulation_id: string
+          summary: string
+        }
+        Update: {
+          amended_on?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          regulation_id?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulation_amendments_regulation_id_fkey"
+            columns: ["regulation_id"]
+            isOneToOne: false
+            referencedRelation: "regulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regulations: {
         Row: {
           created_at: string
           id: string
           jurisdiction: string
+          news_signal_boost: number
           obligations: Json
           org_id: string | null
           summary: string
@@ -263,6 +299,7 @@ export type Database = {
           created_at?: string
           id: string
           jurisdiction: string
+          news_signal_boost?: number
           obligations?: Json
           org_id?: string | null
           summary: string
@@ -272,6 +309,7 @@ export type Database = {
           created_at?: string
           id?: string
           jurisdiction?: string
+          news_signal_boost?: number
           obligations?: Json
           org_id?: string | null
           summary?: string
@@ -350,6 +388,7 @@ export type Database = {
           input_regulation_text: string
           org_id: string
           result_json: Json
+          run_type: string
           triggered_by: string | null
         }
         Insert: {
@@ -358,6 +397,7 @@ export type Database = {
           input_regulation_text: string
           org_id: string
           result_json: Json
+          run_type?: string
           triggered_by?: string | null
         }
         Update: {
@@ -366,6 +406,7 @@ export type Database = {
           input_regulation_text?: string
           org_id?: string
           result_json?: Json
+          run_type?: string
           triggered_by?: string | null
         }
         Relationships: [
