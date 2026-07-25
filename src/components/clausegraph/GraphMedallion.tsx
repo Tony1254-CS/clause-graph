@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Contract, Regulation } from "@/data/types";
 import type { Severity } from "@/lib/simulate-types";
 
@@ -8,6 +8,21 @@ type Props = {
   impacts?: Map<string, Severity>;
   pulsing?: boolean;
 };
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
+
+
 
 type Node = {
   id: string;
