@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getOrgUsage } from "@/lib/billing.functions";
 import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +11,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function TopBar() {
   const { data: profile } = useQuery(profileQuery);
   const { data: contracts } = useQuery(contractsQuery);
+  const getUsage = useServerFn(getOrgUsage);
+  // Same server-resolved entitlement the billing page uses, so the badge can
+  // never disagree with what the workspace is actually allowed to do.
+  const { data: usage } = useQuery({
+    queryKey: ["org-usage"],
+    queryFn: () => getUsage(),
+    staleTime: 30_000,
+  });
+  const effectivePlan = usage?.plan ?? profile?.org?.plan;
   const contractCount = contracts?.length ?? 0;
   const orgName = profile?.org?.name ?? "Workspace";
 
@@ -47,12 +58,12 @@ export function TopBar() {
         <span className="hidden max-w-[24ch] truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)] md:inline lg:max-w-[32ch]">
           {orgName}
         </span>
-        {profile?.org?.plan && (
+        {effectivePlan && (
           <Link
             to="/settings/billing"
             className="hidden items-center rounded-full border border-[var(--hairline-strong)] bg-[var(--surface-glass)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ink)] transition-colors hover:bg-[var(--surface-glass-strong)] lg:inline-flex"
           >
-            {profile.org.plan}
+            {effectivePlan}
           </Link>
         )}
       </div>

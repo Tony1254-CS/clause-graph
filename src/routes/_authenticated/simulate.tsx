@@ -11,6 +11,7 @@ import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/simulate")({
   head: () => ({
@@ -37,6 +38,9 @@ export const Route = createFileRoute("/_authenticated/simulate")({
       context.queryClient.ensureQueryData(regulationsQuery),
     ]),
   component: SimulatePage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Simulator unavailable" error={error} reset={reset} />
+  ),
 });
 
 const SEV_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };

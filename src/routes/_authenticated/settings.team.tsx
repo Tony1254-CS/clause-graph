@@ -7,6 +7,7 @@ import { AppShell } from "@/components/clausegraph/AppShell";
 import { teamMembersQuery, myRoleQuery, profileQuery } from "@/data/queries";
 import { inviteTeammate, removeTeammate } from "@/lib/team.functions";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   head: () => ({
@@ -26,6 +27,9 @@ export const Route = createFileRoute("/_authenticated/settings/team")({
       context.queryClient.ensureQueryData(profileQuery),
     ]),
   component: TeamPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Team settings unavailable" error={error} reset={reset} />
+  ),
 });
 
 function TeamPage() {

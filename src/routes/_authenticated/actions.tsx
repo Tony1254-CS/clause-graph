@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListChecks } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/actions")({
   head: () => ({
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/_authenticated/actions")({
     ],
   }),
   component: ActionsPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Action plans unavailable" error={error} reset={reset} />
+  ),
 });
 
 function ActionsPage() {

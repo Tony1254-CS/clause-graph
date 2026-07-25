@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock, Gem } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
 
 type OrgStatus = {
@@ -81,19 +81,9 @@ export function PlanStatusBanner() {
     );
   }
 
-  if (data.on_trial && typeof data.trial_days_left === "number") {
-    const d = data.trial_days_left;
-    return (
-      <Banner tone="warn" icon={<Gem className="h-4 w-4" />}>
-        You're on the <span className="font-mono">Pro</span> trial —{" "}
-        <span className="font-mono">{d}</span> {d === 1 ? "day" : "days"} left.{" "}
-        <Link to="/settings/billing" className="underline underline-offset-2">
-          Add a payment method
-        </Link>{" "}
-        to keep Pro access after the trial ends.
-      </Banner>
-    );
-  }
+  // Trial countdown is intentionally NOT shown here — the user rejected
+  // trial/test banners in the header. Trial state lives on /settings/billing.
+
 
   return null;
 }

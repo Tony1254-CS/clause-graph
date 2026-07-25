@@ -69,6 +69,7 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
       status === "canceled" && !cancelAtPeriodEnd
         ? "free"
         : plan;
+    const paying = ["active", "trialing", "past_due", "paused"].includes(status);
     const { error } = await supa
       .from("organizations")
       .update({
@@ -76,6 +77,9 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
         plan_status: status,
         plan_renews_at: periodEnd ?? null,
         paddle_customer_id: customerId,
+        // A real subscription supersedes the signup trial, so the read-side
+        // trial expiry can never downgrade a paying workspace.
+        ...(paying ? { trial_ends_at: null } : {}),
       })
       .eq("id", orgId);
     if (error) console.error("[paddle] org update failed", error);

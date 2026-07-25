@@ -34,7 +34,7 @@ type RegulationRow = {
   jurisdiction: string;
   title: string;
   summary: string;
-  obligations: Obligation[] | null;
+  obligations: unknown;
 };
 
 function mapContract(row: ContractRow): Contract {
@@ -61,13 +61,42 @@ function mapContract(row: ContractRow): Contract {
 }
 
 
+function humanizeSlug(slug: string): string {
+  const s = slug.replace(/[_-]+/g, " ").trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Tolerant mapper: obligations may be stored either as objects
+// ({ id, text }) or as legacy slug strings. Never render blank rows.
+function mapObligations(raw: unknown): Obligation[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((entry, i): Obligation | null => {
+      if (typeof entry === "string") {
+        return { id: entry || `ob-${i}`, text: humanizeSlug(entry) };
+      }
+      if (entry && typeof entry === "object") {
+        const o = entry as { id?: unknown; text?: unknown; title?: unknown };
+        const text =
+          (typeof o.text === "string" && o.text.trim()) ||
+          (typeof o.title === "string" && o.title.trim()) ||
+          (typeof o.id === "string" && humanizeSlug(o.id)) ||
+          "";
+        if (!text) return null;
+        return { id: typeof o.id === "string" && o.id ? o.id : `ob-${i}`, text };
+      }
+      return null;
+    })
+    .filter((o): o is Obligation => o !== null);
+}
+
 function mapRegulation(row: RegulationRow): Regulation {
   return {
     id: row.id,
     jurisdiction: row.jurisdiction,
     title: row.title,
     summary: row.summary,
-    obligations: row.obligations ?? [],
+    obligations: mapObligations(row.obligations),
   };
 }
 

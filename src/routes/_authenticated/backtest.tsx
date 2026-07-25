@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { BacktestCard } from "@/components/clausegraph/BacktestCard";
 import { backtestCasesQuery } from "@/data/queries";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/backtest")({
   head: () => ({
@@ -25,6 +26,9 @@ export const Route = createFileRoute("/_authenticated/backtest")({
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(backtestCasesQuery),
   component: BacktestPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Backtest library unavailable" error={error} reset={reset} />
+  ),
 });
 
 function BacktestPage() {

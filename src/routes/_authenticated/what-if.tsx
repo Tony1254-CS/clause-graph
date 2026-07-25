@@ -10,6 +10,7 @@ import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
+import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/what-if")({
   head: () => ({
@@ -34,6 +35,9 @@ export const Route = createFileRoute("/_authenticated/what-if")({
       context.queryClient.ensureQueryData(regulationsQuery),
     ]).then(() => null),
   component: WhatIfSandbox,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Sandbox unavailable" error={error} reset={reset} />
+  ),
 });
 
 const SEV_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };

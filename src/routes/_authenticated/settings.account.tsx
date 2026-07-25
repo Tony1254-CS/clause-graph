@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { profileQuery, myRoleQuery } from "@/data/queries";
 import { getOrgUsage } from "@/lib/billing.functions";
+import { RouteError } from "@/components/clausegraph/RouteError";
 import {
   requestWorkspaceDeletion,
   cancelWorkspaceDeletion,
@@ -24,6 +25,9 @@ export const Route = createFileRoute("/_authenticated/settings/account")({
     ],
   }),
   component: AccountPage,
+  errorComponent: ({ error, reset }) => (
+    <RouteError title="Account settings unavailable" error={error} reset={reset} />
+  ),
 });
 
 function fmtDate(iso: string | null | undefined) {
