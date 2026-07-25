@@ -123,8 +123,9 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
         <div className="absolute inset-0 rounded-full blur-3xl bg-[radial-gradient(circle,rgba(201,166,107,0.14),transparent_65%)]" />
 
         <div
-          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 transition-shadow ${pulsing ? "rim-pulse" : ""}`}
+          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 duration-150 ease-out transition-shadow ${pulsing && !reducedMotion ? "rim-pulse" : ""}`}
           style={{ height: SIZE + 24, width: SIZE + 24, maxWidth: "80vw", maxHeight: "80vw" }}
+
         >
           <div className="relative h-full w-full rounded-full border border-[var(--hairline)] p-3">
             <div className="relative h-full w-full rounded-full glass-panel !rounded-full overflow-hidden">
