@@ -12,6 +12,7 @@ import {
 } from "@/lib/billing.functions";
 import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/_authenticated/settings/billing")({
   head: () => ({
