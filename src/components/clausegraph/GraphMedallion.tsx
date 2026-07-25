@@ -49,6 +49,12 @@ const SEV_RADIUS: Record<Severity, number> = {
 
 export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Props) {
   const [hover, setHover] = useState<Node | null>(null);
+  const reducedMotion = useReducedMotion();
+  const nodeTransition = reducedMotion ? undefined : { transition: "all 500ms ease-out" };
+  const edgeTransition = reducedMotion
+    ? undefined
+    : { transition: "stroke 400ms ease-out, opacity 400ms ease-out" };
+
 
   const innerRadius = 118;
   const outerRadius = 180;
