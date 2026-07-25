@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Zap, Network } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Network, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PLANS, type PlanId } from "@/lib/plans";
 
 export const Route = createFileRoute("/")({
   head: () => ({
