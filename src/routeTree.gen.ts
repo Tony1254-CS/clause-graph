@@ -9,99 +9,92 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SimulateRouteImport } from './routes/simulate'
-import { Route as FeedRouteImport } from './routes/feed'
-import { Route as ContractsRouteImport } from './routes/contracts'
-import { Route as BacktestRouteImport } from './routes/backtest'
-import { Route as ActionsRouteImport } from './routes/actions'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ContractsIndexRouteImport } from './routes/contracts.index'
-import { Route as RegulationsRegIdRouteImport } from './routes/regulations.$regId'
-import { Route as ContractsContractIdRouteImport } from './routes/contracts.$contractId'
+import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
+import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
+import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
+import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
+import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
+import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
 
-const SimulateRoute = SimulateRouteImport.update({
-  id: '/simulate',
+const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
+  id: '/_authenticated/simulate',
   path: '/simulate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FeedRoute = FeedRouteImport.update({
-  id: '/feed',
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/_authenticated/feed',
   path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContractsRoute = ContractsRouteImport.update({
-  id: '/contracts',
+const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
+  id: '/_authenticated/contracts',
   path: '/contracts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BacktestRoute = BacktestRouteImport.update({
-  id: '/backtest',
+const AuthenticatedBacktestRoute = AuthenticatedBacktestRouteImport.update({
+  id: '/_authenticated/backtest',
   path: '/backtest',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ActionsRoute = ActionsRouteImport.update({
-  id: '/actions',
+const AuthenticatedActionsRoute = AuthenticatedActionsRouteImport.update({
+  id: '/_authenticated/actions',
   path: '/actions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContractsIndexRoute = ContractsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ContractsRoute,
-} as any)
-const RegulationsRegIdRoute = RegulationsRegIdRouteImport.update({
-  id: '/regulations/$regId',
-  path: '/regulations/$regId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContractsContractIdRoute = ContractsContractIdRouteImport.update({
-  id: '/$contractId',
-  path: '/$contractId',
-  getParentRoute: () => ContractsRoute,
-} as any)
+const AuthenticatedContractsIndexRoute =
+  AuthenticatedContractsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedContractsRoute,
+  } as any)
+const AuthenticatedRegulationsRegIdRoute =
+  AuthenticatedRegulationsRegIdRouteImport.update({
+    id: '/_authenticated/regulations/$regId',
+    path: '/regulations/$regId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedContractsContractIdRoute =
+  AuthenticatedContractsContractIdRouteImport.update({
+    id: '/$contractId',
+    path: '/$contractId',
+    getParentRoute: () => AuthenticatedContractsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/actions': typeof ActionsRoute
-  '/backtest': typeof BacktestRoute
-  '/contracts': typeof ContractsRouteWithChildren
-  '/feed': typeof FeedRoute
-  '/simulate': typeof SimulateRoute
-  '/contracts/$contractId': typeof ContractsContractIdRoute
-  '/regulations/$regId': typeof RegulationsRegIdRoute
-  '/contracts/': typeof ContractsIndexRoute
+  '/actions': typeof AuthenticatedActionsRoute
+  '/backtest': typeof AuthenticatedBacktestRoute
+  '/contracts': typeof AuthenticatedContractsRouteWithChildren
+  '/feed': typeof AuthenticatedFeedRoute
+  '/simulate': typeof AuthenticatedSimulateRoute
+  '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/contracts/': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/actions': typeof ActionsRoute
-  '/backtest': typeof BacktestRoute
-  '/feed': typeof FeedRoute
-  '/simulate': typeof SimulateRoute
-  '/contracts/$contractId': typeof ContractsContractIdRoute
-  '/regulations/$regId': typeof RegulationsRegIdRoute
-  '/contracts': typeof ContractsIndexRoute
+  '/actions': typeof AuthenticatedActionsRoute
+  '/backtest': typeof AuthenticatedBacktestRoute
+  '/feed': typeof AuthenticatedFeedRoute
+  '/simulate': typeof AuthenticatedSimulateRoute
+  '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/contracts': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/actions': typeof ActionsRoute
-  '/backtest': typeof BacktestRoute
-  '/contracts': typeof ContractsRouteWithChildren
-  '/feed': typeof FeedRoute
-  '/simulate': typeof SimulateRoute
-  '/contracts/$contractId': typeof ContractsContractIdRoute
-  '/regulations/$regId': typeof RegulationsRegIdRoute
-  '/contracts/': typeof ContractsIndexRoute
+  '/_authenticated/actions': typeof AuthenticatedActionsRoute
+  '/_authenticated/backtest': typeof AuthenticatedBacktestRoute
+  '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
+  '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
+  '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
+  '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/actions'
     | '/backtest'
     | '/contracts'
@@ -112,7 +105,6 @@ export interface FileRouteTypes {
     | '/contracts/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/actions'
     | '/backtest'
     | '/feed'
@@ -122,117 +114,110 @@ export interface FileRouteTypes {
     | '/contracts'
   id:
     | '__root__'
-    | '/'
-    | '/actions'
-    | '/backtest'
-    | '/contracts'
-    | '/feed'
-    | '/simulate'
-    | '/contracts/$contractId'
-    | '/regulations/$regId'
-    | '/contracts/'
+    | '/_authenticated/actions'
+    | '/_authenticated/backtest'
+    | '/_authenticated/contracts'
+    | '/_authenticated/feed'
+    | '/_authenticated/simulate'
+    | '/_authenticated/contracts/$contractId'
+    | '/_authenticated/regulations/$regId'
+    | '/_authenticated/contracts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ActionsRoute: typeof ActionsRoute
-  BacktestRoute: typeof BacktestRoute
-  ContractsRoute: typeof ContractsRouteWithChildren
-  FeedRoute: typeof FeedRoute
-  SimulateRoute: typeof SimulateRoute
-  RegulationsRegIdRoute: typeof RegulationsRegIdRoute
+  AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
+  AuthenticatedBacktestRoute: typeof AuthenticatedBacktestRoute
+  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
+  AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/simulate': {
-      id: '/simulate'
+    '/_authenticated/simulate': {
+      id: '/_authenticated/simulate'
       path: '/simulate'
       fullPath: '/simulate'
-      preLoaderRoute: typeof SimulateRouteImport
+      preLoaderRoute: typeof AuthenticatedSimulateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/feed': {
-      id: '/feed'
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
       path: '/feed'
       fullPath: '/feed'
-      preLoaderRoute: typeof FeedRouteImport
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contracts': {
-      id: '/contracts'
+    '/_authenticated/contracts': {
+      id: '/_authenticated/contracts'
       path: '/contracts'
       fullPath: '/contracts'
-      preLoaderRoute: typeof ContractsRouteImport
+      preLoaderRoute: typeof AuthenticatedContractsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/backtest': {
-      id: '/backtest'
+    '/_authenticated/backtest': {
+      id: '/_authenticated/backtest'
       path: '/backtest'
       fullPath: '/backtest'
-      preLoaderRoute: typeof BacktestRouteImport
+      preLoaderRoute: typeof AuthenticatedBacktestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/actions': {
-      id: '/actions'
+    '/_authenticated/actions': {
+      id: '/_authenticated/actions'
       path: '/actions'
       fullPath: '/actions'
-      preLoaderRoute: typeof ActionsRouteImport
+      preLoaderRoute: typeof AuthenticatedActionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contracts/': {
-      id: '/contracts/'
+    '/_authenticated/contracts/': {
+      id: '/_authenticated/contracts/'
       path: '/'
       fullPath: '/contracts/'
-      preLoaderRoute: typeof ContractsIndexRouteImport
-      parentRoute: typeof ContractsRoute
+      preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
+      parentRoute: typeof AuthenticatedContractsRoute
     }
-    '/regulations/$regId': {
-      id: '/regulations/$regId'
+    '/_authenticated/regulations/$regId': {
+      id: '/_authenticated/regulations/$regId'
       path: '/regulations/$regId'
       fullPath: '/regulations/$regId'
-      preLoaderRoute: typeof RegulationsRegIdRouteImport
+      preLoaderRoute: typeof AuthenticatedRegulationsRegIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contracts/$contractId': {
-      id: '/contracts/$contractId'
+    '/_authenticated/contracts/$contractId': {
+      id: '/_authenticated/contracts/$contractId'
       path: '/$contractId'
       fullPath: '/contracts/$contractId'
-      preLoaderRoute: typeof ContractsContractIdRouteImport
-      parentRoute: typeof ContractsRoute
+      preLoaderRoute: typeof AuthenticatedContractsContractIdRouteImport
+      parentRoute: typeof AuthenticatedContractsRoute
     }
   }
 }
 
-interface ContractsRouteChildren {
-  ContractsContractIdRoute: typeof ContractsContractIdRoute
-  ContractsIndexRoute: typeof ContractsIndexRoute
+interface AuthenticatedContractsRouteChildren {
+  AuthenticatedContractsContractIdRoute: typeof AuthenticatedContractsContractIdRoute
+  AuthenticatedContractsIndexRoute: typeof AuthenticatedContractsIndexRoute
 }
 
-const ContractsRouteChildren: ContractsRouteChildren = {
-  ContractsContractIdRoute: ContractsContractIdRoute,
-  ContractsIndexRoute: ContractsIndexRoute,
-}
+const AuthenticatedContractsRouteChildren: AuthenticatedContractsRouteChildren =
+  {
+    AuthenticatedContractsContractIdRoute:
+      AuthenticatedContractsContractIdRoute,
+    AuthenticatedContractsIndexRoute: AuthenticatedContractsIndexRoute,
+  }
 
-const ContractsRouteWithChildren = ContractsRoute._addFileChildren(
-  ContractsRouteChildren,
-)
+const AuthenticatedContractsRouteWithChildren =
+  AuthenticatedContractsRoute._addFileChildren(
+    AuthenticatedContractsRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ActionsRoute: ActionsRoute,
-  BacktestRoute: BacktestRoute,
-  ContractsRoute: ContractsRouteWithChildren,
-  FeedRoute: FeedRoute,
-  SimulateRoute: SimulateRoute,
-  RegulationsRegIdRoute: RegulationsRegIdRoute,
+  AuthenticatedActionsRoute: AuthenticatedActionsRoute,
+  AuthenticatedBacktestRoute: AuthenticatedBacktestRoute,
+  AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
+  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
+  AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
