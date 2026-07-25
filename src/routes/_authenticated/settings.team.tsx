@@ -6,6 +6,7 @@ import { UserMinus, Mail, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { teamMembersQuery, myRoleQuery, profileQuery } from "@/data/queries";
 import { inviteTeammate, removeTeammate } from "@/lib/team.functions";
+import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 
 export const Route = createFileRoute("/_authenticated/settings/team")({
   head: () => ({

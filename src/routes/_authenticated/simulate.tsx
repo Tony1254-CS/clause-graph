@@ -103,6 +103,10 @@ function SimulatePage() {
       setResult(res);
       setStatus("done");
     } catch (err) {
+      if (handlePlanLimitError(err, "simulations")) {
+        setStatus("idle");
+        return;
+      }
       setError(err instanceof Error ? err.message : "Simulation failed");
       setStatus("error");
     }
