@@ -14,8 +14,8 @@ function formatFine(usd: number): string {
 const SEV_LABEL: Record<Severity, string> = { high: "High", medium: "Medium", low: "Low" };
 const SEV_DOT: Record<Severity, string> = {
   high: "bg-[var(--risk)]",
-  medium: "bg-[rgba(225,82,75,0.75)]",
-  low: "bg-[rgba(225,82,75,0.45)]",
+  medium: "bg-[color-mix(in_oklab,var(--risk)_75%,transparent)]",
+  low: "bg-[color-mix(in_oklab,var(--risk)_45%,transparent)]",
 };
 
 export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
@@ -103,7 +103,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
               key={c.id}
               className="rounded-[12px] border border-[var(--hairline)] p-2.5 text-[12px] leading-[1.55] text-foreground/85"
             >
-              <span className="font-mono text-[10px] text-brass mr-2">{c.id}</span>
+              <span className="mr-2 font-mono text-[10px] text-[var(--brass)]">{c.id}</span>
               {c.text}
             </li>
           ))}
@@ -139,7 +139,7 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
 
 
       {result && (
-        <div className="rounded-[20px] border border-[var(--hairline-strong)] p-4 bg-[rgba(255,255,255,0.02)]">
+        <div className="rounded-[20px] border border-[var(--hairline-strong)] bg-[var(--surface-glass)] p-4">
 
           <div className="flex items-center justify-between gap-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
