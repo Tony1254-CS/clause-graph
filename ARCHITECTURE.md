@@ -875,37 +875,64 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('contract-files', 'contra
 ```
 
 
+---
+
 ## 7. Auth & Multi-Tenancy
 
 - **Providers**: email/password (Supabase native) + **Google OAuth via the Lovable broker** (`lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin })`) — iframe-safe in the editor preview.
 - **Route gate**: `src/routes/_authenticated/route.tsx` (`ssr: false`) calls `supabase.auth.getUser()` and redirects to `/auth` when missing. Every protected route sits under this layout — no per-route guards.
 - **Tenant isolation**: `profiles.org_id` is the source of truth. `current_org_id()` is the primary RLS predicate. Cross-org access is impossible for `authenticated`.
 - **Roles**: `user_roles(user_id, org_id, role)` — never store roles on `profiles`. `has_role()` is `SECURITY DEFINER` to avoid RLS recursion.
-- **Trial**: every new workspace is `pro` for 30 days. When it expires and no paid subscription exists, the next quota check lazily downgrades to `free`.
+- **Entitlement**: while billing is parked every workspace is provisioned `pro` with `trial_ends_at = NULL`, and `resolve_org_plan()` keeps it there. Nothing expires and no quota can fire.
 - **Bearer**: `src/start.ts` registers `attachSupabaseAuth` in `functionMiddleware`; every `createServerFn` call carries the Supabase JWT automatically.
 
 ---
 
-## 8. Billing & Entitlements
+## 8. Billing & Entitlements — currently PARKED
 
-- **Products / prices** live in Paddle Sandbox and Live.
-- **Client**: Paddle.js loaded on demand by `usePaddleCheckout`; opens the checkout overlay.
-- **Server**: `@paddle/paddle-node-sdk` handles previews and pro-rated plan swaps (`billing.functions.ts::updateSubscriptionPlan`).
-- **Webhook**: `POST /api/public/payments/webhook` — HMAC signature verified with `PAYMENTS_SANDBOX_WEBHOOK_SECRET` / `PAYMENTS_LIVE_WEBHOOK_SECRET`. All events are deduped through `paddle_events(event_id)`.
+> **Status: subscriptions are built, wired and switched off.** Every workspace
+> runs on Pro with unlimited usage. Nothing charges, nothing expires, no upgrade
+> prompt is ever shown. The Paddle integration is kept intact so it can be
+> switched on later without a rebuild.
 
-### Plan matrix
+### The two switches
 
-| Plan | Contracts | Simulations / month | Members |
-|---|---|---|---|
-| Free | 3 | 5 | 1 |
-| Pro (default 30-day trial) | 50 | 100 | 3 |
-| Enterprise | ∞ | ∞ | ∞ |
+| Switch | Location | Parked value |
+|---|---|---|
+| Database | `public.billing_enabled()` | `SELECT false` |
+| Frontend | `BILLING_ENABLED` in `src/lib/plans.ts` | `false` |
+
+Flip **both** to `true` to go commercial. Effects of the parked state:
+
+- `handle_new_user` provisions `plan='pro'`, `trial_ends_at=NULL`.
+- `resolve_org_plan` returns `'pro'` for every org and self-heals any row that drifted.
+- `assert_within_quota` returns immediately — `PLAN_LIMIT` can never be raised.
+- `getOrgUsage` reports `plan='pro'`, unlimited limits, no trial clock.
+- `/settings/billing` renders the "Early access — nothing to pay" panel instead of pricing cards.
+- `PlanLimitDialog` and the trial/dunning banners are suppressed (only scheduled-deletion warnings still show).
+- The landing page prices every tier at `$0`.
+
+### Kept for later (dormant, still correct)
+
+- **Products / prices** in Paddle Sandbox and Live; catalog synced on publish.
+- **Client**: Paddle.js loaded on demand by `usePaddleCheckout`.
+- **Server**: `@paddle/paddle-node-sdk` for pro-rated plan swaps (`billing.functions.ts::changeSubscriptionPlan`) and customer-portal sessions.
+- **Webhook**: `POST /api/public/payments/webhook` — HMAC verified with `PAYMENTS_SANDBOX_WEBHOOK_SECRET` / `PAYMENTS_LIVE_WEBHOOK_SECRET`, deduped through `paddle_events(event_id)`, environment-scoped writes.
+
+### Plan matrix (applies only once billing is enabled)
+
+| Plan | Contracts | Simulations / month | Members | Price |
+|---|---|---|---|---|
+| Free | 3 | 5 | 1 | $0 |
+| Pro | 50 | 100 | 3 | $49 / mo |
+| Team | ∞ | ∞ | ∞ | $199 / mo |
 
 Enforced by `public.assert_within_quota` at the DB layer — bypassing the client cannot exceed the limit.
 
-Dunning: `past_due` status keeps read access but blocks quota-bumped actions; UI surfaces a banner in Settings → Billing.
+Dunning: `past_due` keeps read access but blocks quota-bumped actions; a banner surfaces it.
 
-Soft-delete: `request_workspace_deletion` schedules deletion 30 days out. Admins can cancel until the deadline.
+Soft-delete: `request_workspace_deletion` schedules deletion 30 days out and stays cancellable by admins — **active regardless of billing state**.
+
 
 ---
 
