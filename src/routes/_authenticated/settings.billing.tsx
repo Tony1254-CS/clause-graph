@@ -148,7 +148,7 @@ function BillingPage() {
               our merchant of record — receipts show Paddle alongside ClauseGraph.
             </p>
           </div>
-          {currentPlan !== "free" && (
+          {hasSubscription && (
             <button
               type="button"
               onClick={handleManage}
