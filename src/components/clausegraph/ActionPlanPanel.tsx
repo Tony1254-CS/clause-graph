@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Loader2,
-  Sparkles,
+  Wand2,
   Copy,
   FileDown,
   Check,
@@ -14,7 +14,7 @@ import type { ActionPlan, ActionPlanInput, TechPriority } from "@/lib/action-pla
 
 const PRIORITY_DOT: Record<TechPriority, string> = {
   P0: "bg-[var(--risk)]",
-  P1: "bg-brass",
+  P1: "bg-[var(--brass)]",
   P2: "bg-muted-foreground/60",
 };
 
@@ -169,7 +169,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
     return (
       <div className="glass-panel p-5 flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
             {isForecast ? "Anticipatory step" : "Next step"}
           </p>
           <p className="mt-1 text-[13px] text-foreground">
@@ -180,9 +180,9 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
         </div>
         <button
           onClick={onGenerate}
-          className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] duration-150 ease-out transition-all"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2.5 text-[13px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98]"
         >
-          <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+          <Wand2 className="h-3.5 w-3.5" strokeWidth={2} />
           Generate Action Plan
         </button>
 
@@ -193,7 +193,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
   if (status === "loading") {
     return (
       <div className="glass-panel p-6 flex items-center gap-3">
-        <Loader2 className="h-4 w-4 animate-spin text-brass" strokeWidth={2} />
+        <Loader2 className="h-4 w-4 animate-spin text-[var(--brass)]" strokeWidth={2} />
         <p className="text-[13px] text-muted-foreground">
           Drafting policy, amendments, and technical checklist…
         </p>
@@ -210,7 +210,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
         </p>
         <button
           onClick={onGenerate}
-          className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brass hover:underline duration-150 ease-out transition-colors"
+          className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)] transition-colors duration-200 ease-out hover:underline"
         >
           Retry →
         </button>
@@ -225,7 +225,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
     <div className="glass-panel p-6 flex flex-col gap-6">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+          <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
             <ClipboardList className="h-3 w-3" strokeWidth={1.8} />
             Compliance Action Plan
           </p>
@@ -240,11 +240,11 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onCopy}
-            className="inline-flex items-center gap-1.5 rounded-[12px] border border-[var(--hairline-strong)] px-3 py-2 text-[12px] text-foreground hover:bg-[rgba(255,255,255,0.03)] duration-150 ease-out transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-[12px] border border-[var(--hairline-strong)] px-3 py-2 text-[12px] text-foreground transition-colors duration-200 ease-out hover:bg-[var(--surface-glass)]"
           >
             {copied ? (
               <>
-                <Check className="h-3.5 w-3.5 text-brass" strokeWidth={2} />
+                <Check className="h-3.5 w-3.5 text-[var(--brass)]" strokeWidth={2} />
                 Copied
               </>
             ) : (
@@ -256,7 +256,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
           </button>
           <button
             onClick={() => exportPdf(plan, regulationText)}
-            className="inline-flex items-center gap-1.5 rounded-[12px] bg-[var(--brass)] px-3 py-2 text-[12px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] duration-150 ease-out transition-all"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brass)] px-3 py-2 text-[12px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98]"
           >
             <FileDown className="h-3.5 w-3.5" strokeWidth={2} />
             Export PDF
@@ -265,8 +265,8 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
         </div>
       </header>
 
-      <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[rgba(201,166,107,0.04)] p-3.5">
-        <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-brass">
+      <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)] p-3.5">
+        <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-[var(--brass)]">
           <ShieldAlert className="h-3 w-3" strokeWidth={1.8} />
           Draft output — for legal review
         </p>
@@ -295,12 +295,12 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="min-w-0">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brass)]">
                     {a.contract_id}
                   </span>
                   <span className="ml-2 text-[13px] text-foreground">{a.contract_name}</span>
                 </div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-brass border border-[var(--hairline-strong)] rounded-full px-2 py-0.5">
+                <span className="rounded-full border border-[var(--hairline-strong)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--brass)]">
                   For legal review
                 </span>
               </div>
@@ -341,7 +341,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[t.priority]}`}
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)]">
                     {t.priority}
                   </span>
                   <span className="text-[13px] text-foreground">{t.title}</span>
