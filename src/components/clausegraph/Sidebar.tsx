@@ -65,14 +65,20 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-9 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] border transition-all duration-200 ease-out ${
+      className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-colors duration-200 ease-out ${
         isActive
-          ? "border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)] text-[var(--ink)]"
-          : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+          ? "text-[var(--ink)]"
+          : "text-[var(--text-muted)] hover:text-[var(--ink)]"
       }`}
     >
-      <span className="grid h-9 w-11 shrink-0 place-items-center">
-        <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
+      <span
+        aria-hidden
+        className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--brass)] transition-opacity duration-200 ${
+          isActive ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <span className="grid h-9 w-10 shrink-0 place-items-center">
+        <Icon className="h-[17px] w-[17px]" strokeWidth={1.5} />
       </span>
       <span
         className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
