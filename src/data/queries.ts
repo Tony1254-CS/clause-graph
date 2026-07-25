@@ -175,9 +175,10 @@ export const backtestCasesQuery = queryOptions({
       summary: r.summary,
       source: r.source,
       reconstructed_prompt: r.reconstructed_prompt,
-      reconstructed_clauses: r.reconstructed_clauses,
-      fallback: r.fallback,
+      reconstructed_clauses: r.reconstructed_clauses as unknown as { id: string; text: string }[],
+      fallback: r.fallback as unknown as import("@/lib/simulate-types").SimulationResult,
     }));
+
   },
   staleTime: 5 * 60_000,
 });
