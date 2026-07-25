@@ -110,15 +110,22 @@ export const contractQuery = (id: string) =>
     queryFn: async (): Promise<Contract> => {
       const { data, error } = await supabase
         .from("contracts")
-        .select("id, name, counterparty, value, clauses(id, text, linked_regs, position)")
+        .select(
+          "id, name, counterparty, value, extraction_status, extraction_error, is_sample, source_file_url, clauses(id, text, linked_regs, position)",
+        )
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       if (!data) throw notFound();
       return mapContract(data as ContractRow);
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchInterval: (query) => {
+      const row = query.state.data as Contract | undefined;
+      return row?.extraction_status === "processing" ? 3000 : false;
+    },
   });
+
 
 export const regulationQuery = (id: string) =>
   queryOptions({
