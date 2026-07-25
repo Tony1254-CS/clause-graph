@@ -175,13 +175,16 @@ database (`assert_within_quota`) — no client bypass is possible.
 - **Billing** — Paddle (Node SDK + Paddle.js).
 - **External** — Federal Register API.
 
-Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
+Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — including the complete database DDL, every RLS policy and every SQL function.
 
-### Vercel deployment notes
+Moving off Lovable to your own Supabase project and host: **[`MIGRATION.md`](./MIGRATION.md)**.
 
-ClauseGraph now detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
+### Self-hosted / Vercel deployment notes
 
-Set the same production environment variables in Vercel that the app uses at runtime: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `LOVABLE_API_KEY`, and the Paddle variables used by billing/webhooks. Private backend values must stay in Vercel's encrypted environment-variable UI — never commit them.
+ClauseGraph detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
+
+Set **both** the client and the server variables on the host — server functions read `process.env` at call time, so client-only vars make pages render with every panel empty: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY` (or your own `OPENAI_API_KEY`), plus the Paddle variables only if billing is switched on. Private values stay in the host's encrypted environment UI — never commit them.
+
 
 ---
 
