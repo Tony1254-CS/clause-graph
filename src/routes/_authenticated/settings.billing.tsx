@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, ExternalLink, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { profileQuery } from "@/data/queries";
-import { getOrgUsage, createBillingPortalSession } from "@/lib/billing.functions";
+import {
+  getOrgUsage,
+  createBillingPortalSession,
+  changeSubscriptionPlan,
+} from "@/lib/billing.functions";
 import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
