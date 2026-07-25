@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
@@ -18,30 +19,34 @@ import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
 import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
 
-const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
-  id: '/_authenticated/simulate',
-  path: '/simulate',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
+  id: '/simulate',
+  path: '/simulate',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
-  id: '/_authenticated/feed',
+  id: '/feed',
   path: '/feed',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
-  id: '/_authenticated/contracts',
+  id: '/contracts',
   path: '/contracts',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBacktestRoute = AuthenticatedBacktestRouteImport.update({
-  id: '/_authenticated/backtest',
+  id: '/backtest',
   path: '/backtest',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedActionsRoute = AuthenticatedActionsRouteImport.update({
-  id: '/_authenticated/actions',
+  id: '/actions',
   path: '/actions',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedContractsIndexRoute =
   AuthenticatedContractsIndexRouteImport.update({
@@ -51,9 +56,9 @@ const AuthenticatedContractsIndexRoute =
   } as any)
 const AuthenticatedRegulationsRegIdRoute =
   AuthenticatedRegulationsRegIdRouteImport.update({
-    id: '/_authenticated/regulations/$regId',
+    id: '/regulations/$regId',
     path: '/regulations/$regId',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContractsContractIdRoute =
   AuthenticatedContractsContractIdRouteImport.update({
@@ -63,6 +68,7 @@ const AuthenticatedContractsContractIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/actions': typeof AuthenticatedActionsRoute
   '/backtest': typeof AuthenticatedBacktestRoute
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/contracts/': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AuthenticatedRouteRouteWithChildren
   '/actions': typeof AuthenticatedActionsRoute
   '/backtest': typeof AuthenticatedBacktestRoute
   '/feed': typeof AuthenticatedFeedRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/actions': typeof AuthenticatedActionsRoute
   '/_authenticated/backtest': typeof AuthenticatedBacktestRoute
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
@@ -95,6 +103,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/actions'
     | '/backtest'
     | '/contracts'
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/contracts/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/actions'
     | '/backtest'
     | '/feed'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/contracts'
   id:
     | '__root__'
+    | '/_authenticated'
     | '/_authenticated/actions'
     | '/_authenticated/backtest'
     | '/_authenticated/contracts'
@@ -125,50 +136,52 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
-  AuthenticatedBacktestRoute: typeof AuthenticatedBacktestRoute
-  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
-  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
-  AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
-  AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/simulate': {
       id: '/_authenticated/simulate'
       path: '/simulate'
       fullPath: '/simulate'
       preLoaderRoute: typeof AuthenticatedSimulateRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feed': {
       id: '/_authenticated/feed'
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof AuthenticatedFeedRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts': {
       id: '/_authenticated/contracts'
       path: '/contracts'
       fullPath: '/contracts'
       preLoaderRoute: typeof AuthenticatedContractsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/backtest': {
       id: '/_authenticated/backtest'
       path: '/backtest'
       fullPath: '/backtest'
       preLoaderRoute: typeof AuthenticatedBacktestRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/actions': {
       id: '/_authenticated/actions'
       path: '/actions'
       fullPath: '/actions'
       preLoaderRoute: typeof AuthenticatedActionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts/': {
       id: '/_authenticated/contracts/'
@@ -182,7 +195,7 @@ declare module '@tanstack/react-router' {
       path: '/regulations/$regId'
       fullPath: '/regulations/$regId'
       preLoaderRoute: typeof AuthenticatedRegulationsRegIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts/$contractId': {
       id: '/_authenticated/contracts/$contractId'
@@ -211,13 +224,29 @@ const AuthenticatedContractsRouteWithChildren =
     AuthenticatedContractsRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedActionsRoute: typeof AuthenticatedActionsRoute
+  AuthenticatedBacktestRoute: typeof AuthenticatedBacktestRoute
+  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
+  AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActionsRoute: AuthenticatedActionsRoute,
   AuthenticatedBacktestRoute: AuthenticatedBacktestRoute,
   AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
