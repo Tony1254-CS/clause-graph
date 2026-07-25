@@ -1,7 +1,14 @@
 import { queryOptions } from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import type { Contract, Regulation, FederalRegisterDoc, Clause, Obligation } from "./types";
+import type {
+  Contract,
+  Regulation,
+  FederalRegisterDoc,
+  Clause,
+  Obligation,
+  ExtractionStatus,
+} from "./types";
 
 type ClauseRow = {
   id: string;
@@ -16,6 +23,10 @@ type ContractRow = {
   counterparty: string;
   value: number | string;
   clauses: ClauseRow[] | null;
+  extraction_status: string | null;
+  extraction_error: string | null;
+  is_sample: boolean | null;
+  source_file_url: string | null;
 };
 
 type RegulationRow = {
@@ -35,14 +46,20 @@ function mapContract(row: ContractRow): Contract {
       text: cl.text,
       linked_regs: cl.linked_regs ?? [],
     }));
+  const status = (row.extraction_status ?? "complete") as ExtractionStatus;
   return {
     id: row.id,
     name: row.name,
     counterparty: row.counterparty,
     value: typeof row.value === "string" ? Number(row.value) : row.value,
     clauses,
+    extraction_status: status,
+    extraction_error: row.extraction_error,
+    is_sample: row.is_sample ?? false,
+    source_file_url: row.source_file_url,
   };
 }
+
 
 function mapRegulation(row: RegulationRow): Regulation {
   return {
