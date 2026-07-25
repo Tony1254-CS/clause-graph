@@ -70,6 +70,9 @@ export type OrgUsage = {
   trial_ends_at: string | null;
   on_trial: boolean;
   trial_days_left: number | null;
+  /** True only when a real Paddle subscription backs this workspace. */
+  has_subscription: boolean;
+  deletion_scheduled_at: string | null;
 };
 
 export const getOrgUsage = createServerFn({ method: "GET" })
@@ -84,19 +87,32 @@ export const getOrgUsage = createServerFn({ method: "GET" })
     const orgId = prof?.org_id as string | undefined;
     if (!orgId) throw new Error("No workspace");
 
-    const [{ data: usage }, { data: org }] = await Promise.all([
+    // Resolve plan server-side first: this also expires a lapsed trial so
+    // reads and writes can never disagree about entitlement.
+    await supabase.rpc("resolve_org_plan", { _org: orgId });
+
+    const [{ data: usage }, { data: org }, { data: sub }] = await Promise.all([
       supabase.rpc("get_org_usage", { _org: orgId }).maybeSingle(),
       supabase
         .from("organizations")
-        .select("plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id")
+        .select(
+          "plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id, deletion_scheduled_at",
+        )
         .eq("id", orgId)
+        .maybeSingle(),
+      supabase
+        .from("subscriptions")
+        .select("paddle_subscription_id, status")
+        .eq("org_id", orgId)
+        .in("status", ["active", "trialing", "past_due", "paused"])
+        .limit(1)
         .maybeSingle(),
     ]);
 
     const trialEnds = (org?.trial_ends_at as string | null) ?? null;
-    const hasPaid = !!(org?.paddle_customer_id);
+    const hasSubscription = !!sub?.paddle_subscription_id;
     const onTrial =
-      !!trialEnds && !hasPaid && new Date(trialEnds).getTime() > Date.now();
+      !!trialEnds && !hasSubscription && new Date(trialEnds).getTime() > Date.now();
     const trialDaysLeft = onTrial
       ? Math.max(
           0,
@@ -116,6 +132,8 @@ export const getOrgUsage = createServerFn({ method: "GET" })
       trial_ends_at: trialEnds,
       on_trial: onTrial,
       trial_days_left: trialDaysLeft,
+      has_subscription: hasSubscription,
+      deletion_scheduled_at: (org?.deletion_scheduled_at as string | null) ?? null,
     };
   });
 
