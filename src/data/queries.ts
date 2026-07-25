@@ -34,7 +34,7 @@ type RegulationRow = {
   jurisdiction: string;
   title: string;
   summary: string;
-  obligations: Obligation[] | null;
+  obligations: unknown;
 };
 
 function mapContract(row: ContractRow): Contract {
