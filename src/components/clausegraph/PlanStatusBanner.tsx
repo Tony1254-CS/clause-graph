@@ -81,8 +81,23 @@ export function PlanStatusBanner() {
     );
   }
 
+  if (data.on_trial && typeof data.trial_days_left === "number") {
+    const d = data.trial_days_left;
+    return (
+      <Banner tone="warn" icon={<Sparkles className="h-4 w-4" />}>
+        You're on the <span className="font-mono">Pro</span> trial —{" "}
+        <span className="font-mono">{d}</span> {d === 1 ? "day" : "days"} left.{" "}
+        <Link to="/settings/billing" className="underline underline-offset-2">
+          Add a payment method
+        </Link>{" "}
+        to keep Pro access after the trial ends.
+      </Banner>
+    );
+  }
+
   return null;
 }
+
 
 function Banner({
   tone,
