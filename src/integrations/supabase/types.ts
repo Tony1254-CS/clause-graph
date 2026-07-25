@@ -101,6 +101,7 @@ export type Database = {
         Row: {
           counterparty: string
           created_at: string
+          extraction_error: string | null
           extraction_status: string
           id: string
           is_sample: boolean
@@ -113,6 +114,7 @@ export type Database = {
         Insert: {
           counterparty: string
           created_at?: string
+          extraction_error?: string | null
           extraction_status?: string
           id?: string
           is_sample?: boolean
@@ -125,6 +127,7 @@ export type Database = {
         Update: {
           counterparty?: string
           created_at?: string
+          extraction_error?: string | null
           extraction_status?: string
           id?: string
           is_sample?: boolean

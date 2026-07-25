@@ -14,13 +14,20 @@ export type Clause = {
   linked_regs: string[];
 };
 
+export type ExtractionStatus = "pending" | "processing" | "complete" | "failed";
+
 export type Contract = {
   id: string;
   name: string;
   counterparty: string;
   value: number;
   clauses: Clause[];
+  extraction_status: ExtractionStatus;
+  extraction_error: string | null;
+  is_sample: boolean;
+  source_file_url: string | null;
 };
+
 
 export type FederalRegisterDoc = {
   document_number: string;

@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, FileText, Rss, Zap, ListChecks, ShieldCheck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = {
   label: string;
   icon: LucideIcon;
-  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions";
+  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions" | "/settings/team";
   match?: string;
 };
 
@@ -16,7 +16,9 @@ const NAV: NavItem[] = [
   { label: "Simulate Impact", icon: Zap, to: "/simulate" },
   { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
+  { label: "Team", icon: Users, to: "/settings/team", match: "/settings" },
 ];
+
 
 function useIsActive(item: NavItem) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

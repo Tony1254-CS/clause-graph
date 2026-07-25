@@ -1,7 +1,14 @@
 import { queryOptions } from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import type { Contract, Regulation, FederalRegisterDoc, Clause, Obligation } from "./types";
+import type {
+  Contract,
+  Regulation,
+  FederalRegisterDoc,
+  Clause,
+  Obligation,
+  ExtractionStatus,
+} from "./types";
 
 type ClauseRow = {
   id: string;
@@ -16,6 +23,10 @@ type ContractRow = {
   counterparty: string;
   value: number | string;
   clauses: ClauseRow[] | null;
+  extraction_status: string | null;
+  extraction_error: string | null;
+  is_sample: boolean | null;
+  source_file_url: string | null;
 };
 
 type RegulationRow = {
@@ -35,14 +46,20 @@ function mapContract(row: ContractRow): Contract {
       text: cl.text,
       linked_regs: cl.linked_regs ?? [],
     }));
+  const status = (row.extraction_status ?? "complete") as ExtractionStatus;
   return {
     id: row.id,
     name: row.name,
     counterparty: row.counterparty,
     value: typeof row.value === "string" ? Number(row.value) : row.value,
     clauses,
+    extraction_status: status,
+    extraction_error: row.extraction_error,
+    is_sample: row.is_sample ?? false,
+    source_file_url: row.source_file_url,
   };
 }
+
 
 function mapRegulation(row: RegulationRow): Regulation {
   return {
@@ -59,13 +76,20 @@ export const contractsQuery = queryOptions({
   queryFn: async (): Promise<Contract[]> => {
     const { data, error } = await supabase
       .from("contracts")
-      .select("id, name, counterparty, value, clauses(id, text, linked_regs, position)")
+      .select(
+        "id, name, counterparty, value, extraction_status, extraction_error, is_sample, source_file_url, clauses(id, text, linked_regs, position)",
+      )
       .order("created_at", { ascending: true });
     if (error) throw error;
     return (data ?? []).map((r) => mapContract(r as ContractRow));
   },
-  staleTime: 60_000,
+  staleTime: 30_000,
+  refetchInterval: (query) => {
+    const rows = query.state.data as Contract[] | undefined;
+    return rows?.some((c) => c.extraction_status === "processing") ? 3000 : false;
+  },
 });
+
 
 export const regulationsQuery = queryOptions({
   queryKey: ["regulations"],
@@ -86,15 +110,22 @@ export const contractQuery = (id: string) =>
     queryFn: async (): Promise<Contract> => {
       const { data, error } = await supabase
         .from("contracts")
-        .select("id, name, counterparty, value, clauses(id, text, linked_regs, position)")
+        .select(
+          "id, name, counterparty, value, extraction_status, extraction_error, is_sample, source_file_url, clauses(id, text, linked_regs, position)",
+        )
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       if (!data) throw notFound();
       return mapContract(data as ContractRow);
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchInterval: (query) => {
+      const row = query.state.data as Contract | undefined;
+      return row?.extraction_status === "processing" ? 3000 : false;
+    },
   });
+
 
 export const regulationQuery = (id: string) =>
   queryOptions({
@@ -212,3 +243,62 @@ export function formatUSD(n: number): string {
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+// --- Team members & role -----------------------------------------------
+
+export type TeamMember = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: "admin" | "member" | null;
+  is_self: boolean;
+};
+
+export const teamMembersQuery = queryOptions({
+  queryKey: ["team-members"],
+  queryFn: async (): Promise<TeamMember[]> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const selfId = userData.user?.id ?? null;
+
+    const { data: profiles, error: pErr } = await supabase
+      .from("profiles")
+      .select("id, email, full_name");
+    if (pErr) throw pErr;
+
+    const { data: roles, error: rErr } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+    if (rErr) throw rErr;
+
+    const roleByUser = new Map<string, "admin" | "member">();
+    (roles ?? []).forEach((r) => {
+      roleByUser.set(r.user_id, r.role as "admin" | "member");
+    });
+
+    return (profiles ?? []).map((p) => ({
+      id: p.id,
+      email: p.email,
+      full_name: p.full_name,
+      role: roleByUser.get(p.id) ?? null,
+      is_self: p.id === selfId,
+    }));
+  },
+  staleTime: 30_000,
+});
+
+export const myRoleQuery = queryOptions({
+  queryKey: ["my-role"],
+  queryFn: async (): Promise<"admin" | "member" | null> => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return null;
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return (data?.role as "admin" | "member" | undefined) ?? null;
+  },
+  staleTime: 60_000,
+});
+
