@@ -48,8 +48,10 @@ function BacktestPage() {
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 items-start">
-          {cases.map((bt) => (
-            <BacktestCard key={bt.id} bt={bt} />
+          {cases.map((bt, i) => (
+            <div key={bt.id} className="stagger-item" style={{ ["--i" as string]: i }}>
+              <BacktestCard bt={bt} />
+            </div>
           ))}
         </div>
       </div>
