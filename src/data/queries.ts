@@ -243,3 +243,62 @@ export function formatUSD(n: number): string {
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+// --- Team members & role -----------------------------------------------
+
+export type TeamMember = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: "admin" | "member" | null;
+  is_self: boolean;
+};
+
+export const teamMembersQuery = queryOptions({
+  queryKey: ["team-members"],
+  queryFn: async (): Promise<TeamMember[]> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const selfId = userData.user?.id ?? null;
+
+    const { data: profiles, error: pErr } = await supabase
+      .from("profiles")
+      .select("id, email, full_name");
+    if (pErr) throw pErr;
+
+    const { data: roles, error: rErr } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+    if (rErr) throw rErr;
+
+    const roleByUser = new Map<string, "admin" | "member">();
+    (roles ?? []).forEach((r) => {
+      roleByUser.set(r.user_id, r.role as "admin" | "member");
+    });
+
+    return (profiles ?? []).map((p) => ({
+      id: p.id,
+      email: p.email,
+      full_name: p.full_name,
+      role: roleByUser.get(p.id) ?? null,
+      is_self: p.id === selfId,
+    }));
+  },
+  staleTime: 30_000,
+});
+
+export const myRoleQuery = queryOptions({
+  queryKey: ["my-role"],
+  queryFn: async (): Promise<"admin" | "member" | null> => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return null;
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return (data?.role as "admin" | "member" | undefined) ?? null;
+  },
+  staleTime: 60_000,
+});
+
