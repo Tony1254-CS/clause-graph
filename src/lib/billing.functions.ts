@@ -67,6 +67,9 @@ export type OrgUsage = {
   plan: "free" | "pro" | "team";
   plan_status: string;
   plan_renews_at: string | null;
+  trial_ends_at: string | null;
+  on_trial: boolean;
+  trial_days_left: number | null;
 };
 
 export const getOrgUsage = createServerFn({ method: "GET" })
@@ -85,10 +88,23 @@ export const getOrgUsage = createServerFn({ method: "GET" })
       supabase.rpc("get_org_usage", { _org: orgId }).maybeSingle(),
       supabase
         .from("organizations")
-        .select("plan, plan_status, plan_renews_at")
+        .select("plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id")
         .eq("id", orgId)
         .maybeSingle(),
     ]);
+
+    const trialEnds = (org?.trial_ends_at as string | null) ?? null;
+    const hasPaid = !!(org?.paddle_customer_id);
+    const onTrial =
+      !!trialEnds && !hasPaid && new Date(trialEnds).getTime() > Date.now();
+    const trialDaysLeft = onTrial
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(trialEnds!).getTime() - Date.now()) / 86_400_000,
+          ),
+        )
+      : null;
 
     return {
       contracts: (usage as { contracts?: number } | null)?.contracts ?? 0,
@@ -97,8 +113,12 @@ export const getOrgUsage = createServerFn({ method: "GET" })
       plan: (org?.plan as OrgUsage["plan"]) ?? "free",
       plan_status: (org?.plan_status as string) ?? "active",
       plan_renews_at: (org?.plan_renews_at as string | null) ?? null,
+      trial_ends_at: trialEnds,
+      on_trial: onTrial,
+      trial_days_left: trialDaysLeft,
     };
   });
+
 
 /**
  * Change plan on an existing paid subscription. Swaps the items on the current

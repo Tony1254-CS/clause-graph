@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Sparkles } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
 
 type OrgStatus = {
@@ -9,7 +9,10 @@ type OrgStatus = {
   plan_renews_at?: string | null;
   cancel_at_period_end?: boolean;
   deletion_scheduled_at?: string | null;
+  on_trial?: boolean;
+  trial_days_left?: number | null;
 };
+
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return "";
@@ -78,8 +81,23 @@ export function PlanStatusBanner() {
     );
   }
 
+  if (data.on_trial && typeof data.trial_days_left === "number") {
+    const d = data.trial_days_left;
+    return (
+      <Banner tone="warn" icon={<Sparkles className="h-4 w-4" />}>
+        You're on the <span className="font-mono">Pro</span> trial —{" "}
+        <span className="font-mono">{d}</span> {d === 1 ? "day" : "days"} left.{" "}
+        <Link to="/settings/billing" className="underline underline-offset-2">
+          Add a payment method
+        </Link>{" "}
+        to keep Pro access after the trial ends.
+      </Banner>
+    );
+  }
+
   return null;
 }
+
 
 function Banner({
   tone,

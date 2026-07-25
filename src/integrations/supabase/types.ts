@@ -167,6 +167,7 @@ export type Database = {
           plan_renews_at: string | null
           plan_status: string
           stripe_customer_id: string | null
+          trial_ends_at: string | null
         }
         Insert: {
           created_at?: string
@@ -180,6 +181,7 @@ export type Database = {
           plan_renews_at?: string | null
           plan_status?: string
           stripe_customer_id?: string | null
+          trial_ends_at?: string | null
         }
         Update: {
           created_at?: string
@@ -193,6 +195,7 @@ export type Database = {
           plan_renews_at?: string | null
           plan_status?: string
           stripe_customer_id?: string | null
+          trial_ends_at?: string | null
         }
         Relationships: []
       }
