@@ -97,6 +97,66 @@ export type Database = {
           },
         ]
       }
+      compliance_artifacts: {
+        Row: {
+          audit_script: Json
+          created_at: string
+          created_by: string | null
+          gap: string
+          id: string
+          org_id: string
+          regulation_id: string | null
+          remediation: Json
+          runbook: string | null
+          simulation_run_id: string | null
+          stack: string
+          test_cases: string[]
+        }
+        Insert: {
+          audit_script: Json
+          created_at?: string
+          created_by?: string | null
+          gap: string
+          id?: string
+          org_id: string
+          regulation_id?: string | null
+          remediation: Json
+          runbook?: string | null
+          simulation_run_id?: string | null
+          stack: string
+          test_cases?: string[]
+        }
+        Update: {
+          audit_script?: Json
+          created_at?: string
+          created_by?: string | null
+          gap?: string
+          id?: string
+          org_id?: string
+          regulation_id?: string | null
+          remediation?: Json
+          runbook?: string | null
+          simulation_run_id?: string | null
+          stack?: string
+          test_cases?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_artifacts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_artifacts_simulation_run_id_fkey"
+            columns: ["simulation_run_id"]
+            isOneToOne: false
+            referencedRelation: "simulation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           counterparty: string
@@ -485,6 +545,105 @@ export type Database = {
           },
         ]
       }
+      supply_chain_edges: {
+        Row: {
+          contract_name: string
+          contract_value: number
+          created_at: string
+          depends_on_regs: string[]
+          from_node_id: string
+          id: string
+          key_clauses: string[]
+          org_id: string
+          to_node_id: string
+        }
+        Insert: {
+          contract_name: string
+          contract_value?: number
+          created_at?: string
+          depends_on_regs?: string[]
+          from_node_id: string
+          id?: string
+          key_clauses?: string[]
+          org_id: string
+          to_node_id: string
+        }
+        Update: {
+          contract_name?: string
+          contract_value?: number
+          created_at?: string
+          depends_on_regs?: string[]
+          from_node_id?: string
+          id?: string
+          key_clauses?: string[]
+          org_id?: string
+          to_node_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_chain_edges_from_node_id_fkey"
+            columns: ["from_node_id"]
+            isOneToOne: false
+            referencedRelation: "supply_chain_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_chain_edges_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_chain_edges_to_node_id_fkey"
+            columns: ["to_node_id"]
+            isOneToOne: false
+            referencedRelation: "supply_chain_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supply_chain_nodes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          jurisdiction: string | null
+          name: string
+          org_id: string
+          role: string
+          tier: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          jurisdiction?: string | null
+          name: string
+          org_id: string
+          role: string
+          tier?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          jurisdiction?: string | null
+          name?: string
+          org_id?: string
+          role?: string
+          tier?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_chain_nodes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -551,6 +710,7 @@ export type Database = {
         Args: { _by: string; _org: string }
         Returns: string
       }
+      seed_supply_chain: { Args: { _org: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "member"
