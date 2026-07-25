@@ -86,7 +86,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
 
   const edges: Array<{ from: Node; to: Node; key: string; impacted: boolean }> = [];
   contracts.forEach((c) => {
-    const from = nodeById.get(c.id)!;
+    const from = nodeById.get(c.id);
+    if (!from) return;
     const impacted = impacts?.has(c.id) ?? false;
     const seen = new Set<string>();
     c.clauses.forEach((cl) => {
@@ -101,14 +102,14 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
 
   return (
     <div className="relative flex flex-col items-center gap-6">
-      <div className="text-center max-w-md">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+      <div className="max-w-xl text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
           Blast Radius
         </p>
-        <h1 className="mt-3 font-display text-[38px] leading-[1.05] tracking-tight text-foreground">
+        <h1 className="mt-3 font-display text-[clamp(42px,7vw,76px)] leading-[0.98] tracking-tight text-foreground">
           Portfolio topology
         </h1>
-        <p className="mt-3 text-[13.5px] text-muted-foreground leading-relaxed">
+        <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
           {contracts.length} contracts · {regulations.length} regulations ·{" "}
           {edges.length} citations.{" "}
           {impacts && impacts.size > 0
@@ -120,23 +121,24 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
       </div>
 
       <div className="relative">
-        <div className="absolute inset-0 rounded-full blur-3xl bg-[radial-gradient(circle,rgba(201,166,107,0.14),transparent_65%)]" />
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_28%,transparent),transparent_65%)] blur-3xl" />
 
         <div
-          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 duration-150 ease-out transition-shadow ${pulsing && !reducedMotion ? "rim-pulse" : ""}`}
+          className={`relative rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--surface-glass)_70%,transparent)] p-3 transition-shadow duration-200 ease-out backdrop-blur-2xl ${pulsing && !reducedMotion ? "rim-pulse" : ""}`}
           style={{ height: SIZE + 24, width: SIZE + 24, maxWidth: "80vw", maxHeight: "80vw" }}
 
         >
           <div className="relative h-full w-full rounded-full border border-[var(--hairline)] p-3">
-            <div className="relative h-full w-full rounded-full glass-panel !rounded-full overflow-hidden">
+            <div className="glass-panel relative h-full w-full overflow-hidden !rounded-full">
+              <div className="pointer-events-none absolute inset-[16%] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_16%,transparent),transparent_68%)] radar-breathe" />
               <svg
                 viewBox={`0 0 ${SIZE} ${SIZE}`}
                 className="absolute inset-0 h-full w-full"
                 aria-label="Contract-regulation topology"
               >
-                <circle cx={CENTER} cy={CENTER} r={outerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.5" />
-                <circle cx={CENTER} cy={CENTER} r={innerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.4" />
-                <circle cx={CENTER} cy={CENTER} r={50} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.3" />
+                <circle cx={CENTER} cy={CENTER} r={outerRadius} fill="none" stroke="var(--hairline-strong)" strokeWidth="1" opacity="0.5" />
+                <circle cx={CENTER} cy={CENTER} r={innerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.55" />
+                <circle cx={CENTER} cy={CENTER} r={50} fill="none" stroke="var(--brass)" strokeWidth="1" opacity="0.28" />
 
                 <g>
                   {edges.map((e) => (
@@ -146,7 +148,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                       y1={e.from.y}
                       x2={e.to.x}
                       y2={e.to.y}
-                      stroke={e.impacted ? "rgba(225,82,75,0.5)" : "var(--hairline-strong)"}
+                      stroke={e.impacted ? "rgba(225,82,75,0.55)" : "var(--hairline-strong)"}
                       strokeWidth={e.impacted ? "1" : "0.6"}
                       opacity={e.impacted ? 0.9 : 0.7}
                       style={edgeTransition}
@@ -160,8 +162,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                     const sev = impacts?.get(n.id);
                     const isHover = hover?.id === n.id;
                     const r = sev ? SEV_RADIUS[sev] : isHover ? 5.5 : 3.5;
-                    const fill = sev ? SEV_COLOR[sev] : "var(--surface-raised)";
-                    const stroke = sev ? "rgba(225,82,75,1)" : "var(--text-muted)";
+                    const fill = sev ? SEV_COLOR[sev] : "var(--paper)";
+                    const stroke = sev ? "rgba(225,82,75,1)" : "var(--brass)";
                     return (
                       <g key={n.id}>
                         {sev && (
@@ -200,7 +202,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                       <polygon
                         key={n.id}
                         points={points}
-                        fill="var(--surface-raised)"
+                        fill="var(--paper)"
                         stroke="var(--text-muted)"
                         strokeWidth="1"
                         className="cursor-pointer transition-all duration-150"
@@ -211,19 +213,19 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                   })}
                 </g>
 
-                <circle cx={CENTER} cy={CENTER} r={3} fill="var(--brass)" />
+                <circle cx={CENTER} cy={CENTER} r={4} fill="var(--brass)" />
               </svg>
 
               {hover && (
                 <div
-                  className="absolute pointer-events-none rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] max-w-[220px]"
+                  className="pointer-events-none absolute max-w-[220px] rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] backdrop-blur-xl"
                   style={{
                     left: `${(hover.x / SIZE) * 100}%`,
                     top: `${(hover.y / SIZE) * 100}%`,
                     transform: "translate(-50%, calc(-100% - 12px))",
                   }}
                 >
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brass)]">
                     {hover.id}
                   </p>
                   <p className="mt-0.5 text-[12px] text-foreground leading-tight">{hover.label}</p>
@@ -234,7 +236,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
         </div>
       </div>
 
-      <div className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         <span className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full border border-[var(--text-muted)]" />
           contract
