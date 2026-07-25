@@ -198,7 +198,7 @@ function ForecastDetail() {
                 Amendment history
               </p>
               <ol className="mt-4 space-y-3">
-                {entry.amendments.map((a, i) => (
+                {entry.amendments.map((a: import("@/lib/predict.functions").Amendment, i: number) => (
                   <li key={i} className="flex gap-3 items-start">
                     <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brass shrink-0" />
                     <div className="min-w-0">
