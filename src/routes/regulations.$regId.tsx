@@ -7,16 +7,15 @@ import { contractsQuery, regulationQuery } from "@/data/queries";
 
 export const Route = createFileRoute("/regulations/$regId")({
   head: ({ loaderData }) => {
-    const title = loaderData?.title ?? "Regulation";
+    const data = loaderData as { title: string; summary: string } | undefined;
+    const title = data?.title ?? "Regulation";
+    const summary = data?.summary ?? "Regulation detail";
     return {
       meta: [
         { title: `${title} — ClauseGraph` },
-        {
-          name: "description",
-          content: loaderData?.summary ?? "Regulation detail",
-        },
+        { name: "description", content: summary },
         { property: "og:title", content: `${title} — ClauseGraph` },
-        { property: "og:description", content: loaderData?.summary ?? "Regulation detail" },
+        { property: "og:description", content: summary },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
       ],

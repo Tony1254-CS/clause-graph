@@ -6,23 +6,17 @@ import { contractQuery, formatUSD } from "@/data/queries";
 
 export const Route = createFileRoute("/contracts/$contractId")({
   head: ({ loaderData }) => {
-    const name = loaderData?.name ?? "Contract";
+    const data = loaderData as { name: string; counterparty: string; clauses: unknown[] } | undefined;
+    const name = data?.name ?? "Contract";
+    const desc = data
+      ? `${data.name} with ${data.counterparty}. ${data.clauses.length} clauses mapped to regulatory obligations.`
+      : "Contract detail";
     return {
       meta: [
         { title: `${name} — ClauseGraph` },
-        {
-          name: "description",
-          content: loaderData
-            ? `${name} with ${loaderData.counterparty}. ${loaderData.clauses.length} clauses mapped to regulatory obligations.`
-            : "Contract detail",
-        },
+        { name: "description", content: desc },
         { property: "og:title", content: `${name} — ClauseGraph` },
-        {
-          property: "og:description",
-          content: loaderData
-            ? `${name} with ${loaderData.counterparty}. ${loaderData.clauses.length} clauses mapped to regulatory obligations.`
-            : "Contract detail",
-        },
+        { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
       ],

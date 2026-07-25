@@ -9,38 +9,157 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SimulateRouteImport } from './routes/simulate'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as ContractsRouteImport } from './routes/contracts'
+import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContractsIndexRouteImport } from './routes/contracts.index'
+import { Route as RegulationsRegIdRouteImport } from './routes/regulations.$regId'
+import { Route as ContractsContractIdRouteImport } from './routes/contracts.$contractId'
 
+const SimulateRoute = SimulateRouteImport.update({
+  id: '/simulate',
+  path: '/simulate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContractsRoute = ContractsRouteImport.update({
+  id: '/contracts',
+  path: '/contracts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActionsRoute = ActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContractsIndexRoute = ContractsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContractsRoute,
+} as any)
+const RegulationsRegIdRoute = RegulationsRegIdRouteImport.update({
+  id: '/regulations/$regId',
+  path: '/regulations/$regId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContractsContractIdRoute = ContractsContractIdRouteImport.update({
+  id: '/$contractId',
+  path: '/$contractId',
+  getParentRoute: () => ContractsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/contracts': typeof ContractsRouteWithChildren
+  '/feed': typeof FeedRoute
+  '/simulate': typeof SimulateRoute
+  '/contracts/$contractId': typeof ContractsContractIdRoute
+  '/regulations/$regId': typeof RegulationsRegIdRoute
+  '/contracts/': typeof ContractsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/feed': typeof FeedRoute
+  '/simulate': typeof SimulateRoute
+  '/contracts/$contractId': typeof ContractsContractIdRoute
+  '/regulations/$regId': typeof RegulationsRegIdRoute
+  '/contracts': typeof ContractsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRoute
+  '/contracts': typeof ContractsRouteWithChildren
+  '/feed': typeof FeedRoute
+  '/simulate': typeof SimulateRoute
+  '/contracts/$contractId': typeof ContractsContractIdRoute
+  '/regulations/$regId': typeof RegulationsRegIdRoute
+  '/contracts/': typeof ContractsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/actions'
+    | '/contracts'
+    | '/feed'
+    | '/simulate'
+    | '/contracts/$contractId'
+    | '/regulations/$regId'
+    | '/contracts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/actions'
+    | '/feed'
+    | '/simulate'
+    | '/contracts/$contractId'
+    | '/regulations/$regId'
+    | '/contracts'
+  id:
+    | '__root__'
+    | '/'
+    | '/actions'
+    | '/contracts'
+    | '/feed'
+    | '/simulate'
+    | '/contracts/$contractId'
+    | '/regulations/$regId'
+    | '/contracts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActionsRoute: typeof ActionsRoute
+  ContractsRoute: typeof ContractsRouteWithChildren
+  FeedRoute: typeof FeedRoute
+  SimulateRoute: typeof SimulateRoute
+  RegulationsRegIdRoute: typeof RegulationsRegIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/simulate': {
+      id: '/simulate'
+      path: '/simulate'
+      fullPath: '/simulate'
+      preLoaderRoute: typeof SimulateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contracts': {
+      id: '/contracts'
+      path: '/contracts'
+      fullPath: '/contracts'
+      preLoaderRoute: typeof ContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actions': {
+      id: '/actions'
+      path: '/actions'
+      fullPath: '/actions'
+      preLoaderRoute: typeof ActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +167,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contracts/': {
+      id: '/contracts/'
+      path: '/'
+      fullPath: '/contracts/'
+      preLoaderRoute: typeof ContractsIndexRouteImport
+      parentRoute: typeof ContractsRoute
+    }
+    '/regulations/$regId': {
+      id: '/regulations/$regId'
+      path: '/regulations/$regId'
+      fullPath: '/regulations/$regId'
+      preLoaderRoute: typeof RegulationsRegIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contracts/$contractId': {
+      id: '/contracts/$contractId'
+      path: '/$contractId'
+      fullPath: '/contracts/$contractId'
+      preLoaderRoute: typeof ContractsContractIdRouteImport
+      parentRoute: typeof ContractsRoute
+    }
   }
 }
 
+interface ContractsRouteChildren {
+  ContractsContractIdRoute: typeof ContractsContractIdRoute
+  ContractsIndexRoute: typeof ContractsIndexRoute
+}
+
+const ContractsRouteChildren: ContractsRouteChildren = {
+  ContractsContractIdRoute: ContractsContractIdRoute,
+  ContractsIndexRoute: ContractsIndexRoute,
+}
+
+const ContractsRouteWithChildren = ContractsRoute._addFileChildren(
+  ContractsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActionsRoute: ActionsRoute,
+  ContractsRoute: ContractsRouteWithChildren,
+  FeedRoute: FeedRoute,
+  SimulateRoute: SimulateRoute,
+  RegulationsRegIdRoute: RegulationsRegIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
