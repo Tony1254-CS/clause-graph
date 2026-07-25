@@ -304,6 +304,8 @@ function SupplyChainPage() {
         {result && orderedHits.length > 0 && (
           <ComplianceCodePanel
             regulationText={text || DEMO_TEXT}
+            simulationRunId={result.run_id ?? undefined}
+
             gap={
               orderedHits[0]?.broken_clause
                 ? `${orderedHits[0].broken_clause} (${nodesById.get(orderedHits[0].node_id)?.name ?? "upstream provider"})`
