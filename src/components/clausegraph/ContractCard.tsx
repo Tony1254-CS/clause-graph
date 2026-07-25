@@ -11,7 +11,7 @@ export function ContractCard({ contract }: { contract: Contract }) {
     >
       <div className="flex items-start justify-between gap-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          {contract.id}
+          {contract.id.slice(0, 8)}
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
           {contract.clauses.length} clauses
@@ -23,7 +23,9 @@ export function ContractCard({ contract }: { contract: Contract }) {
           {contract.name}
         </h3>
         <p className="mt-1.5 text-[13px] text-muted-foreground">{contract.counterparty}</p>
+        <StatusBadge contract={contract} />
       </div>
+
 
       <div className="mt-auto flex items-end justify-between border-t border-[var(--hairline)] pt-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
