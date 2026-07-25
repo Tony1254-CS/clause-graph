@@ -1,20 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-async function assertAdmin(supabase: {
-  from: (t: string) => {
-    select: (c: string) => {
-      eq: (a: string, b: string) => { maybeSingle: () => Promise<{ data: { role?: string } | null }> };
-    };
-  };
-}, userId: string) {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (!data || data.role !== "admin") throw new Error("Admins only");
-}
+import { assertAdmin } from "./team.server";
 
 export const inviteTeammate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
