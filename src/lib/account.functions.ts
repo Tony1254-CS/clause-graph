@@ -1,13 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PaddleEnv } from "./paddle.server";
 
-async function getUserOrg(
-  supabase: ReturnType<typeof requireSupabaseAuth.build> extends never
-    ? never
-    : Awaited<ReturnType<typeof requireSupabaseAuth>>["context"]["supabase"],
-  userId: string,
-) {
+async function getUserOrg(supabase: SupabaseClient, userId: string): Promise<string | null> {
   const { data } = await supabase
     .from("profiles")
     .select("org_id")
