@@ -266,9 +266,9 @@
 
   .dark body {
     background-image:
-      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 65%),
-      radial-gradient(ellipse 50% 40% at 85% 100%, rgba(255, 255, 255, 0.025), transparent 70%);
-    background-color: #000000;
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(94, 234, 212, 0.05), transparent 65%),
+      radial-gradient(ellipse 50% 40% at 85% 100%, rgba(94, 234, 212, 0.03), transparent 70%);
+    background-color: #07090c;
   }
 
   a:focus-visible,
