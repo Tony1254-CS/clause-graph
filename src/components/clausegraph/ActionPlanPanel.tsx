@@ -176,11 +176,12 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
         </div>
         <button
           onClick={onGenerate}
-          className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] transition-all"
+          className="inline-flex shrink-0 items-center gap-2 rounded-[12px] bg-[var(--brass)] px-4 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] duration-150 ease-out transition-all"
         >
           <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
           Generate Action Plan
         </button>
+
       </div>
     );
   }
@@ -199,16 +200,20 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
   if (status === "error") {
     return (
       <div className="glass-panel p-6">
-        <p className="text-[13px] text-[var(--risk)]">{error}</p>
+        <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--risk)]" />
+          {error}
+        </p>
         <button
           onClick={onGenerate}
-          className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brass hover:underline"
+          className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-brass hover:underline duration-150 ease-out transition-colors"
         >
           Retry →
         </button>
       </div>
     );
   }
+
 
   if (!plan) return null;
 
@@ -231,7 +236,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onCopy}
-            className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--hairline-strong)] px-3 py-2 text-[12px] text-foreground hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-[12px] border border-[var(--hairline-strong)] px-3 py-2 text-[12px] text-foreground hover:bg-[rgba(255,255,255,0.03)] duration-150 ease-out transition-colors"
           >
             {copied ? (
               <>
@@ -247,11 +252,12 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
           </button>
           <button
             onClick={() => exportPdf(plan, regulationText)}
-            className="inline-flex items-center gap-1.5 rounded-[10px] bg-[var(--brass)] px-3 py-2 text-[12px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-[12px] bg-[var(--brass)] px-3 py-2 text-[12px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] duration-150 ease-out transition-all"
           >
             <FileDown className="h-3.5 w-3.5" strokeWidth={2} />
             Export PDF
           </button>
+
         </div>
       </header>
 
@@ -318,8 +324,9 @@ export function ActionPlanPanel({ regulationText, summary, impacts }: Props) {
           {plan.tech_fixes.map((t, idx) => (
             <li
               key={`${t.title}-${idx}`}
-              className="rounded-[10px] border border-[var(--hairline)] p-3 flex gap-3"
+              className="rounded-[12px] border border-[var(--hairline)] p-3 flex gap-3"
             >
+
               <input
                 type="checkbox"
                 className="mt-1 h-3.5 w-3.5 accent-[var(--brass)] cursor-pointer"

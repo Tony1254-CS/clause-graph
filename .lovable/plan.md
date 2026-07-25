@@ -1,72 +1,85 @@
 
-## 1. Backtested Validation tab
+Polish-only pass. No new features, no data model or route changes. Every change is presentational.
 
-New route `/backtest` (replaces or joins existing nav) that showcases 3 real enforcement cases, each analyzed live through the existing Simulate Impact pipeline.
+## 1. Motion consistency (150–200ms ease-out)
 
-**Cases (real, well-documented enforcement actions):**
-- Wells Fargo — $3.0B (2020, DOJ/SEC) — fake accounts, consumer protection violations (Dodd-Frank / FTC Act §5)
-- Goldman Sachs — $2.9B (2020, 1MDB, FCPA)
-- Credit Suisse — $475M (2022, Mozambique "tuna bond" bribery, FCPA / MAR)
+Audit found mixed durations: `transition-all` (no duration), `duration-500`, inline `400ms/500ms` on graph nodes, and untimed `transition-colors`. Normalize:
 
-Each case ships with:
-- Real metadata: company, fine amount, date, regulation violated, one-paragraph public summary + source citation
-- A `reconstructed_scenario`: 2–4 short synthetic clauses phrased like real contract language matching the violation pattern, plus a short "proposed regulation" style prompt that mirrors the enforcement theory
+- Add a `.transition-ui` utility in `src/styles.css` = `transition: all 180ms ease-out;` and use it as the canonical interactive transition.
+- Replace bare `transition-all` / `transition-colors` on buttons, links, cards, sidebar items, pills, chips, and inputs with `duration-150 ease-out` (or `duration-200` for cards with translate).
+- `GraphMedallion` node/edge transitions stay 400–500ms (they are simulation reveal animations, not hover states) but get gated by reduced-motion (see §7).
+- Simulate result panel `duration-500` opacity fade stays — it's a reveal, not a hover.
 
-**UI:** three glass cards in a row (stacks on tablet). Each card:
-- Header: company + fine in Fraunces (mono for the dollar figure), date in mono
-- Regulation violated + short summary
-- **Prominent disclosure banner** (brass hairline, muted copy): *"Reconstruction, not this company's actual contracts. Clauses are synthetic, drafted to mirror the enforcement pattern."*
-- "Run Analysis" brass button
-- On click: card expands / a side region below fills with a mini blast-radius summary (total exposure across the reconstructed clauses, per-clause severity, suggested amendment) — same visual language as `/simulate`, framed as "reconstructed scenario, analyzed live"
-- Small "Analyzed live via gpt-4o" mono tag on the result to make it obvious it's not pre-written
+## 2. Corner radius normalization (20 / 12 only)
 
-**Backend:** add a companion server fn `simulateBacktest` that accepts a `caseId`, loads the reconstructed scenario from a static file, and runs the same gateway call as `simulateImpact` but with the reconstructed clauses as the contract context (instead of the full portfolio). Falls back to a pre-saved response per case on error, matching the existing fallback pattern.
+Current inventory outside spec: `6px, 8px, 10px, 14px, 16px`. Fold to spec:
 
-## 2. Compliance Action Plan generator
+- `JurisdictionChip` 6px → 12px (or keep as `rounded-full` pill — decide: 12px for consistency).
+- `GraphMedallion` tooltip 8px → 12px.
+- `ActionPlanPanel` copy/export buttons + tech-fix rows 10px → 12px.
+- `BacktestCard` reconstructed clause rows + impact list items 10px → 12px; outer results panel 14px → 20px (it's a major nested panel).
+- `FederalRegisterFeed` wrapper 16px → 20px.
+- `Sidebar` collapsed-icon buttons 10px → 12px.
+- Glass panel base (`.glass-panel` in styles.css) stays 20px. Full-round elements (`rounded-full` dots, avatars) are exempt.
 
-After a Simulate Impact run finishes (`status === "done"` in `simulate.tsx`), show a **"Generate Action Plan"** brass button under the side panel's affected-contracts list.
+## 3. Risk-red containment
 
-**On click:** call a new server fn `generateActionPlan` that sends the simulation result + regulation text to gpt-4o and returns:
-```
-{
-  policy_draft: string,           // one paragraph of updated internal policy language
-  amendments: [{ contract_id, contract_name, suggestion, rationale }],
-  tech_fixes: [{ priority: "P0"|"P1"|"P2", title, detail }]
+Confirmed usages of `--risk`:
+- Severity dots / node fills / exposure figure — **valid**
+- Error-message text on Simulate + Backtest + ActionPlan failure lines — **decorative-adjacent**. Recolor these to `text-muted-foreground` with a small risk-red dot prefix, so red stays reserved for exposure semantics and errors read as system messages, not exposure signals.
+- `--destructive` token in shadcn scope currently aliases `--risk`. Leave alias (shadcn primitives aren't used on risk surfaces in this app), but no new component may reference `bg-destructive` / `text-destructive`.
+
+## 4. Empty & loading states in interface voice
+
+Contracts list (`contracts.index.tsx`) and Feed (`feed.tsx`) currently rely on suspense/no explicit empty. Add:
+
+- **Loading**: glass panel with hairline border, mono kicker "Loading", Fraunces line "Reading the corpus." / "Pulling the latest filings from the Federal Register.", one muted-body sentence explaining what's happening.
+- **Empty (no data)**: same panel shell, copy shifts to "No contracts have been indexed yet. Add a corpus file to `src/data/contracts.ts` to populate this view." / "The Federal Register returned no recent filings. The curated ontology below is still available."
+- **Error (Federal Register only)**: existing dashed-border panel already handles this; rewrite copy in interface voice ("The Federal Register API didn't respond. Curated ontology is unaffected — try again in a moment.").
+
+No generic spinners.
+
+## 5. Keyboard focus visibility
+
+Add a global `:focus-visible` ring in `src/styles.css` for interactive elements: 2px `var(--brass)` outline at 60% opacity, 2px offset against `--ink-base`. Applied via a base selector on `a, button, [role="button"], input, textarea, select, summary, [tabindex]:not([tabindex="-1"])`. Remove ad-hoc `focus:ring-*` overrides on the Simulate textarea so it inherits the global style consistently.
+
+## 6. Responsive checks at 1280 / 1024 / 768
+
+Audit + adjust:
+
+- `AppShell` sidebar is fixed-width; at 1024/768 sidebar becomes a collapsed icon rail (already partially wired via the collapsed variant in Sidebar.tsx — trigger it via `lg:` breakpoint instead of only manual toggle).
+- Contracts grid: switch to `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`.
+- Simulate two-column layout: stack (`lg:grid-cols-[1fr_380px]` → single column below `lg`).
+- Feed 3-column row (`grid-cols-[130px_1fr_auto]`) collapses cleanly at 768 → `grid-cols-1` with meta on top.
+- Backtest cards: `grid-cols-1 lg:grid-cols-3`.
+- Verify glass panels never touch viewport edges: main content padding stays `px-6` minimum, page container gets `max-w-[1440px] mx-auto`.
+
+Playwright verify at 1280/1024/768 after edits; screenshot each breakpoint per key route.
+
+## 7. prefers-reduced-motion
+
+In `src/styles.css`:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .rim-pulse { animation: none; }
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }
 ```
 
-**UI — new glass panel** that slides in below the results (or a modal overlay, TBD by user later, defaulting to inline panel):
-- Header "Compliance Action Plan" + mono timestamp
-- **Standing disclaimer banner:** *"Draft output. Every amendment is marked for legal review — never a final position."*
-- Section: *Policy draft* — paragraph in Inter, monospace label above
-- Section: *Contract amendments* — list, each row shows contract id/name (mono), the suggestion, rationale, and a **"For legal review"** brass-outlined pill on every item
-- Section: *Technical fix checklist* — prioritized (P0/P1/P2 with colored dots, reserving red only for P0), each row a checkbox + title + detail
-- Toolbar at bottom right: **Copy to clipboard** (formatted markdown) and **Export PDF** buttons
+Additionally in `GraphMedallion.tsx`: read `matchMedia('(prefers-reduced-motion: reduce)')` once; when true, skip the 1.5s pulse gate and render final impact state immediately without inline `transition` styles on nodes/edges.
 
-**PDF export:** client-side using `jspdf` (small, no native deps, Worker-safe since it's client-only). Renders a plain typographic PDF — title, timestamp, sections mirroring the on-screen structure, with the disclaimer at top. No canvas-of-DOM approach, so glass effects aren't preserved but the content is clean and legal-review-ready.
+## Files touched
 
-**Fallback:** if the gateway call fails, use a pre-saved sample action plan (per the existing `simulate-fallback` pattern) so the flow never dead-ends.
+- `src/styles.css` — motion utility, focus-visible base, reduced-motion block.
+- `src/components/clausegraph/*` — radius + transition normalization; empty/loading states added to relevant components; medallion reduced-motion respect.
+- `src/routes/contracts.index.tsx`, `src/routes/feed.tsx` — explicit loading/empty/error UI in interface voice.
+- `src/routes/simulate.tsx`, `src/routes/contracts.$contractId.tsx`, `src/routes/regulations.$regId.tsx`, `src/components/clausegraph/BacktestCard.tsx`, `ActionPlanPanel.tsx`, `Sidebar.tsx`, `TopBar.tsx`, `JurisdictionChip.tsx`, `FederalRegisterFeed.tsx`, `GraphMedallion.tsx` — radius + transition + focus + error-color adjustments.
 
-## Files
+No new routes, no new components, no dependency changes.
 
-New:
-- `src/data/backtest-cases.ts` — the 3 real cases + reconstructed scenarios + fallback results
-- `src/lib/action-plan-types.ts` — `ActionPlan`, `Amendment`, `TechFix`
-- `src/lib/action-plan-fallback.ts`
-- `src/lib/action-plan.functions.ts` — `generateActionPlan` server fn
-- `src/lib/backtest.functions.ts` — `simulateBacktest` server fn
-- `src/components/clausegraph/BacktestCard.tsx`
-- `src/components/clausegraph/ActionPlanPanel.tsx`
-- `src/routes/backtest.tsx`
+## Verification
 
-Modified:
-- `src/routes/simulate.tsx` — add "Generate Action Plan" button + render `ActionPlanPanel`
-- `src/components/clausegraph/Sidebar.tsx` — add "Backtest" nav link (Actions stays for now)
-
-Package add: `jspdf`.
-
-## Non-goals
-
-- No changes to the existing Simulate Impact model call, fallback, or medallion animation.
-- No changes to `/actions` placeholder route (the action plan lives on `/simulate` inline, which is where the user's mental context already is).
-- Copy-to-clipboard uses plain-text markdown; not rich HTML.
+- Playwright screenshots of `/`, `/contracts`, `/contracts/CT-004`, `/feed`, `/simulate`, `/backtest` at 1280, 1024, 768.
+- Tab through each route with `page.keyboard.press("Tab")` and screenshot to confirm focus ring on every interactive element.
+- Toggle `emulateMedia(reducedMotion="reduce")` and confirm rim-pulse is off, node transitions instant.

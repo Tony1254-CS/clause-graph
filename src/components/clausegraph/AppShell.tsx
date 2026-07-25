@@ -4,7 +4,7 @@ import { TopBar } from "./TopBar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen w-full px-6 py-6">
+    <div className="min-h-dvh w-full px-4 sm:px-6 py-6">
       <div className="flex gap-6 max-w-[1600px] mx-auto">
         <Sidebar />
         <MobileRail />

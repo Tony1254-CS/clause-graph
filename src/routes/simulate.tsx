@@ -131,21 +131,21 @@ function SimulatePage() {
               placeholder="Paste the full regulation text here — e.g. a proposed amendment to capital adequacy rules, a new disclosure requirement, or a draft executive order…"
               rows={7}
               disabled={status === "loading"}
-              className="mt-4 w-full resize-y rounded-[12px] border border-[var(--hairline)] bg-[rgba(255,255,255,0.02)] p-4 text-[13.5px] leading-[1.6] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[var(--hairline-strong)] focus:ring-2 focus:ring-[var(--brass)]/25 transition-colors font-sans"
+              className="mt-4 w-full resize-y rounded-[12px] border border-[var(--hairline)] bg-[rgba(255,255,255,0.02)] p-4 text-[13.5px] leading-[1.6] text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--hairline-strong)] duration-150 ease-out transition-colors font-sans"
             />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setText(DEMO_TEXT)}
                 disabled={status === "loading"}
-                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-brass transition-colors"
+                className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-brass duration-150 ease-out transition-colors"
               >
                 Load demo regulation →
               </button>
               <button
                 type="submit"
                 disabled={!text.trim() || status === "loading"}
-                className="inline-flex items-center gap-2 rounded-[12px] bg-[var(--brass)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="inline-flex items-center gap-2 rounded-[12px] bg-[var(--brass)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed duration-150 ease-out transition-all"
               >
                 {status === "loading" ? (
                   <>
@@ -161,12 +161,14 @@ function SimulatePage() {
               </button>
             </div>
             {error && (
-              <p className="mt-3 flex items-center gap-2 text-[12px] text-[var(--risk)]">
-                <AlertTriangle className="h-3.5 w-3.5" strokeWidth={1.6} />
+              <p className="mt-3 flex items-center gap-2 text-[12px] text-muted-foreground">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--risk)]" />
+                <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.6} />
                 {error}
               </p>
             )}
           </form>
+
 
           <GraphMedallion
             contracts={contracts}
@@ -221,8 +223,9 @@ function SimulatePage() {
                     return (
                       <li
                         key={i.contract_id}
-                        className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] transition-colors"
+                        className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] duration-150 ease-out transition-colors"
                       >
+
                         <div className="flex items-center justify-between gap-2">
                           <Link
                             to="/contracts/$contractId"

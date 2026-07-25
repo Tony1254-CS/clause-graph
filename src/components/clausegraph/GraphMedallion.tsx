@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Contract, Regulation } from "@/data/types";
 import type { Severity } from "@/lib/simulate-types";
 
@@ -8,6 +8,21 @@ type Props = {
   impacts?: Map<string, Severity>;
   pulsing?: boolean;
 };
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
+
+
 
 type Node = {
   id: string;
@@ -34,6 +49,12 @@ const SEV_RADIUS: Record<Severity, number> = {
 
 export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Props) {
   const [hover, setHover] = useState<Node | null>(null);
+  const reducedMotion = useReducedMotion();
+  const nodeTransition = reducedMotion ? undefined : { transition: "all 500ms ease-out" };
+  const edgeTransition = reducedMotion
+    ? undefined
+    : { transition: "stroke 400ms ease-out, opacity 400ms ease-out" };
+
 
   const innerRadius = 118;
   const outerRadius = 180;
@@ -102,8 +123,9 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
         <div className="absolute inset-0 rounded-full blur-3xl bg-[radial-gradient(circle,rgba(201,166,107,0.14),transparent_65%)]" />
 
         <div
-          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 transition-shadow ${pulsing ? "rim-pulse" : ""}`}
+          className={`relative rounded-full border border-[var(--hairline-strong)] p-3 duration-150 ease-out transition-shadow ${pulsing && !reducedMotion ? "rim-pulse" : ""}`}
           style={{ height: SIZE + 24, width: SIZE + 24, maxWidth: "80vw", maxHeight: "80vw" }}
+
         >
           <div className="relative h-full w-full rounded-full border border-[var(--hairline)] p-3">
             <div className="relative h-full w-full rounded-full glass-panel !rounded-full overflow-hidden">
@@ -127,7 +149,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                       stroke={e.impacted ? "rgba(225,82,75,0.5)" : "var(--hairline-strong)"}
                       strokeWidth={e.impacted ? "1" : "0.6"}
                       opacity={e.impacted ? 0.9 : 0.7}
-                      style={{ transition: "stroke 400ms ease-out, opacity 400ms ease-out" }}
+                      style={edgeTransition}
+
                     />
                   ))}
                 </g>
@@ -148,7 +171,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                             r={r + 4}
                             fill={SEV_COLOR[sev]}
                             opacity={0.18}
-                            style={{ transition: "all 500ms ease-out" }}
+                            style={nodeTransition}
+
                           />
                         )}
                         <circle
@@ -159,7 +183,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                           stroke={stroke}
                           strokeWidth="1"
                           className="cursor-pointer"
-                          style={{ transition: "all 500ms ease-out" }}
+                          style={nodeTransition}
                           onMouseEnter={() => setHover(n)}
                           onMouseLeave={() => setHover(null)}
                         />
@@ -192,7 +216,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
 
               {hover && (
                 <div
-                  className="absolute pointer-events-none rounded-[8px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] max-w-[220px]"
+                  className="absolute pointer-events-none rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] max-w-[220px]"
                   style={{
                     left: `${(hover.x / SIZE) * 100}%`,
                     top: `${(hover.y / SIZE) * 100}%`,

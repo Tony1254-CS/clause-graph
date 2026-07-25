@@ -4,10 +4,12 @@ import { federalRegisterQuery } from "@/data/queries";
 
 export function FederalRegisterFeed() {
   const { data } = useSuspenseQuery(federalRegisterQuery);
+  const hasError = Boolean(data.error);
+  const isEmpty = !hasError && data.results.length === 0;
 
   return (
     <section
-      className="rounded-[16px] border border-dashed border-[var(--hairline)] p-6"
+      className="rounded-[20px] border border-dashed border-[var(--hairline)] p-6"
       style={{ backgroundColor: "var(--surface-raised)" }}
     >
       <header className="flex items-center justify-between mb-5">
@@ -25,16 +27,32 @@ export function FederalRegisterFeed() {
         </span>
       </header>
 
-      {data.error && (
-        <p className="font-mono text-[11px] text-muted-foreground py-4 text-center">
-          Live feed temporarily unavailable · {data.error}
-        </p>
+      {hasError && (
+        <div className="rounded-[12px] border border-[var(--hairline)] p-5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            Live feed unavailable
+          </p>
+          <p className="mt-2 font-display text-[17px] leading-[1.3] text-foreground">
+            The Federal Register API didn't respond.
+          </p>
+          <p className="mt-1.5 text-[13px] leading-[1.55] text-muted-foreground">
+            Curated ontology above is unaffected — try again in a moment.
+          </p>
+        </div>
       )}
 
-      {!data.error && data.results.length === 0 && (
-        <p className="font-mono text-[11px] text-muted-foreground py-4 text-center">
-          No recent filings.
-        </p>
+      {isEmpty && (
+        <div className="rounded-[12px] border border-[var(--hairline)] p-5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            No filings today
+          </p>
+          <p className="mt-2 font-display text-[17px] leading-[1.3] text-foreground">
+            The Federal Register returned no recent filings.
+          </p>
+          <p className="mt-1.5 text-[13px] leading-[1.55] text-muted-foreground">
+            The curated ontology above is still available.
+          </p>
+        </div>
       )}
 
       <ul className="flex flex-col divide-y divide-dashed divide-[var(--hairline)]">
@@ -44,13 +62,13 @@ export function FederalRegisterFeed() {
               href={doc.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group grid grid-cols-[110px_1fr_auto] items-start gap-4"
+              className="group grid grid-cols-1 md:grid-cols-[110px_1fr_auto] items-start gap-2 md:gap-4"
             >
               <span className="font-mono text-[11px] text-muted-foreground pt-0.5">
                 {doc.publication_date}
               </span>
               <div className="min-w-0">
-                <p className="text-[13.5px] leading-[1.5] text-foreground group-hover:text-brass transition-colors">
+                <p className="text-[13.5px] leading-[1.5] text-foreground group-hover:text-brass duration-150 ease-out transition-colors">
                   {doc.title}
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -59,7 +77,7 @@ export function FederalRegisterFeed() {
                 </p>
               </div>
               <ExternalLink
-                className="h-3.5 w-3.5 text-muted-foreground group-hover:text-brass transition-colors mt-1"
+                className="hidden md:block h-3.5 w-3.5 text-muted-foreground group-hover:text-brass duration-150 ease-out transition-colors mt-1"
                 strokeWidth={1.6}
               />
             </a>
@@ -73,26 +91,27 @@ export function FederalRegisterFeed() {
 export function FederalRegisterFeedSkeleton() {
   return (
     <section
-      className="rounded-[16px] border border-dashed border-[var(--hairline)] p-6"
+      className="rounded-[20px] border border-dashed border-[var(--hairline)] p-6"
       style={{ backgroundColor: "var(--surface-raised)" }}
     >
-      <div className="flex items-center gap-2.5 mb-5">
+      <header className="flex items-center gap-2.5 mb-5">
         <span className="h-2 w-2 rounded-full bg-brass/40" />
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-          LIVE · Federal Register · loading
+          LIVE · Federal Register · reading
         </span>
+      </header>
+      <div className="rounded-[12px] border border-[var(--hairline)] p-5">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          Fetching latest filings
+        </p>
+        <p className="mt-2 font-display text-[17px] leading-[1.3] text-foreground">
+          Pulling the newest rulemaking activity from the Federal Register.
+        </p>
+        <p className="mt-1.5 text-[13px] leading-[1.55] text-muted-foreground">
+          Five most recent documents will appear here as soon as the API responds.
+        </p>
       </div>
-      <ul className="flex flex-col divide-y divide-dashed divide-[var(--hairline)]">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <li key={i} className="py-4 grid grid-cols-[110px_1fr] gap-4">
-            <div className="h-3 w-20 bg-[var(--hairline)] rounded animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-3 w-3/4 bg-[var(--hairline)] rounded animate-pulse" />
-              <div className="h-2 w-1/3 bg-[var(--hairline)] rounded animate-pulse" />
-            </div>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
+

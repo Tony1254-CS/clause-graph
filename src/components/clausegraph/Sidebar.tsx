@@ -97,7 +97,7 @@ export function MobileRail() {
             <Link
               key={item.to}
               to={item.to}
-              className="h-10 w-10 grid place-items-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] transition-all duration-150"
+              className="h-10 w-10 grid place-items-center rounded-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] duration-150 ease-out transition-all"
               aria-label={item.label}
             >
               <Icon className="h-4 w-4" strokeWidth={1.6} />

@@ -151,6 +151,12 @@
   100% { opacity: 1; }
 }
 
+@utility transition-ui {
+  transition: color 180ms ease-out, background-color 180ms ease-out,
+    border-color 180ms ease-out, box-shadow 180ms ease-out,
+    transform 180ms ease-out, opacity 180ms ease-out;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -169,6 +175,34 @@
       radial-gradient(ellipse 80% 60% at 15% 0%, rgba(201, 166, 107, 0.06), transparent 60%),
       radial-gradient(ellipse 60% 50% at 100% 100%, rgba(201, 166, 107, 0.04), transparent 60%);
     background-attachment: fixed;
-    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Global keyboard focus ring — brass against ink-base, 2px offset */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid rgba(201, 166, 107, 0.7);
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .rim-pulse {
+    animation: none !important;
   }
 }
