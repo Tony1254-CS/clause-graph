@@ -9,11 +9,12 @@
 ## 🚀 Quick Start
 
 1. **Sign in** at `/auth` — email/password or Google.
-2. You're auto-provisioned a private workspace with a **30-day Pro trial** and a seeded corpus of sample contracts and a supply-chain graph.
+2. You're auto-provisioned a private workspace on **Pro, free, with unlimited usage** (early access — no trial clock, no card, nothing to cancel), pre-seeded with a sample contract corpus and a supply-chain graph.
 3. Open **Simulate Impact**, paste any regulation text, and watch the blast radius render on the central medallion.
 4. Click **Generate Action Plan** to get a policy draft, amendment language, and a technical checklist you can export as PDF.
 
 No setup, no credit card, no ceremony.
+
 
 ---
 
