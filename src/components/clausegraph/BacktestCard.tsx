@@ -1,9 +1,15 @@
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Loader2, Play, ShieldAlert } from "lucide-react";
-import { type BacktestCase, formatFine } from "@/data/backtest-cases";
+import { type BacktestCaseRow } from "@/data/queries";
 import { simulateBacktest } from "@/lib/backtest.functions";
 import type { SimulationResult, Severity } from "@/lib/simulate-types";
+
+function formatFine(usd: number): string {
+  if (usd >= 1_000_000_000) return `$${(usd / 1_000_000_000).toFixed(1)}B`;
+  if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(0)}M`;
+  return `$${usd.toLocaleString()}`;
+}
 
 const SEV_LABEL: Record<Severity, string> = { high: "High", medium: "Medium", low: "Low" };
 const SEV_DOT: Record<Severity, string> = {
@@ -12,7 +18,8 @@ const SEV_DOT: Record<Severity, string> = {
   low: "bg-[rgba(225,82,75,0.45)]",
 };
 
-export function BacktestCard({ bt }: { bt: BacktestCase }) {
+export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
+
   const runBacktest = useServerFn(simulateBacktest);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -42,7 +49,7 @@ export function BacktestCard({ bt }: { bt: BacktestCase }) {
     }
   }
 
-  const dateLabel = new Date(bt.date).toISOString().slice(0, 10);
+  const dateLabel = new Date(bt.case_date).toISOString().slice(0, 10);
 
   return (
     <article className="glass-panel p-6 flex flex-col gap-5">

@@ -11,7 +11,7 @@ import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 
-export const Route = createFileRoute("/simulate")({
+export const Route = createFileRoute("/_authenticated/simulate")({
   head: () => ({
     meta: [
       { title: "Simulate Impact — ClauseGraph" },

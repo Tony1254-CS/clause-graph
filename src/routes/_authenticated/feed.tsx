@@ -9,7 +9,7 @@ import {
 } from "@/components/clausegraph/FederalRegisterFeed";
 import { federalRegisterQuery, regulationsQuery } from "@/data/queries";
 
-export const Route = createFileRoute("/feed")({
+export const Route = createFileRoute("/_authenticated/feed")({
   head: () => ({
     meta: [
       { title: "Regulatory Feed — ClauseGraph" },

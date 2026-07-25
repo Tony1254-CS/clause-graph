@@ -5,12 +5,12 @@ import type { LucideIcon } from "lucide-react";
 type NavItem = {
   label: string;
   icon: LucideIcon;
-  to: "/" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions";
+  to: "/dashboard" | "/contracts" | "/feed" | "/simulate" | "/backtest" | "/actions";
   match?: string;
 };
 
 const NAV: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/" },
+  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Contracts", icon: FileText, to: "/contracts", match: "/contracts" },
   { label: "Regulatory Feed", icon: Rss, to: "/feed" },
   { label: "Simulate Impact", icon: Zap, to: "/simulate" },
@@ -20,7 +20,6 @@ const NAV: NavItem[] = [
 
 function useIsActive(item: NavItem) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (item.to === "/") return pathname === "/";
   const base = item.match ?? item.to;
   return pathname === base || pathname.startsWith(base + "/");
 }
@@ -52,7 +51,7 @@ function NavRow({ item }: { item: NavItem }) {
 export function Sidebar() {
   return (
     <aside className="glass-panel hidden lg:flex w-[240px] shrink-0 flex-col p-6 gap-8 h-[calc(100vh-48px)] sticky top-6">
-      <Link to="/" className="flex items-center gap-2.5">
+      <Link to="/dashboard" className="flex items-center gap-2.5">
         <div className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center">
           <div className="h-2 w-2 rounded-full bg-brass" />
         </div>
@@ -85,7 +84,7 @@ export function MobileRail() {
   return (
     <aside className="glass-panel lg:hidden flex w-16 shrink-0 flex-col items-center py-6 gap-4 h-[calc(100vh-48px)] sticky top-6">
       <Link
-        to="/"
+        to="/dashboard"
         className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center"
       >
         <div className="h-2 w-2 rounded-full bg-brass" />

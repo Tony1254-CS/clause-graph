@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ListChecks } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 
-export const Route = createFileRoute("/actions")({
+export const Route = createFileRoute("/_authenticated/actions")({
   head: () => ({
     meta: [
       { title: "Action Plans — ClauseGraph" },

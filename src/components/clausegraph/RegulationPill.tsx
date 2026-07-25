@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { regulations } from "@/data/regulations";
+import { useQuery } from "@tanstack/react-query";
+import { regulationsQuery } from "@/data/queries";
 
 export function RegulationPill({ regId }: { regId: string }) {
-  const reg = regulations.find((r) => r.id === regId);
-  const title = reg?.title ?? "Unknown";
+  const { data: regs } = useQuery(regulationsQuery);
+  const reg = regs?.find((r) => r.id === regId);
+  const title = reg?.title ?? regId;
   return (
     <Link
       to="/regulations/$regId"

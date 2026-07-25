@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { ContractCard } from "@/components/clausegraph/ContractCard";
 import { contractsQuery, formatUSD } from "@/data/queries";
 
-export const Route = createFileRoute("/contracts/")({
+export const Route = createFileRoute("/_authenticated/contracts/")({
   head: () => ({
     meta: [
       { title: "Contracts — ClauseGraph" },

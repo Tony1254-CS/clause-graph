@@ -5,7 +5,7 @@ import { AppShell } from "@/components/clausegraph/AppShell";
 import { JurisdictionChip } from "@/components/clausegraph/JurisdictionChip";
 import { contractsQuery, regulationQuery } from "@/data/queries";
 
-export const Route = createFileRoute("/regulations/$regId")({
+export const Route = createFileRoute("/_authenticated/regulations/$regId")({
   head: ({ loaderData }) => {
     const data = loaderData as { title: string; summary: string } | undefined;
     const title = data?.title ?? "Regulation";

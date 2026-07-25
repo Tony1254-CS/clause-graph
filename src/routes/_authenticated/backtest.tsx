@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { BacktestCard } from "@/components/clausegraph/BacktestCard";
-import { backtestCases } from "@/data/backtest-cases";
+import { backtestCasesQuery } from "@/data/queries";
 
-export const Route = createFileRoute("/backtest")({
+export const Route = createFileRoute("/_authenticated/backtest")({
   head: () => ({
     meta: [
       { title: "Backtested Validation — ClauseGraph" },
@@ -22,10 +23,12 @@ export const Route = createFileRoute("/backtest")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(backtestCasesQuery),
   component: BacktestPage,
 });
 
 function BacktestPage() {
+  const { data: cases } = useSuspenseQuery(backtestCasesQuery);
   return (
     <AppShell>
       <div className="w-full max-w-[1280px] mx-auto flex flex-col gap-8">
@@ -45,7 +48,7 @@ function BacktestPage() {
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 items-start">
-          {backtestCases.map((bt) => (
+          {cases.map((bt) => (
             <BacktestCard key={bt.id} bt={bt} />
           ))}
         </div>
