@@ -1045,3 +1045,14 @@ Client-visible (`import.meta.env`):
 - **`process.env`** must be read inside handlers, never at module scope.
 - **RLS + GRANT** are mandatory together — new tables without GRANTs return `permission denied` at runtime even with correct policies.
 - **`_authenticated` layout uses `ssr:false`** because Supabase stores the session in `localStorage`; server-side gating would loop on hard refresh.
+
+---
+
+## 15. Portability
+
+The backend is plain Postgres + Supabase Auth/Storage — nothing in §6 depends on
+Lovable Cloud. To move this project to your own Supabase project and your own
+host, follow **[`MIGRATION.md`](./MIGRATION.md)**: it replays §6.3 → §6.9 as a
+single SQL script, lists every environment variable with its new source, and
+covers Auth providers, Storage, Paddle re-wiring and DNS.
+
