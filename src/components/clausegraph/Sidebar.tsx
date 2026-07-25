@@ -65,14 +65,20 @@ function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-9 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] border transition-all duration-200 ease-out ${
+      className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-colors duration-200 ease-out ${
         isActive
-          ? "border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)] text-[var(--ink)]"
-          : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+          ? "text-[var(--ink)]"
+          : "text-[var(--text-muted)] hover:text-[var(--ink)]"
       }`}
     >
-      <span className="grid h-9 w-11 shrink-0 place-items-center">
-        <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
+      <span
+        aria-hidden
+        className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--brass)] transition-opacity duration-200 ${
+          isActive ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <span className="grid h-9 w-10 shrink-0 place-items-center">
+        <Icon className="h-[17px] w-[17px]" strokeWidth={1.5} />
       </span>
       <span
         className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
@@ -96,25 +102,25 @@ export function Sidebar() {
   }
 
   return (
-    <div className="relative hidden w-[68px] shrink-0 md:block">
+    <div className="relative hidden w-[64px] shrink-0 md:block">
       <aside
         ref={asideRef}
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
         onFocus={() => setExpanded(true)}
         onBlur={onBlur}
-        className={`absolute inset-y-0 left-0 z-30 flex flex-col border-r border-[var(--hairline)] bg-[var(--sidebar)] px-3 py-4 shadow-[var(--shadow-lift)] transition-[width] duration-200 ease-out ${
-          expanded ? "w-[248px]" : "w-[68px]"
+        className={`absolute inset-y-0 left-0 z-30 flex flex-col border-r border-[var(--hairline)] bg-[var(--sidebar)] px-3 py-4 transition-[width] duration-200 ease-out ${
+          expanded ? "w-[232px]" : "w-[64px]"
         }`}
       >
         <Link
           to="/dashboard"
           aria-label="ClauseGraph home"
-          className="mb-3 grid h-10 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[12px] text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--surface-glass)]"
+          className="mb-4 grid h-10 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] text-[var(--ink)]"
         >
-          <span className="grid h-10 w-11 shrink-0 place-items-center">
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[var(--surface-glass-strong)]">
-              <span className="h-3 w-3 rotate-45 border-2 border-current" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center">
+            <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-[var(--brass)] text-[color:var(--primary-foreground)]">
+              <span className="h-2.5 w-2.5 rotate-45 border-[1.5px] border-current" />
             </span>
           </span>
           <span

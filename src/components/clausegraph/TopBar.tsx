@@ -72,7 +72,7 @@ export function TopBar() {
 
         <Link
           to="/simulate"
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[var(--hairline-strong)] bg-[var(--ink)] px-3.5 text-[13px] font-semibold text-[var(--paper)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px active:scale-[0.98] sm:h-11 sm:px-5"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-[var(--brass)] px-3.5 text-[13px] font-semibold text-[color:var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98] sm:h-11 sm:px-5"
         >
           <Zap className="h-3.5 w-3.5" strokeWidth={2.2} />
           <span className="hidden sm:inline">Simulate Impact</span>
