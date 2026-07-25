@@ -20,6 +20,7 @@ import { Route as AuthenticatedContractsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
 import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
+import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
 import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
 
@@ -78,6 +79,12 @@ const AuthenticatedContractsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedContractsRoute,
   } as any)
+const AuthenticatedSettingsTeamRoute =
+  AuthenticatedSettingsTeamRouteImport.update({
+    id: '/settings/team',
+    path: '/settings/team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRegulationsRegIdRoute =
   AuthenticatedRegulationsRegIdRouteImport.update({
     id: '/regulations/$regId',
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/contracts/': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -116,6 +124,7 @@ export interface FileRoutesByTo {
   '/simulate': typeof AuthenticatedSimulateRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/contracts': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRoutesById {
@@ -132,6 +141,7 @@ export interface FileRoutesById {
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
+  '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
 }
 export interface FileRouteTypes {
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/simulate'
     | '/contracts/$contractId'
     | '/regulations/$regId'
+    | '/settings/team'
     | '/contracts/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/simulate'
     | '/contracts/$contractId'
     | '/regulations/$regId'
+    | '/settings/team'
     | '/contracts'
   id:
     | '__root__'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/simulate'
     | '/_authenticated/contracts/$contractId'
     | '/_authenticated/regulations/$regId'
+    | '/_authenticated/settings/team'
     | '/_authenticated/contracts/'
   fileRoutesById: FileRoutesById
 }
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
       parentRoute: typeof AuthenticatedContractsRoute
     }
+    '/_authenticated/settings/team': {
+      id: '/_authenticated/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AuthenticatedSettingsTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/regulations/$regId': {
       id: '/_authenticated/regulations/$regId'
       path: '/regulations/$regId'
@@ -307,6 +327,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
+  AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -317,6 +338,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
+  AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
