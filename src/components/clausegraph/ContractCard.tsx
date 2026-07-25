@@ -7,13 +7,13 @@ export function ContractCard({ contract }: { contract: Contract }) {
     <Link
       to="/contracts/$contractId"
       params={{ contractId: contract.id }}
-      className="glass-panel group flex flex-col gap-5 p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[color:var(--hairline-strong)]"
+      className="glass-panel group flex flex-col gap-5 p-6 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--hairline-strong)] hover:shadow-[var(--shadow-lift)]"
     >
       <div className="flex items-start justify-between gap-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {contract.id.slice(0, 8)}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] bg-[var(--surface-glass)] px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
           {contract.clauses.length} clauses
         </span>
       </div>
@@ -31,7 +31,7 @@ export function ContractCard({ contract }: { contract: Contract }) {
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
           Notional
         </span>
-        <span className="font-mono text-[15px] text-brass">{formatUSD(contract.value)}</span>
+        <span className="font-mono text-[15px] text-[var(--brass)]">{formatUSD(contract.value)}</span>
       </div>
     </Link>
   );
@@ -41,7 +41,7 @@ function StatusBadge({ contract }: { contract: Contract }) {
   const s = contract.extraction_status;
   if (s === "complete") return null;
   const map = {
-    processing: { label: "Analyzing…", color: "text-brass border-[var(--hairline-strong)]" },
+    processing: { label: "Analyzing…", color: "text-[var(--brass)] border-[var(--hairline-strong)]" },
     pending: { label: "Pending", color: "text-muted-foreground border-[var(--hairline)]" },
     failed: { label: "Extraction failed", color: "text-[var(--risk)] border-[var(--risk)]/40" },
   } as const;
@@ -51,7 +51,7 @@ function StatusBadge({ contract }: { contract: Contract }) {
       className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${cfg.color}`}
     >
       {s === "processing" && (
-        <span className="h-1.5 w-1.5 rounded-full bg-brass animate-pulse" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--brass)] animate-pulse" />
       )}
       {cfg.label}
     </span>

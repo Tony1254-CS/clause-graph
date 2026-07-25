@@ -41,7 +41,7 @@ function ContractsIndex() {
     <div className="w-full max-w-[1200px]">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
             Portfolio · {contracts.length} instrument{contracts.length === 1 ? "" : "s"}
           </p>
           <h1 className="mt-2 font-display text-[38px] leading-[1.05] tracking-tight text-foreground">
@@ -53,7 +53,7 @@ function ContractsIndex() {
           <Stat label="Clauses indexed" value={String(totalClauses)} />
           <button
             onClick={() => setUploadOpen(true)}
-            className="inline-flex items-center gap-2 rounded-[12px] bg-brass px-4 py-2 text-sm text-[color:var(--primary-foreground)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)]"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)]"
           >
             <Upload className="h-4 w-4" strokeWidth={1.8} />
             Upload
@@ -75,7 +75,7 @@ function ContractsIndex() {
           </p>
           <button
             onClick={() => setUploadOpen(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-[12px] bg-brass px-4 py-2 text-sm text-[color:var(--primary-foreground)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)]"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)]"
           >
             <Upload className="h-4 w-4" strokeWidth={1.8} />
             Upload your first contract
@@ -100,7 +100,7 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </span>
-      <span className="mt-1 font-mono text-[15px] text-brass">{value}</span>
+      <span className="mt-1 font-mono text-[15px] text-[var(--brass)]">{value}</span>
     </div>
   );
 }
@@ -125,7 +125,7 @@ function ContractsError({ error, reset }: { error: Error; reset: () => void }) {
           router.invalidate();
           reset();
         }}
-        className="mt-4 rounded-[12px] bg-brass px-4 py-2 text-sm text-[color:var(--primary-foreground)] duration-150 ease-out transition-all hover:bg-[color:var(--brass-strong)]"
+        className="mt-4 rounded-full bg-[var(--brass)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] transition-all duration-200 ease-out hover:bg-[var(--brass-strong)]"
       >
         Retry
       </button>

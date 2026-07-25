@@ -3,7 +3,7 @@ export function BlastRadiusSeal() {
     <div className="relative flex flex-col items-center gap-8">
       {/* Caption above */}
       <div className="text-center max-w-md">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
           Blast Radius
         </p>
         <h1 className="mt-3 font-display text-[42px] leading-[1.05] tracking-tight text-foreground">
@@ -18,7 +18,7 @@ export function BlastRadiusSeal() {
       {/* The seal */}
       <div className="relative">
         {/* Outer glow */}
-        <div className="absolute inset-0 rounded-full blur-3xl bg-[radial-gradient(circle,rgba(201,166,107,0.14),transparent_65%)]" />
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_14%,transparent),transparent_65%)] blur-3xl" />
 
         {/* Outer brass rim */}
         <div className="relative h-[440px] w-[440px] max-w-[80vw] max-h-[80vw] rounded-full border border-[var(--hairline-strong)] p-3">
@@ -37,7 +37,7 @@ export function BlastRadiusSeal() {
 
               {/* Center indicator */}
               <div className="relative z-10 flex flex-col items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-brass shadow-[0_0_20px_var(--brass)]" />
+                <div className="h-3 w-3 rounded-full bg-[var(--brass)] shadow-[0_0_20px_var(--brass)]" />
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   epicenter
                 </p>

@@ -5,21 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * ClauseGraph — Liquid Glass Editorial (Paper & Ink)
- * Light default, dark opt-in via .dark on <html>.
+ * ClauseGraph — Premium Liquid Glass
+ * Dark-first graphite interface with a restrained light mode.
  */
 
 @theme inline {
   --radius-sm: 12px;
   --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 28px;
-  --radius-2xl: 32px;
-  --radius-3xl: 36px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-3xl: 32px;
 
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -41,11 +41,16 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  /* Legacy accent names kept, remapped to ink so old classnames compose safely */
-  --color-brass: var(--ink);
+  --color-brass: var(--brass);
   --color-risk: var(--risk);
+  --color-risk-red: var(--risk);
   --color-ink: var(--ink);
+  --color-ink-base: var(--page-bg);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
   --color-surface-raised: var(--surface-raised);
+  --color-surface-glass: var(--surface-glass);
+  --color-aura: var(--aura);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -56,32 +61,35 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Light (default) — Paper & Ink */
+/* Light — clear glass over warm daylight */
 :root {
   --radius: 20px;
 
-  --page-bg: #e8e4dd;
-  --shell-bg: #f5f3ee;
-  --shell-secondary: #ede9e1;
-  --ink: #0d0d0d;
-  --ink-soft: #2d2d2d;
-  --text-primary: #0d0d0d;
-  --text-muted: #6b6960;
-  --paper: #f5f3ee;
-  --paper-soft: #e8e4dd;
+  --page-bg: #e9f0ef;
+  --shell-bg: rgba(248, 252, 251, 0.78);
+  --shell-secondary: rgba(238, 246, 245, 0.78);
+  --ink: #0b1016;
+  --ink-soft: #202b34;
+  --text-primary: #101820;
+  --text-muted: #647079;
+  --paper: #f8fcfb;
+  --paper-soft: #e8f2f0;
+  --brass: #20d7df;
+  --brass-strong: #7cf4f2;
+  --aura: #26e0e7;
 
-  --surface-raised: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.55);
-  --surface-glass-strong: rgba(255, 255, 255, 0.7);
+  --surface-raised: rgba(255, 255, 255, 0.74);
+  --surface-glass: rgba(255, 255, 255, 0.42);
+  --surface-glass-strong: rgba(255, 255, 255, 0.62);
 
-  --hairline: rgba(13, 13, 13, 0.06);
-  --hairline-strong: rgba(13, 13, 13, 0.12);
-  --shadow-soft: 0 24px 60px -28px rgba(13, 13, 13, 0.18), 0 2px 6px -2px rgba(13, 13, 13, 0.06);
-  --shadow-lift: 0 32px 64px -24px rgba(13, 13, 13, 0.22);
-  --glow-brass: var(--shadow-soft);
+  --hairline: rgba(9, 35, 42, 0.12);
+  --hairline-strong: rgba(9, 35, 42, 0.2);
+  --shadow-soft: 0 24px 70px -34px rgba(10, 22, 28, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.54);
+  --shadow-lift: 0 36px 100px -42px rgba(6, 18, 26, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  --glow-brass: 0 18px 50px -24px rgba(32, 215, 223, 0.85);
 
-  --risk: #e11d48;
-  --success: #10b981;
+  --risk: #e1524b;
+  --success: #14c6a4;
 
   /* shadcn semantic mapping */
   --background: var(--page-bg);
@@ -114,27 +122,30 @@
   --sidebar-ring: var(--ink);
 }
 
-/* Dark — Ink base with paper-tinted foreground */
+/* Dark — flagship graphite-cyan glass */
 .dark {
-  --page-bg: #1a1a1a;
-  --shell-bg: #0d0d0d;
-  --shell-secondary: #151515;
-  --ink: #f5f3ee;
-  --ink-soft: #e8e4dd;
-  --text-primary: #f5f3ee;
-  --text-muted: rgba(245, 243, 238, 0.55);
-  --paper: #0d0d0d;
-  --paper-soft: #151515;
+  --page-bg: #05090d;
+  --shell-bg: rgba(8, 14, 18, 0.72);
+  --shell-secondary: rgba(11, 21, 26, 0.78);
+  --ink: #f4fbfb;
+  --ink-soft: #d7e2e2;
+  --text-primary: #f2f7f8;
+  --text-muted: #8998a1;
+  --paper: #061016;
+  --paper-soft: #0a171d;
+  --brass: #22dce6;
+  --brass-strong: #8ef8f5;
+  --aura: #19cce2;
 
-  --surface-raised: #1a1a1a;
-  --surface-glass: rgba(255, 255, 255, 0.04);
-  --surface-glass-strong: rgba(255, 255, 255, 0.08);
+  --surface-raised: rgba(15, 24, 31, 0.78);
+  --surface-glass: rgba(255, 255, 255, 0.055);
+  --surface-glass-strong: rgba(255, 255, 255, 0.095);
 
-  --hairline: rgba(245, 243, 238, 0.08);
-  --hairline-strong: rgba(245, 243, 238, 0.16);
-  --shadow-soft: 0 24px 60px -28px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lift: 0 32px 64px -24px rgba(0, 0, 0, 0.7);
-  --glow-brass: var(--shadow-soft);
+  --hairline: rgba(137, 248, 246, 0.14);
+  --hairline-strong: rgba(137, 248, 246, 0.24);
+  --shadow-soft: 0 22px 80px -38px rgba(0, 0, 0, 0.92), inset 0 1px 0 rgba(255, 255, 255, 0.075);
+  --shadow-lift: 0 46px 120px -48px rgba(0, 0, 0, 0.98), inset 0 1px 0 rgba(255, 255, 255, 0.095);
+  --glow-brass: 0 22px 70px -28px rgba(34, 220, 230, 0.75);
 
   --background: var(--page-bg);
   --foreground: var(--text-primary);
@@ -142,23 +153,23 @@
   --card-foreground: var(--text-primary);
   --popover: var(--shell-secondary);
   --popover-foreground: var(--text-primary);
-  --primary: var(--paper);
-  --primary-foreground: #0d0d0d;
+  --primary: var(--brass);
+  --primary-foreground: #041014;
   --secondary: var(--paper-soft);
   --secondary-foreground: var(--text-primary);
   --muted: var(--paper-soft);
   --muted-foreground: var(--text-muted);
-  --accent: var(--paper);
-  --accent-foreground: #0d0d0d;
+  --accent: var(--brass);
+  --accent-foreground: #041014;
   --border: var(--hairline);
   --input: var(--hairline-strong);
-  --ring: var(--paper);
+  --ring: var(--brass);
 
-  --sidebar: var(--shell-secondary);
+  --sidebar: rgba(6, 13, 17, 0.82);
   --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--paper);
-  --sidebar-primary-foreground: #0d0d0d;
-  --sidebar-accent: rgba(255, 255, 255, 0.05);
+  --sidebar-primary: var(--brass);
+  --sidebar-primary-foreground: #041014;
+  --sidebar-accent: rgba(34, 220, 230, 0.1);
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--paper);
@@ -166,22 +177,22 @@
 
 @utility glass-panel {
   background: var(--surface-glass);
-  backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(26px) saturate(145%);
   border: 1px solid var(--hairline);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: var(--shadow-soft);
 }
 
 @utility glass-panel-sm {
   background: var(--surface-glass);
-  backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(140%);
   border: 1px solid var(--hairline);
-  border-radius: 16px;
+  border-radius: 12px;
 }
 
 @utility glass-pill {
   background: var(--surface-glass);
-  backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(140%);
   border: 1px solid var(--hairline);
   border-radius: 9999px;
 }
@@ -194,13 +205,22 @@
   0%, 100% {
     box-shadow:
       0 0 0 1px var(--hairline-strong),
-      0 0 40px -8px rgba(13, 13, 13, 0.18);
+      0 0 36px -14px color-mix(in oklab, var(--brass) 56%, transparent);
   }
   50% {
     box-shadow:
-      0 0 0 1px var(--ink),
-      0 0 80px -4px rgba(13, 13, 13, 0.28);
+      0 0 0 1px var(--brass),
+      0 0 76px -10px color-mix(in oklab, var(--brass) 72%, transparent);
   }
+}
+
+@keyframes radar-breathe {
+  0%, 100% { opacity: 0.58; transform: scale(0.985); }
+  50% { opacity: 1; transform: scale(1.015); }
+}
+
+@utility radar-breathe {
+  animation: radar-breathe 5.5s ease-in-out infinite;
 }
 
 @utility rim-pulse {
@@ -233,22 +253,29 @@
     background-color: var(--page-bg);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
-    letter-spacing: -0.005em;
+    font-feature-settings: "ss01", "cv11", "cv05";
+    letter-spacing: 0;
   }
 
   body {
     background-image:
-      radial-gradient(ellipse 60% 45% at 88% -10%, rgba(13, 13, 13, 0.05), transparent 65%),
-      radial-gradient(ellipse 50% 40% at -5% 110%, rgba(13, 13, 13, 0.04), transparent 65%);
+      linear-gradient(90deg, color-mix(in oklab, var(--hairline) 28%, transparent) 1px, transparent 1px),
+      linear-gradient(180deg, color-mix(in oklab, var(--hairline) 22%, transparent) 1px, transparent 1px),
+      radial-gradient(ellipse 70% 55% at 78% 10%, color-mix(in oklab, var(--aura) 13%, transparent), transparent 62%),
+      radial-gradient(ellipse 60% 50% at 18% 90%, color-mix(in oklab, var(--aura) 8%, transparent), transparent 68%);
+    background-size: 72px 72px, 72px 72px, auto, auto;
     background-attachment: fixed;
     min-height: 100dvh;
   }
 
   .dark body {
     background-image:
-      radial-gradient(ellipse 60% 45% at 88% -10%, rgba(245, 243, 238, 0.04), transparent 65%),
-      radial-gradient(ellipse 50% 40% at -5% 110%, rgba(245, 243, 238, 0.03), transparent 65%);
+      linear-gradient(90deg, rgba(137, 248, 246, 0.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(137, 248, 246, 0.028) 1px, transparent 1px),
+      radial-gradient(ellipse 70% 58% at 78% 6%, rgba(34, 220, 230, 0.16), transparent 62%),
+      radial-gradient(ellipse 55% 50% at 14% 92%, rgba(34, 220, 230, 0.08), transparent 68%),
+      linear-gradient(135deg, #05090d 0%, #061016 42%, #030608 100%);
+    background-size: 72px 72px, 72px 72px, auto, auto, auto;
   }
 
   a:focus-visible,
@@ -295,5 +322,9 @@
   }
 }
 
+.premium-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.premium-scrollbar::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--brass) 34%, transparent); border-radius: 9999px; }
+.premium-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.premium-scrollbar { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--brass) 34%, transparent) transparent; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

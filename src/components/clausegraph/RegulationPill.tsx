@@ -10,10 +10,10 @@ export function RegulationPill({ regId }: { regId: string }) {
     <Link
       to="/regulations/$regId"
       params={{ regId }}
-      className="group inline-flex items-center gap-2 rounded-full border border-brass/40 px-2.5 py-1 text-[11.5px] transition-all duration-150 ease-out hover:border-brass hover:bg-[rgba(201,166,107,0.08)]"
+      className="group inline-flex items-center gap-2 rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)] px-2.5 py-1 text-[11.5px] transition-all duration-200 ease-out hover:border-[var(--brass)] hover:bg-[color-mix(in_oklab,var(--brass)_12%,transparent)]"
     >
-      <span className="font-mono text-[10px] text-brass">{regId}</span>
-      <span className="h-3 w-px bg-brass/30" />
+      <span className="font-mono text-[10px] text-[var(--brass)]">{regId}</span>
+      <span className="h-3 w-px bg-[var(--hairline-strong)]" />
       <span className="text-foreground/90 group-hover:text-foreground">{title}</span>
     </Link>
   );

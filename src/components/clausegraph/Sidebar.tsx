@@ -1,3 +1,4 @@
+import { useRef, useState, type FocusEvent } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -56,7 +57,7 @@ function useIsActive(item: NavItem) {
   return pathname === base || pathname.startsWith(base + "/");
 }
 
-function RailIcon({ item }: { item: NavItem }) {
+function RailIcon({ item, expanded }: { item: NavItem; expanded: boolean }) {
   const isActive = useIsActive(item);
   const Icon = item.icon;
   return (
@@ -64,14 +65,20 @@ function RailIcon({ item }: { item: NavItem }) {
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-11 w-11 place-items-center rounded-2xl transition-all duration-200 ease-out ${
+      className={`group relative grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] border transition-all duration-200 ease-out ${
         isActive
-          ? "bg-[var(--surface-glass-strong)] text-[var(--ink)] shadow-sm border border-[var(--hairline)]"
-          : "text-[var(--text-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-glass)] border border-transparent"
+          ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)] shadow-[var(--glow-brass)]"
+          : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
       }`}
     >
-      <Icon className="h-5 w-5" strokeWidth={1.6} />
-      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1 text-[11px] font-medium text-[var(--paper)] opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 z-50">
+      <span className="grid h-11 w-11 shrink-0 place-items-center">
+        <Icon className="h-5 w-5" strokeWidth={1.7} />
+      </span>
+      <span
+        className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
+          expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
+        }`}
+      >
         {item.label}
       </span>
     </Link>
@@ -79,56 +86,107 @@ function RailIcon({ item }: { item: NavItem }) {
 }
 
 export function Sidebar() {
+  const [expanded, setExpanded] = useState(false);
+  const asideRef = useRef<HTMLElement | null>(null);
+
+  function onBlur(e: FocusEvent<HTMLElement>) {
+    const next = e.relatedTarget;
+    if (next instanceof Node && asideRef.current?.contains(next)) return;
+    setExpanded(false);
+  }
+
   return (
-    <aside className="hidden md:flex w-20 shrink-0 flex-col items-center py-6 border-r border-[var(--hairline)] bg-[var(--sidebar)] relative z-10">
-      <Link
-        to="/dashboard"
-        aria-label="ClauseGraph home"
-        className="mb-8 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--ink)] text-[var(--paper)]"
+    <div className="relative hidden w-[76px] shrink-0 md:block">
+      <aside
+        ref={asideRef}
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        onFocus={() => setExpanded(true)}
+        onBlur={onBlur}
+        className={`absolute inset-y-0 left-0 z-30 flex flex-col border-r border-[var(--hairline)] bg-[var(--sidebar)]/95 px-4 py-5 shadow-[var(--shadow-lift)] backdrop-blur-2xl transition-[width] duration-200 ease-out ${
+          expanded ? "w-[268px]" : "w-[76px]"
+        }`}
       >
-        <div className="h-4 w-4 rotate-45 border-2 border-current" />
-      </Link>
-
-      <nav className="flex-1 min-h-0 w-full flex flex-col items-center gap-2 overflow-y-auto overflow-x-visible no-scrollbar py-1">
-        {NAV.map((item) => (
-          <RailIcon key={item.to} item={item} />
-        ))}
-      </nav>
-
-      <div className="mt-auto pt-4 flex flex-col items-center gap-2 shrink-0">
         <Link
-          to="/settings/account"
-          aria-label="Settings"
-          className="grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-glass)] transition-all duration-200 ease-out"
+          to="/dashboard"
+          aria-label="ClauseGraph home"
+          className="mb-5 grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--surface-glass)]"
         >
-          <Settings className="h-5 w-5" strokeWidth={1.6} />
+          <span className="grid h-11 w-11 shrink-0 place-items-center">
+            <span className="grid h-9 w-9 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] shadow-[var(--glow-brass)]">
+              <span className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
+            </span>
+          </span>
+          <span
+            className={`min-w-0 truncate pr-3 font-display text-[16px] font-semibold tracking-tight transition-all duration-200 ${
+              expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
+            }`}
+          >
+            ClauseGraph
+          </span>
         </Link>
-      </div>
-    </aside>
+
+        <nav className="premium-scrollbar flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto overflow-x-hidden py-1 pr-1">
+          {NAV.map((item) => (
+            <RailIcon key={item.to} item={item} expanded={expanded} />
+          ))}
+        </nav>
+
+        <div className="mt-4 shrink-0 border-t border-[var(--hairline)] pt-4">
+          <Link
+            to="/settings/account"
+            aria-label="Settings"
+            className="grid h-11 min-w-0 grid-cols-[44px_minmax(0,1fr)] items-center rounded-[16px] text-[var(--text-muted)] transition-all duration-200 ease-out hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+          >
+            <span className="grid h-11 w-11 shrink-0 place-items-center">
+              <Settings className="h-5 w-5" strokeWidth={1.7} />
+            </span>
+            <span
+              className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-200 ${
+                expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
+              }`}
+            >
+              Settings
+            </span>
+          </Link>
+        </div>
+      </aside>
+    </div>
   );
 }
 
 export function MobileRail() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (item: NavItem) => {
+    const base = item.match ?? item.to;
+    return pathname === base || pathname.startsWith(base + "/");
+  };
+
   return (
-    <aside className="md:hidden flex w-16 shrink-0 flex-col items-center py-4 border-r border-[var(--hairline)] bg-[var(--sidebar)]">
+    <aside className="flex w-16 shrink-0 flex-col items-center border-r border-[var(--hairline)] bg-[var(--sidebar)]/95 py-4 backdrop-blur-2xl md:hidden">
       <Link
         to="/dashboard"
-        className="mb-4 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--ink)] text-[var(--paper)]"
+        className="mb-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--ink)]"
         aria-label="ClauseGraph home"
       >
         <div className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
       </Link>
-      <div className="flex-1 min-h-0 w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-1.5">
+      <div className="premium-scrollbar flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto">
         {NAV.map((item) => {
           const Icon = item.icon;
+          const active = isActive(item);
           return (
             <Link
               key={item.to}
               to={item.to}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[var(--text-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-glass)] transition-all duration-200 ease-out"
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border transition-all duration-200 ease-out ${
+                active
+                  ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)]"
+                  : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+              }`}
               aria-label={item.label}
             >
-              <Icon className="h-4 w-4" strokeWidth={1.6} />
+              <Icon className="h-4 w-4" strokeWidth={1.7} />
             </Link>
           );
         })}

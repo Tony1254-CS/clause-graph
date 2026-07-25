@@ -64,7 +64,7 @@ export function PlanLimitDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-ink-base/70 backdrop-blur-sm p-4 motion-safe:animate-in motion-safe:fade-in duration-150"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-ink-base/70 p-4 backdrop-blur-sm motion-safe:animate-in motion-safe:fade-in duration-200"
       onClick={() => setReason(null)}
       role="dialog"
       aria-modal="true"
@@ -75,7 +75,7 @@ export function PlanLimitDialog() {
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">Upgrade</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">Upgrade</p>
             <h2 className="mt-2 font-display text-[28px] leading-tight text-foreground">
               {copy.title}
             </h2>
@@ -85,7 +85,7 @@ export function PlanLimitDialog() {
             type="button"
             aria-label="Close"
             onClick={() => setReason(null)}
-            className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass rounded-[8px] p-1"
+            className="rounded-[8px] p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brass)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -108,7 +108,7 @@ export function PlanLimitDialog() {
           <Link
             to="/settings/billing"
             onClick={() => setReason(null)}
-            className="inline-flex items-center gap-2 rounded-[12px] bg-brass px-5 py-2 text-[13px] font-medium text-[color:var(--primary-foreground)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)] active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-5 py-2 text-[13px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98]"
           >
             View plans <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
@@ -125,14 +125,14 @@ function PlanMini({ planId }: { planId: PlanId }) {
     <div
       className={`rounded-[16px] border p-4 flex flex-col gap-3 ${
         featured
-          ? "border-brass/40 bg-[rgba(201,166,107,0.05)]"
+          ? "border-[color-mix(in_oklab,var(--brass)_40%,transparent)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)]"
           : "border-[var(--hairline)]"
       }`}
     >
       <div className="flex items-center justify-between">
         <p className="font-display text-[18px] text-foreground">{p.name}</p>
         {featured && (
-          <span className="rounded-full border border-brass/40 bg-brass/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass">
+          <span className="rounded-full border border-[color-mix(in_oklab,var(--brass)_40%,transparent)] bg-[color-mix(in_oklab,var(--brass)_10%,transparent)] px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[var(--brass)]">
             Popular
           </span>
         )}
@@ -143,15 +143,15 @@ function PlanMini({ planId }: { planId: PlanId }) {
       </div>
       <ul className="flex flex-col gap-1.5 text-[12.5px] text-muted-foreground">
         <li className="flex items-start gap-1.5">
-          <Check className="mt-0.5 h-3 w-3 shrink-0 text-brass" strokeWidth={2.2} />
+          <Check className="mt-0.5 h-3 w-3 shrink-0 text-[var(--brass)]" strokeWidth={2.2} />
           {formatLimit(p.contracts)} contracts
         </li>
         <li className="flex items-start gap-1.5">
-          <Check className="mt-0.5 h-3 w-3 shrink-0 text-brass" strokeWidth={2.2} />
+          <Check className="mt-0.5 h-3 w-3 shrink-0 text-[var(--brass)]" strokeWidth={2.2} />
           {formatLimit(p.simulationsPerMonth)} simulations / mo
         </li>
         <li className="flex items-start gap-1.5">
-          <Check className="mt-0.5 h-3 w-3 shrink-0 text-brass" strokeWidth={2.2} />
+          <Check className="mt-0.5 h-3 w-3 shrink-0 text-[var(--brass)]" strokeWidth={2.2} />
           {formatLimit(p.seats)} seats
         </li>
       </ul>

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock, Sparkles } from "lucide-react";
+import { AlertTriangle, Clock, Gem } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
 
 type OrgStatus = {
@@ -84,7 +84,7 @@ export function PlanStatusBanner() {
   if (data.on_trial && typeof data.trial_days_left === "number") {
     const d = data.trial_days_left;
     return (
-      <Banner tone="warn" icon={<Sparkles className="h-4 w-4" />}>
+      <Banner tone="warn" icon={<Gem className="h-4 w-4" />}>
         You're on the <span className="font-mono">Pro</span> trial —{" "}
         <span className="font-mono">{d}</span> {d === 1 ? "day" : "days"} left.{" "}
         <Link to="/settings/billing" className="underline underline-offset-2">
@@ -111,11 +111,11 @@ function Banner({
   const cls =
     tone === "risk"
       ? "bg-[rgba(225,82,75,0.08)] border-[rgba(225,82,75,0.3)] text-[var(--risk)]"
-      : "bg-[rgba(201,166,107,0.06)] border-brass/30 text-brass";
+      : "bg-[color-mix(in_oklab,var(--brass)_8%,transparent)] border-[var(--hairline)] text-[var(--brass)]";
   return (
     <div
       role="status"
-      className={`w-full border-b px-4 py-2 text-center text-[12.5px] flex items-center justify-center gap-2 ${cls}`}
+      className={`flex w-full items-center justify-center gap-2 border-b px-4 py-2 text-center text-[12px] backdrop-blur-xl ${cls}`}
     >
       <span className="shrink-0">{icon}</span>
       <span className="text-foreground">{children}</span>

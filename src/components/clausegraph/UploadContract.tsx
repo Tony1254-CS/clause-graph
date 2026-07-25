@@ -71,15 +71,15 @@ export function UploadContract({ onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-base/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-base/70 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
         className="glass-panel w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-display text-2xl text-text-primary mb-1">Upload Contract</h2>
-        <p className="text-text-muted text-sm mb-5">
+        <h2 className="mb-1 font-display text-2xl text-text-primary">Upload Contract</h2>
+        <p className="mb-5 text-sm text-text-muted">
           AI will segment clauses and link them to regulations in your ontology.
         </p>
 
@@ -125,7 +125,7 @@ export function UploadContract({ onClose }: Props) {
                 onChange={onFileChange}
                 className="text-sm text-text-muted"
               />
-              {fileName ? <span className="font-mono text-xs text-brass">{fileName}</span> : null}
+              {fileName ? <span className="font-mono text-xs text-[var(--brass)]">{fileName}</span> : null}
             </div>
             <p className="text-xs text-text-muted mt-1">
               .txt / .md supported now. PDF & DOCX support planned.
@@ -142,18 +142,18 @@ export function UploadContract({ onClose }: Props) {
             />
           </label>
 
-          {error ? <p className="text-risk-red text-sm">{error}</p> : null}
+          {error ? <p className="text-sm text-risk-red">{error}</p> : null}
 
           <div className="flex justify-end gap-3 pt-2">
             <button
-              className="px-4 py-2 rounded-lg text-text-muted hover:text-text-primary transition"
+              className="rounded-[12px] px-4 py-2 text-text-muted transition hover:text-text-primary"
               onClick={onClose}
               disabled={mutation.isPending}
             >
               Cancel
             </button>
             <button
-              className="px-5 py-2 rounded-lg bg-brass/90 text-ink-base font-medium hover:bg-brass transition disabled:opacity-50"
+              className="rounded-full bg-[var(--brass)] px-5 py-2 font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition hover:bg-[var(--brass-strong)] disabled:opacity-50"
               onClick={() => mutation.mutate()}
               disabled={mutation.isPending || !name || !counterparty || !value || rawText.length < 40}
             >

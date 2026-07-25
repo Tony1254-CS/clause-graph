@@ -3,7 +3,7 @@ import { RegulationPill } from "./RegulationPill";
 
 export function ClauseRow({ clause }: { clause: Clause }) {
   return (
-    <div className="glass-panel-sm p-5">
+    <div className="glass-panel-sm p-5 transition-all duration-200 ease-out hover:border-[var(--hairline-strong)]">
       <div className="flex items-baseline justify-between gap-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {clause.id}

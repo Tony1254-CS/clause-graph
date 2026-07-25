@@ -9,16 +9,15 @@ export function FederalRegisterFeed() {
 
   return (
     <section
-      className="rounded-[20px] border border-dashed border-[var(--hairline)] p-6"
-      style={{ backgroundColor: "var(--surface-raised)" }}
+      className="glass-panel p-6"
     >
       <header className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-brass opacity-60 animate-ping" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-brass" />
+            <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--brass)] opacity-60 animate-ping" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--brass)]" />
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
             LIVE · Federal Register
           </span>
         </div>
@@ -68,7 +67,7 @@ export function FederalRegisterFeed() {
                 {doc.publication_date}
               </span>
               <div className="min-w-0">
-                <p className="text-[13.5px] leading-[1.5] text-foreground group-hover:text-brass duration-150 ease-out transition-colors">
+                <p className="text-[13.5px] leading-[1.5] text-foreground transition-colors duration-200 ease-out group-hover:text-[var(--brass)]">
                   {doc.title}
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -77,7 +76,7 @@ export function FederalRegisterFeed() {
                 </p>
               </div>
               <ExternalLink
-                className="hidden md:block h-3.5 w-3.5 text-muted-foreground group-hover:text-brass duration-150 ease-out transition-colors mt-1"
+                className="mt-1 hidden h-3.5 w-3.5 text-muted-foreground transition-colors duration-200 ease-out group-hover:text-[var(--brass)] md:block"
                 strokeWidth={1.6}
               />
             </a>
@@ -91,11 +90,10 @@ export function FederalRegisterFeed() {
 export function FederalRegisterFeedSkeleton() {
   return (
     <section
-      className="rounded-[20px] border border-dashed border-[var(--hairline)] p-6"
-      style={{ backgroundColor: "var(--surface-raised)" }}
+      className="glass-panel p-6"
     >
       <header className="flex items-center gap-2.5 mb-5">
-        <span className="h-2 w-2 rounded-full bg-brass/40" />
+        <span className="h-2 w-2 rounded-full bg-[color-mix(in_oklab,var(--brass)_40%,transparent)]" />
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           LIVE · Federal Register · reading
         </span>

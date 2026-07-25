@@ -1,60 +1,85 @@
-# ClauseGraph — Liquid Glass Editorial Redesign
+## Plan: premium UI rebuild + correct hover sidebar
 
-Full visual overhaul across every route. Feature logic, routes, data layer, server functions, and Cloud/backend stay untouched — this is a pure design-system swap.
+### Goals
+- Make the app feel clean, modern, premium, and “alive” without visual clutter.
+- Fix the navigation ergonomics: users should not scroll the whole page to reach navbar items.
+- Restore the behavior you asked for: sidebar expands on hover/focus and auto-minimizes when the cursor leaves.
+- Keep all existing product features and routes intact.
 
-## Design tokens (locked from the chosen direction)
+### 1. Replace the current visual system
+- Rework `src/styles.css` into a dark-first premium liquid-glass theme inspired by the reference image, without copying it.
+- Use a controlled palette:
+  - near-black graphite/teal background
+  - luminous cyan as the primary living accent
+  - warm off-white text
+  - muted steel/ash secondary text
+  - risk-red only for severity/exposure states
+- Remove the cheap/messy background blobs/orbs and replace them with a subtle full-screen atmospheric gradient/grid treatment.
+- Tighten border radii, borders, shadows, and blur so panels look like polished glass, not noisy cards.
+- Preserve light mode, but make dark mode the flagship experience.
 
-- **Palette (Paper & Ink)**
-  - Light: page `#e8e4dd`, shell surface `#f5f3ee`, ink `#0d0d0d`, graphite `#2d2d2d`, hairline `rgba(45,45,45,0.06)`
-  - Dark: page `#1a1a1a`, shell surface `#0d0d0d`, secondary `#151515`, paper text `#f5f3ee`, hairline `rgba(255,255,255,0.06)`
-  - Reserved risk red `#e11d48` (rose-500), reserved success emerald `#10b981`. No brass anywhere.
-- **Type:** Sora (600) for display + numerics, Manrope (400/500/600) for body. Fraunces and JetBrains Mono removed.
-- **Radii:** `32px` outer app shell, `24px` glass core, `16px` panels, `12px` inputs/buttons, `9999px` pills.
-- **Glass recipe:** `bg-white/40 dark:bg-white/5` + `backdrop-blur-xl` + 1px `border-*-/5` + soft outer shadow. No hard drop shadows.
-- **Motion:** 180ms ease-out interactions, 500ms cross-fade on theme toggle, medallion rim slow pulse retained for simulate.
+### 2. Rebuild the app shell layout
+- Change `AppShell` to a true viewport app layout:
+  - outer page does not need to scroll just to reach navigation
+  - sidebar, top bar, banners, main content, and footer have clear independent areas
+  - main content gets its own scroll container
+- Reduce crowding in the top area so the dashboard breathes on short screens like the current preview height.
+- Make spacing and typography more editorial and less dense.
 
-## Theme system + light/dark toggle
+### 3. Fix the sidebar properly
+- Rebuild `Sidebar` as a hover-expanding rail:
+  - collapsed width around 72–80px
+  - expanded width around 250–280px
+  - expands on `mouseenter` and `focus-within`
+  - collapses on `mouseleave` and when focus exits
+  - expansion overlays the content instead of pushing/reflowing the whole page
+- Split sidebar into three zones:
+  - logo pinned at top
+  - scrollable nav list in the middle
+  - settings/account pinned at bottom
+- Ensure the nav list itself scrolls when needed, not the entire page.
+- Show labels only when expanded; keep clean icons when collapsed.
+- Add active route styling that feels premium and readable.
 
-- Replace `src/styles.css` tokens entirely. Keep OKLCH mapping but repoint every semantic token (background/foreground/card/primary/border/etc.) to the paper & ink values. Add a second `.dark` block with the dark values.
-- Add `next-themes`-style toggle without the package: a tiny `ThemeProvider` in `src/components/theme-provider.tsx` that toggles `class="dark"` on `<html>`, persists to `localStorage`, and reads `prefers-color-scheme` on first paint (via inline script in `__root.tsx` `RootShell` to avoid FOUC).
-- Add pill toggle (sun/moon) in the top bar — matches the direction's segmented control exactly.
-- Fonts: swap Google Fonts `<link>` in `__root.tsx` from Fraunces/Inter/JetBrains to `Sora:wght@400;600` + `Manrope:wght@400;500;600`.
+### 4. Redesign top bar and action area
+- Simplify `TopBar` so it no longer feels crowded:
+  - cleaner ClauseGraph wordmark
+  - compact workspace/plan status
+  - refined light/dark toggle
+  - premium “Simulate Impact” CTA
+  - calmer user menu
+- Make trial/payment banners visually integrated instead of heavy bars dominating the first screen.
 
-## Shell rebuild
+### 5. Refresh dashboard hero / medallion treatment
+- Restyle `GraphMedallion` into a premium radar/seal centerpiece:
+  - subtle cyan rings and depth
+  - smooth breathing pulse only where meaningful
+  - restrained graph nodes/edges
+  - risk-red appears only after impact simulation
+- Improve headline scale and copy hierarchy so it looks intentional, not crowded.
 
-- `AppShell.tsx`: rounded outer shell (`rounded-[32px]`, shadow-2xl, hairline border, page bg = `#e8e4dd`/`#1a1a1a`). Blurred background accent orbs top-right / bottom-left. Sidebar becomes solid tint (not glass) at 80px width; content area holds top bar + main + footer.
-- `Sidebar.tsx`: convert current 12-item rail to the direction's style — 40px black square logo, single-column icon nav with `rounded-2xl` active pill (`bg-white/50 dark:bg-white/10`), gap-6, `overflow-y-auto no-scrollbar` (scroll fix preserved), settings/avatar pinned bottom. Drop the hover-expand behavior — it caused earlier complaints. Keep tooltips on hover instead.
-- `TopBar.tsx`: 80px height, left = "ClauseGraph" Sora wordmark + vertical divider + workspace label (uppercase tracked), right = "Graph Sync Live" glass status pill + segmented theme toggle + "Simulate Impact" primary button + user avatar. Trial/past-due banners restyled as slim inline pills instead of full-width bars.
-- Footer: 48px utility bar with uppercase micro-text (build id, links).
+### 6. Apply the new surface language across repeated content
+- Update the most visible ClauseGraph cards/panels to match the new system:
+  - contract cards
+  - clause rows
+  - regulation/feed panels
+  - action/compliance panels where needed
+- Keep functionality unchanged; this is a presentation/system pass.
 
-## Page redesigns (structure preserved, styling replaced)
+### 7. Responsive and interaction checks
+- Verify at the current short desktop preview size that all nav items are reachable.
+- Verify tablet/mobile behavior still works.
+- Check hover expand/collapse, keyboard focus, route active states, and dark/light toggle.
+- Run the project checks after implementation.
 
-- **Dashboard `/dashboard`**: keep `GraphMedallion` component but restyle — orbital hairline rings at 100%/70%/40%, liquid glass core with hero stat (`15` contracts / `10` regulations big Sora numeric), two floating glass data cards (Active Nodes, Risk Exposure) with connector hairlines. Metric footer row with three stats.
-- **Contracts list / detail**: cards become `rounded-2xl` glass tiles, mono contract value swapped to Sora tabular numerics, regulation pills become graphite outline chips (no brass), stale-link 404 copy retained.
-- **Simulate, Predictive, What-If, Backtest, Supply Chain, Actions, Feed**: reuse the same glass panel, chip, input, button primitives. Risk-red kept exclusively for exposure severity, otherwise everything is ink/graphite.
-- **Auth, Terms, Privacy, Refund, Reset, Index landing**: apply the paper background + Sora headings + glass cards. No content changes.
-- **Settings (Account, Team, Billing)** and **PlanLimitDialog / PaymentTestModeBanner / PlanStatusBanner**: restyle only.
-
-## Primitive updates
-
-- `src/components/ui/*` (shadcn): buttons switch to solid ink primary + glass secondary + ghost variants; inputs get `rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur` with hairline border; dialog / sheet / popover get glass surface + `rounded-3xl`.
-- Remove `.rim-pulse` brass color, keep the animation but recolor to graphite; keep `prefers-reduced-motion` guard.
-
-## Out of scope
-
-- No changes to server functions, Paddle wiring, Supabase schema, seeded data, auth flows, routing, or any business rule.
-- No new features. Feature parity 1:1.
-
-## Files touched
-
-Design system: `src/styles.css`, `src/routes/__root.tsx` (fonts + theme init script), new `src/components/theme-provider.tsx`, new `src/components/theme-toggle.tsx`.
-
-Shell + primitives: `src/components/clausegraph/AppShell.tsx`, `Sidebar.tsx`, `TopBar.tsx`, `GraphMedallion.tsx`, `BlastRadiusSeal.tsx`, `ContractCard.tsx`, `ClauseRow.tsx`, `RegulationPill.tsx`, `JurisdictionChip.tsx`, `FederalRegisterFeed.tsx`, `ActionPlanPanel.tsx`, `BacktestCard.tsx`, `SupplyChainGraph.tsx`, `ComplianceCodePanel.tsx`, `UploadContract.tsx`, `PlanStatusBanner.tsx`, `PaymentTestModeBanner.tsx`, `PlanLimitDialog.tsx`.
-
-Routes (styling only): all `src/routes/**/*.tsx` files receive className updates; no logic changes.
-
-## Verification
-
-1. Build passes (`tsgo` clean, dev server 200).
-2. Playwright screenshots at 1280×1800 and 390×844 of: `/dashboard`, `/contracts`, `/contracts/:id`, `/simulate`, `/supply-chain`, `/predictive`, `/backtest`, `/actions`, `/feed`, `/settings/account`, `/auth`, `/` — in both light and dark modes. Visual diff against chosen direction.
-3. Sidebar scroll still works; theme toggle persists across reload; no FOUC.
+### Technical notes
+- Files expected to change:
+  - `src/styles.css`
+  - `src/components/clausegraph/AppShell.tsx`
+  - `src/components/clausegraph/Sidebar.tsx`
+  - `src/components/clausegraph/TopBar.tsx`
+  - `src/components/theme-toggle.tsx`
+  - `src/components/clausegraph/GraphMedallion.tsx`
+  - selected high-visibility ClauseGraph cards/panels if their old styling clashes
+- No backend, billing, auth, AI, or data-model changes.
+- Existing routes and features remain intact.
