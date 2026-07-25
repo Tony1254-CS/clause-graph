@@ -50,10 +50,12 @@ const SEV_RADIUS: Record<Severity, number> = {
 export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Props) {
   const [hover, setHover] = useState<Node | null>(null);
   const reducedMotion = useReducedMotion();
-  const nodeTransition = reducedMotion ? undefined : { transition: "all 500ms ease-out" };
+  const nodeTransition = reducedMotion
+    ? undefined
+    : { transition: "r 500ms cubic-bezier(0.19, 1, 0.22, 1), fill 500ms cubic-bezier(0.19, 1, 0.22, 1), stroke 400ms ease-out, opacity 500ms ease-out" };
   const edgeTransition = reducedMotion
     ? undefined
-    : { transition: "stroke 400ms ease-out, opacity 400ms ease-out" };
+    : { transition: "stroke 500ms cubic-bezier(0.19, 1, 0.22, 1), opacity 500ms ease-out, stroke-width 400ms ease-out" };
 
 
   const innerRadius = 118;
@@ -158,12 +160,17 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                 </g>
 
                 <g>
-                  {contractNodes.map((n) => {
+                  {contractNodes.map((n, idx) => {
                     const sev = impacts?.get(n.id);
                     const isHover = hover?.id === n.id;
                     const r = sev ? SEV_RADIUS[sev] : isHover ? 5.5 : 3.5;
                     const fill = sev ? SEV_COLOR[sev] : "var(--paper)";
                     const stroke = sev ? "rgba(225,82,75,1)" : "var(--brass)";
+                    // Cascade delay proportional to node index → sweep effect
+                    const delay = sev && !reducedMotion ? `${idx * 55}ms` : "0ms";
+                    const cascadeStyle = nodeTransition
+                      ? { ...nodeTransition, transitionDelay: delay }
+                      : undefined;
                     return (
                       <g key={n.id}>
                         {sev && (
@@ -173,8 +180,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                             r={r + 4}
                             fill={SEV_COLOR[sev]}
                             opacity={0.18}
-                            style={nodeTransition}
-
+                            style={cascadeStyle}
                           />
                         )}
                         <circle
@@ -185,7 +191,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                           stroke={stroke}
                           strokeWidth="1"
                           className="cursor-pointer"
-                          style={nodeTransition}
+                          style={cascadeStyle}
                           onMouseEnter={() => setHover(n)}
                           onMouseLeave={() => setHover(null)}
                         />
