@@ -28,21 +28,46 @@ export const Route = createFileRoute("/_authenticated/settings/billing")({
 });
 
 function BillingPage() {
+  const qc = useQueryClient();
   const profile = useQuery(profileQuery);
   const getUsage = useServerFn(getOrgUsage);
   const portal = useServerFn(createBillingPortalSession);
+  const changePlan = useServerFn(changeSubscriptionPlan);
   const usage = useQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
   const { openCheckout, loading: coLoading } = usePaddleCheckout();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [changing, setChanging] = useState<PlanId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("checkout") === "success") {
-      // Give the webhook a moment to land, then refresh.
-      setTimeout(() => usage.refetch(), 1500);
-    }
-  }, [usage]);
+    if (url.searchParams.get("checkout") !== "success") return;
+    // Poll usage query for up to 12s while the webhook lands.
+    setPolling(true);
+    setNotice("Finalizing your subscription…");
+    let attempts = 0;
+    const startPlan = usage.data?.plan ?? "free";
+    const iv = window.setInterval(async () => {
+      attempts += 1;
+      const fresh = await qc.fetchQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
+      if (fresh?.plan && fresh.plan !== startPlan) {
+        window.clearInterval(iv);
+        setPolling(false);
+        setNotice("Subscription active. Welcome aboard.");
+        // Clean up the query string
+        url.searchParams.delete("checkout");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      } else if (attempts >= 12) {
+        window.clearInterval(iv);
+        setPolling(false);
+        setNotice("Payment received — plan should reflect shortly.");
+      }
+    }, 1000);
+    return () => window.clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentPlan = (usage.data?.plan ?? "free") as PlanId;
   const userId = profile.data?.id;
@@ -50,8 +75,34 @@ function BillingPage() {
 
   async function handleSelect(planId: PlanId) {
     setError(null);
+    setNotice(null);
+    if (planId === currentPlan) return;
     const price = PLANS[planId].priceId;
     if (!price || !userId || !orgId) return;
+
+    // If already on a paid plan, swap items on the existing subscription
+    // (no double-billing).
+    if (currentPlan !== "free") {
+      setChanging(planId);
+      try {
+        const res = await changePlan({ data: { newPlanId: planId } });
+        if (res.changed) {
+          setNotice(
+            res.upgraded
+              ? "Upgrade applied — pro-rated charge on your card now."
+              : "Downgrade scheduled — takes effect on your next renewal.",
+          );
+        }
+        await qc.invalidateQueries({ queryKey: ["org-usage"] });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not change plan");
+      } finally {
+        setChanging(null);
+      }
+      return;
+    }
+
+    // Free → paid: open a fresh checkout.
     try {
       await openCheckout({
         priceId: price,
