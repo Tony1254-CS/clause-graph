@@ -83,8 +83,10 @@ function ContractsIndex() {
         </div>
       ) : (
         <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-          {contracts.map((c) => (
-            <ContractCard key={c.id} contract={c} />
+          {contracts.map((c, i) => (
+            <div key={c.id} className="stagger-item" style={{ ["--i" as string]: i }}>
+              <ContractCard contract={c} />
+            </div>
           ))}
         </div>
       )}
