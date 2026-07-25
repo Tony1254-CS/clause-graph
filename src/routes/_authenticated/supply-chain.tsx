@@ -89,7 +89,7 @@ function SupplyChainPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+            <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
               <Network className="h-3 w-3" strokeWidth={1.8} /> Supply Chain Blast Radius
             </p>
             <h1 className="mt-2 font-display text-[34px] leading-[1.05] tracking-tight text-foreground">
@@ -111,7 +111,7 @@ function SupplyChainPage() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Paste a proposed rule or amendment…"
             rows={4}
-            className="w-full resize-y rounded-[12px] border border-[var(--hairline-strong)] bg-[rgba(255,255,255,0.02)] px-4 py-3 text-[13px] text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/60"
+            className="w-full resize-y rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-glass)] px-4 py-3 text-[13px] text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brass)]/60"
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
             <button
@@ -119,14 +119,14 @@ function SupplyChainPage() {
                 setText(DEMO_TEXT);
                 onSimulate(DEMO_TEXT);
               }}
-              className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass hover:underline duration-150 transition-colors"
+              className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)] transition-colors duration-200 hover:underline"
             >
               Load EU Data-Center Energy demo →
             </button>
             <button
               onClick={() => onSimulate()}
               disabled={!text.trim() || status === "loading"}
-              className="inline-flex items-center gap-2 rounded-[12px] bg-[var(--brass)] px-5 py-2.5 text-[13px] font-medium text-[var(--primary-foreground)] shadow-[var(--glow-brass)] hover:bg-[var(--brass-strong)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] duration-150 ease-out transition-all"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-5 py-2.5 text-[13px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === "loading" ? (
                 <>
@@ -162,7 +162,7 @@ function SupplyChainPage() {
             {result ? (
               <>
                 <div className="glass-panel p-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
                     Indirect exposure
                   </p>
                   <p className="mt-2 font-mono text-[30px] text-foreground">
@@ -185,11 +185,11 @@ function SupplyChainPage() {
                       return (
                         <li
                           key={h.node_id}
-                          className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] duration-150 transition-colors"
+                          className="rounded-[12px] border border-[var(--hairline)] p-3 transition-colors duration-200 hover:border-[var(--hairline-strong)] hover:bg-[var(--surface-glass)]"
                         >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass">
+                              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)]">
                                 Hop {h.hop}
                               </span>
                               <span className="text-[13px] text-foreground">{n.name}</span>
@@ -229,7 +229,7 @@ function SupplyChainPage() {
                 </div>
 
                 <div className="glass-panel p-5">
-                  <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-brass mb-3">
+                  <p className="mb-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
                     <ShieldAlert className="h-3 w-3" strokeWidth={1.8} /> Remediation
                   </p>
                   <ul className="flex flex-col gap-2">
