@@ -31,12 +31,20 @@ export const Route = createFileRoute("/_authenticated/contracts/$contractId")({
     return (
       <div className="glass-panel p-8 text-center max-w-md">
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Not found
+          Contract unavailable
         </p>
-        <p className="mt-2 text-foreground">No contract with ID {contractId}.</p>
+        <p className="mt-3 font-display text-[20px] leading-[1.25] text-foreground">
+          This contract no longer exists in your workspace.
+        </p>
+        <p className="mt-2 text-[13px] leading-[1.55] text-muted-foreground">
+          It may have been removed, or the sample corpus was re-seeded and this link is now stale.
+        </p>
+        <p className="mt-3 font-mono text-[10px] text-muted-foreground break-all">
+          {contractId}
+        </p>
         <Link
           to="/contracts"
-          className="mt-4 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm"
+          className="mt-5 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm hover:text-brass transition-colors"
         >
           Back to contracts
         </Link>

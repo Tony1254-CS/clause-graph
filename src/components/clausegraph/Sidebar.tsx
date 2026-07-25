@@ -86,13 +86,13 @@ export function Sidebar() {
         onFocus={open}
         onBlur={handleBlur}
         data-expanded={expanded}
-        className={`glass-panel hidden md:flex fixed left-4 sm:left-6 top-6 bottom-6 z-30 flex-col py-6 gap-6 overflow-hidden transition-[width] duration-200 ease-out motion-reduce:transition-none ${
+        className={`glass-panel hidden md:flex fixed left-4 sm:left-6 top-6 bottom-6 z-30 flex-col py-6 gap-4 overflow-hidden transition-[width] duration-200 ease-out motion-reduce:transition-none ${
           expanded ? "w-[240px] px-4" : "w-16 px-3"
         }`}
       >
         <Link
           to="/dashboard"
-          className="flex items-center gap-2.5 h-8 outline-none rounded-md focus-visible:ring-2 focus-visible:ring-brass/60"
+          className="flex items-center gap-2.5 h-8 shrink-0 outline-none rounded-md focus-visible:ring-2 focus-visible:ring-brass/60"
         >
           <div className="h-8 w-8 shrink-0 rounded-full border border-[var(--hairline-strong)] grid place-items-center">
             <div className="h-2 w-2 rounded-full bg-brass" />
@@ -106,7 +106,7 @@ export function Sidebar() {
           </span>
         </Link>
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col gap-1 [scrollbar-width:thin] [scrollbar-color:var(--hairline-strong)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--hairline-strong)]">
           <p
             className={`font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2 px-3 whitespace-nowrap transition-opacity duration-200 motion-reduce:transition-none ${
               expanded ? "opacity-100" : "opacity-0"
@@ -119,17 +119,15 @@ export function Sidebar() {
           ))}
         </nav>
 
-        <div
-          className={`mt-auto rounded-[12px] border border-[var(--hairline)] p-4 transition-opacity duration-200 motion-reduce:transition-none ${
-            expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap">
-            Jurisdiction
-          </p>
-          <p className="mt-1.5 font-display text-[15px] text-foreground whitespace-nowrap">United States</p>
-          <p className="font-mono text-[11px] text-muted-foreground mt-0.5 whitespace-nowrap">SEC · FINRA · CFTC</p>
-        </div>
+        {expanded && (
+          <div className="shrink-0 rounded-[12px] border border-[var(--hairline)] p-4 transition-opacity duration-200 motion-reduce:transition-none">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap">
+              Jurisdiction
+            </p>
+            <p className="mt-1.5 font-display text-[15px] text-foreground whitespace-nowrap">United States</p>
+            <p className="font-mono text-[11px] text-muted-foreground mt-0.5 whitespace-nowrap">SEC · FINRA · CFTC</p>
+          </div>
+        )}
       </aside>
     </>
   );
@@ -137,22 +135,22 @@ export function Sidebar() {
 
 export function MobileRail() {
   return (
-    <aside className="glass-panel md:hidden flex w-14 shrink-0 flex-col items-center py-4 gap-3 h-[calc(100dvh-48px)] sticky top-6">
+    <aside className="glass-panel md:hidden flex w-14 shrink-0 flex-col items-center py-4 gap-3 h-[calc(100dvh-48px)] sticky top-6 overflow-hidden">
       <Link
         to="/dashboard"
-        className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center"
+        className="h-8 w-8 shrink-0 rounded-full border border-[var(--hairline-strong)] grid place-items-center"
         aria-label="ClauseGraph home"
       >
         <div className="h-2 w-2 rounded-full bg-brass" />
       </Link>
-      <div className="flex flex-col gap-1.5 mt-2">
+      <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden flex flex-col items-center gap-1.5 mt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {NAV.map((item) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.to}
               to={item.to}
-              className="h-10 w-10 grid place-items-center rounded-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] outline-none focus-visible:ring-2 focus-visible:ring-brass/60 duration-150 ease-out transition-all"
+              className="h-10 w-10 shrink-0 grid place-items-center rounded-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.03)] outline-none focus-visible:ring-2 focus-visible:ring-brass/60 duration-150 ease-out transition-all"
               aria-label={item.label}
             >
               <Icon className="h-4 w-4" strokeWidth={1.6} />
