@@ -194,18 +194,31 @@ function BillingPage() {
           </div>
         </section>
 
+        {onTrial && (
+          <p className="font-mono text-[11px] text-muted-foreground">
+            You&apos;re on a Pro trial
+            {usage.data?.trial_days_left != null
+              ? ` — ${usage.data.trial_days_left} day${usage.data.trial_days_left === 1 ? "" : "s"} left`
+              : ""}
+            . Subscribe below to keep Pro features after it ends.
+          </p>
+        )}
+
         <section className="grid gap-6 md:grid-cols-3">
           {(Object.keys(PLANS) as PlanId[]).map((id) => (
             <PlanCard
               key={id}
               plan={PLANS[id]}
               current={currentPlan === id}
+              trialing={onTrial && currentPlan === id}
+              purchasable={!hasSubscription}
               disabled={coLoading || changing !== null || !PLANS[id].priceId}
               busy={changing === id}
               onSelect={() => handleSelect(id)}
             />
           ))}
         </section>
+
 
         <p className="text-center font-mono text-[10.5px] text-muted-foreground">
           Payments are processed by Paddle, our merchant of record. Cancel anytime from the
