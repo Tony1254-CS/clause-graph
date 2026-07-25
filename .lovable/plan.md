@@ -1,92 +1,66 @@
-## Phase 9 — Full spec pivot of the regulatory ontology
+# Phase 10 — Two Category-Defining Features
 
-Replace the current 10 US-financial regulations with the exact mix your spec calls for (3 GDPR, 4 US, 3 Bangladesh), rewrite the seeded contract corpus to cite the new IDs, and re-seed the amendment history that the Predictive Radar reads from.
+## Feature 1: Cross-Enterprise Blast Radius (Supply Chain propagation)
 
-### The new 10 regulations
+Model a multi-hop counterparty graph and cascade regulatory impact across contract edges.
 
-**EU — GDPR (3)**
+### Data
+New migration:
+- `supply_chain_nodes` (id, org_id, name, role: `self|supplier|subprocessor|vendor`, tier: int, jurisdiction, description)
+- `supply_chain_edges` (id, org_id, from_node_id, to_node_id, contract_name, contract_value numeric, key_clauses text[], depends_on_regs text[])
+- RLS scoped to `org_id = current_org_id()`; standard GRANTs.
+- Seed a demo chain per org in `handle_new_user` (or on first visit): Self → Supplier A (cloud, tier 1) → Supplier B (data center, tier 2) → Supplier C (energy provider, tier 3), plus a parallel branch (Self → Payment Processor → Card Network).
 
-```text
-REG-GDPR-5      GDPR Art. 5 — Principles / Data Minimization
-REG-GDPR-33     GDPR Art. 33 — Personal Data Breach Notification (72h)
-REG-GDPR-44     GDPR Art. 44 — General Principle for International Transfers
-```
+### Server
+`src/lib/supply-chain.functions.ts`:
+- `getSupplyChain()` — returns nodes + edges for org.
+- `simulateSupplyChainImpact({ regulationText, seedNodeIds? })` — calls the AI gateway (`google/gemini-3.6-flash`) with the chain + regulation to identify directly-hit nodes, then runs a deterministic BFS traversal across edges to compute cascade hops. Returns `{ hits: [{nodeId, hop, reason, brokenClause, severity, indirectExposureUSD}], totalIndirectExposure, remediation: string[] }`.
+- Persist runs to existing `simulation_runs` with `run_type='supply_chain'`.
 
-**US (4) — a broader mix, not just financial**
+### UI
+- New route `src/routes/_authenticated/supply-chain.tsx`.
+- New sidebar item "Supply Chain" (icon: `Network`).
+- Component `SupplyChainGraph.tsx`: force-directed / layered SVG graph with company boundary rings. Hop-delayed red wave animation (200ms per hop, respects `prefers-reduced-motion`).
+- Side panel: cascade breakdown ("Hop 1 → 2 → 3"), indirect exposure $ in JetBrains Mono, brass-outlined "Require upstream audit" remediation cards.
+- Input: regulation text box + "Simulate cascade" brass button; also a "Load EU Data Center Energy demo" preset for the wow moment.
 
-```text
-REG-SEC-17A4    SEC Rule 17a-4 — Broker-Dealer Records (immutable retention)
-REG-CCPA-1798.120  CCPA §1798.120 — Right to Opt Out of Sale/Sharing
-REG-HIPAA-SEC   HIPAA Security Rule (45 CFR §164.306–.312)
-REG-SOX-302     SOX §302 — Officer Certification (kept from current set)
-```
+## Feature 2: Compliance-as-Code Autopilot
 
-**Bangladesh (3)** — preferring the three named in your spec, with permission to substitute if English sourcing is thin:
+Turn simulation findings into executable audit + remediation artifacts.
 
-```text
-REG-BB-DPS-2023   Bangladesh Bank Digital Payment Security Circular (2023)
-REG-BD-DSA-2018   Digital Security Act 2018 §26 — Data Breach & Identity Info
-REG-BD-LA-2006    Bangladesh Labour Act 2006 §26 — Notice of Termination
-```
+### Server
+`src/lib/compliance-code.functions.ts`:
+- `generateComplianceCode({ regulationText, gap, stack: 'aws'|'gcp'|'azure' })` — AI call returns structured JSON:
+  - `auditScript`: { language: 'python'|'bash', code, description }
+  - `remediation`: { language: 'terraform'|'yaml'|'bash', code, description }
+  - `testCases`: string[]
+  - `runbook`: string (markdown)
+- Uses `google/gemini-3.6-flash` with a compliance-engineer system prompt; validates output with Zod; falls back to deterministic template when AI unavailable.
+- Persists artifacts to a new `compliance_artifacts` table (id, org_id, simulation_run_id nullable, regulation_id nullable, gap, stack, audit_script jsonb, remediation jsonb, created_at) with RLS + GRANTs.
 
-Each entry: plain-language `summary` (2–3 sentences) + `obligations[]` (3–5 machine-readable tags like `data_minimization`, `72h_breach_notification`, `right_to_opt_out`). Written to be safe to paste verbatim into every LLM prompt.
+### UI
+- New component `ComplianceCodePanel.tsx`: two tabbed code blocks (Audit / Remediation) with:
+  - Monospace rendering, syntax color via light regex highlighting (no new dep) — brass accents on keywords.
+  - Typing animation on first render (12ms/char, skip on reduced-motion or `Skip animation` click).
+  - Copy button + "Download .py/.tf" buttons.
+- Wire into `ActionPlanPanel.tsx` (new "Compliance-as-Code" tab) and the Supply Chain results panel (per-node "Generate fix" button).
+- New route `src/routes/_authenticated/actions.$runId.tsx` optional — otherwise inline in existing action plan view.
 
-### The new 15 sample contracts
+## Design system
+- Reuse tokens: brass for active/CTA, risk-red only for hit nodes and cascade wave, `surface-glass` panels, 20px/12px radii.
+- New graph uses the same `hairline` divider color for idle edges; edges turn brass while "propagating", then risk-red when the hop lands.
 
-Rewritten so the citation graph is dense and demo-legible. Roughly:
+## Technical details
+- No new npm deps required; SVG graph is hand-rolled to keep bundle lean. If layout gets fiddly we add `dagre` (small).
+- All AI calls go through existing `createLovableAiGatewayProvider` helper; server-only key handling unchanged.
+- Zod schemas colocated in each `.functions.ts` file.
+- Loaders use `queryClient.ensureQueryData` + `useSuspenseQuery` pattern (matches current codebase).
+- Migration includes seed sample rows so demo works immediately on new signup and is backfilled for existing orgs.
 
-| # | Contract | Cites |
-| --- | --- | --- |
-| 1 | Data Processing Agreement — EU SaaS vendor | GDPR-5, GDPR-33, GDPR-44 |
-| 2 | Standard Contractual Clauses addendum | GDPR-44 |
-| 3 | Customer Terms of Service — EU consumers | GDPR-5, GDPR-33 |
-| 4 | Employee Privacy Notice — EU workforce | GDPR-5 |
-| 5 | Consumer Privacy Notice — California | CCPA-1798.120 |
-| 6 | Adtech Data-Sharing Agreement — US | CCPA-1798.120, GDPR-44 |
-| 7 | Business Associate Agreement (HIPAA) | HIPAA-SEC |
-| 8 | Cloud Hosting Master Agreement — health-data workload | HIPAA-SEC, GDPR-33 |
-| 9 | Broker-Dealer Recordkeeping SLA | SEC-17A4, SOX-302 |
-| 10 | Audit Committee Charter | SOX-302 |
-| 11 | Merchant Acquiring Agreement — Bangladesh | BB-DPS-2023 |
-| 12 | Mobile Wallet Terms of Use — Bangladesh consumers | BB-DPS-2023, DSA-2018 |
-| 13 | ISP Data-Retention Order Compliance Policy — Bangladesh | DSA-2018 |
-| 14 | Fixed-Term Employment Contract — Bangladesh knitwear plant | LA-2006 |
-| 15 | Cross-border Support Services Agreement — BD → EU data flow | LA-2006, GDPR-44 |
-
-Each contract carries 3–4 clauses with real regulatory language (per your original spec: ≥8 contracts have explicit reg language, the rest are boilerplate).
-
-### Amendment history for the Predictive Radar
-
-Every one of the 10 new regs gets 3–5 dated entries in `regulation_amendments`, grounded in the actual public amendment record where possible (e.g. GDPR EDPB guidance updates on Art. 33, CCPA→CPRA amendment, Bangladesh Bank circular annexures). Each entry: `amended_on`, `summary`, `direction` (`tightened` / `loosened` / `clarified` / `expanded`). This drives the heuristic — the interval between amendments is what the Radar's probability model uses.
-
-### How this affects existing orgs
-
-Every seeded row in the DB is marked `is_sample = true`. There are currently no user-uploaded contracts. Plan:
-
-- `DELETE FROM clauses WHERE contract_id IN (SELECT id FROM contracts WHERE is_sample = true)`
-- `DELETE FROM contracts WHERE is_sample = true`
-- Re-run the same seeding logic `handle_new_user()` uses, per existing org, from the new `sample_contracts` + `sample_clauses` rows
-
-User-uploaded contracts (`is_sample = false`) are never touched — there are none today, but the query is scoped defensively.
-
-### Migration structure (one migration, transactional)
-
-```text
-1. DELETE dependent rows (regulation_amendments, sample_clauses, is_sample clauses/contracts)
-2. DELETE FROM regulations
-3. INSERT 10 new regulations
-4. INSERT ~40 amendment history rows
-5. INSERT 15 sample_contracts + ~50 sample_clauses
-6. For each existing organization: re-copy sample rows into contracts/clauses (matching handle_new_user)
-```
-
-### What does NOT change
-
-- `backtest_cases`: self-contained (own reg strings, own reconstructed clause IDs) — untouched.
-- `handle_new_user()` trigger: already reads from `sample_contracts`/`sample_clauses`, so new signups automatically pick up the new corpus.
-- `predict.functions.ts` / `simulate.functions.ts` / Radar UI: they read whatever is in `regulations` + `regulation_amendments`, so no code changes needed — the pivot is data-only.
-- Federal Register widget: continues to fetch live from federalregister.gov.
-
-### Deliverable
-
-A single Supabase migration containing all inserts and the cleanup + reseed of existing orgs. No frontend code changes needed after this — the entire app rerenders against the new ontology.
+## Deliverables
+1. Migration: `supply_chain_nodes`, `supply_chain_edges`, `compliance_artifacts` + seed + backfill.
+2. `src/lib/supply-chain.functions.ts`, `src/lib/compliance-code.functions.ts`.
+3. `src/components/clausegraph/SupplyChainGraph.tsx`, `ComplianceCodePanel.tsx`.
+4. Routes: `_authenticated/supply-chain.tsx` (+ optional `actions.$runId.tsx`).
+5. Sidebar + ActionPlanPanel integration.
+6. Head metadata on the new route.
