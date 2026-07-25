@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, ShieldCheck, Zap, Network, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PLANS, type PlanId } from "@/lib/plans";
+import { PLANS, BILLING_ENABLED, type PlanId } from "@/lib/plans";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -180,27 +180,57 @@ function Landing() {
       <section className="mx-auto max-w-[1200px] px-6 pb-24">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">Pricing</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
+              Early access
+            </p>
             <h2 className="mt-3 font-display text-[36px] tracking-tight text-foreground">
-              Simple, transparent tiers.
+              Everything included. No card.
             </h2>
           </div>
           <p className="font-mono text-[11px] text-muted-foreground max-w-[36ch]">
-            30-day money-back guarantee. Billed by Paddle, our merchant of record.
+            {BILLING_ENABLED
+              ? "30-day money-back guarantee. Billed by Paddle, our merchant of record."
+              : "Paid plans aren't active yet — every workspace runs on Pro, in full."}
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {(Object.keys(PLANS) as PlanId[]).map((id) => {
             const p = PLANS[id];
+            const highlight = !BILLING_ENABLED && id === "pro";
             return (
-              <div key={id} className="glass-panel p-6 flex flex-col gap-4">
+              <div
+                key={id}
+                className={`glass-panel p-6 flex flex-col gap-4 ${
+                  highlight ? "border-brass/50 shadow-[0_0_32px_-12px_rgba(201,166,107,0.4)]" : ""
+                }`}
+              >
                 <div>
-                  <h3 className="font-display text-[22px] text-foreground">{p.name}</h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-display text-[22px] text-foreground">{p.name}</h3>
+                    {highlight && (
+                      <span className="rounded-full border border-brass/40 bg-brass/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass">
+                        Active for all
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-1 text-[13px] text-muted-foreground">{p.tagline}</p>
                 </div>
                 <div>
-                  <span className="font-display text-[38px] text-foreground">${p.priceUsd}</span>
-                  <span className="ml-1 font-mono text-[12px] text-muted-foreground">/ month</span>
+                  {BILLING_ENABLED ? (
+                    <>
+                      <span className="font-display text-[38px] text-foreground">${p.priceUsd}</span>
+                      <span className="ml-1 font-mono text-[12px] text-muted-foreground">
+                        / month
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-display text-[38px] text-foreground">$0</span>
+                      <span className="ml-1 font-mono text-[12px] text-muted-foreground">
+                        during early access
+                      </span>
+                    </>
+                  )}
                 </div>
                 <ul className="flex flex-col gap-2">
                   {p.features.map((f) => (
@@ -214,13 +244,18 @@ function Landing() {
                   to="/auth"
                   className="mt-auto inline-flex items-center justify-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2.5 text-[13px] text-foreground hover:border-brass hover:text-brass transition-colors"
                 >
-                  {p.priceUsd === 0 ? "Start free" : `Get ${p.name}`}
+                  {BILLING_ENABLED
+                    ? p.priceUsd === 0
+                      ? "Start free"
+                      : `Get ${p.name}`
+                    : "Start free"}
                 </Link>
               </div>
             );
           })}
         </div>
       </section>
+
 
       <footer className="border-t border-[var(--hairline)]">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-6 py-8 text-[12.5px] text-muted-foreground">

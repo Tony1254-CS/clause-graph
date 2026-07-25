@@ -125,7 +125,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // The inline theme script sets class="dark" before hydration, so the
+    // server HTML and client tree differ on <html> by design.
+    <html lang="en" suppressHydrationWarning>
+
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />

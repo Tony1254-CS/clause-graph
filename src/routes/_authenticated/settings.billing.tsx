@@ -10,7 +10,7 @@ import {
   createBillingPortalSession,
   changeSubscriptionPlan,
 } from "@/lib/billing.functions";
-import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
+import { PLANS, formatLimit, BILLING_ENABLED, UNLIMITED, type PlanId } from "@/lib/plans";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { RouteError } from "@/components/clausegraph/RouteError";
@@ -33,6 +33,85 @@ export const Route = createFileRoute("/_authenticated/settings/billing")({
 });
 
 function BillingPage() {
+  // Paid subscriptions are parked (see BILLING_ENABLED in src/lib/plans.ts).
+  // The full paid experience below is left intact for reactivation.
+  return BILLING_ENABLED ? <PaidBillingPage /> : <ParkedBillingPage />;
+}
+
+/** Billing parked: full Pro access for every workspace, nothing to pay. */
+function ParkedBillingPage() {
+  const getUsage = useServerFn(getOrgUsage);
+  const usage = useQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
+
+  return (
+    <AppShell>
+      <div className="w-full max-w-[1100px] flex flex-col gap-8">
+        <header>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass">Plan</p>
+          <h1 className="mt-2 font-display text-[36px] leading-tight text-foreground">
+            Plan &amp; usage
+          </h1>
+          <p className="mt-2 text-[14px] text-muted-foreground max-w-[62ch]">
+            Every workspace is on <span className="text-foreground">Pro</span> with unlimited usage
+            during early access. There is nothing to pay and no limits to hit.
+          </p>
+        </header>
+
+        <section className="glass-panel p-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border border-brass/40 bg-brass/10 px-2.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass">
+              Pro · Early access
+            </span>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Subscriptions are not active yet
+            </span>
+          </div>
+          <p className="mt-4 text-[13.5px] text-muted-foreground max-w-[70ch]">
+            Paid plans are built and ready — checkout, invoices and the subscription portal are
+            wired up but switched off. When ClauseGraph opens commercially, plans and pricing will
+            appear here and you&apos;ll be told well before anything is charged.
+          </p>
+        </section>
+
+        <section className="glass-panel p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            This month
+          </p>
+          <div className="mt-4 grid gap-6 sm:grid-cols-3">
+            <UsageStat label="Contracts" value={usage.data?.contracts ?? 0} limit={UNLIMITED} />
+            <UsageStat label="Simulations" value={usage.data?.simulations ?? 0} limit={UNLIMITED} />
+            <UsageStat label="Seats" value={usage.data?.members ?? 0} limit={UNLIMITED} />
+          </div>
+        </section>
+
+        <section className="glass-panel p-6">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            Included right now
+          </p>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {[
+              "Unlimited contracts & clause extraction",
+              "Unlimited blast-radius simulations",
+              "Unlimited teammates",
+              "Compliance action plans + PDF export",
+              "Compliance-as-code autopilot",
+              "Predictive regulatory radar & what-if sandbox",
+              "Cross-enterprise supply-chain risk",
+              "Federal Register live feed",
+            ].map((f) => (
+              <li key={f} className="flex items-start gap-2 text-[13px] text-foreground">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brass" strokeWidth={2.2} />
+                {f}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </AppShell>
+  );
+}
+
+function PaidBillingPage() {
   const qc = useQueryClient();
   const profile = useQuery(profileQuery);
   const getUsage = useServerFn(getOrgUsage);
@@ -234,7 +313,8 @@ function BillingPage() {
 }
 
 function UsageStat({ label, value, limit }: { label: string; value: number; limit: number }) {
-  const pct = Math.min(100, limit > 0 ? Math.round((value / limit) * 100) : 0);
+  const unlimited = limit >= UNLIMITED;
+  const pct = unlimited ? 0 : Math.max(0, Math.min(100, limit > 0 ? Math.round((value / limit) * 100) : 0));
   return (
     <div>
       <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -244,9 +324,11 @@ function UsageStat({ label, value, limit }: { label: string; value: number; limi
         {value}
         <span className="ml-1 font-mono text-[13px] text-muted-foreground">/ {formatLimit(limit)}</span>
       </p>
-      <div className="mt-2 h-1 rounded-full bg-[rgba(255,255,255,0.05)]">
-        <div className="h-full rounded-full bg-brass" style={{ width: `${pct}%` }} />
-      </div>
+      {!unlimited && (
+        <div className="mt-2 h-1 rounded-full bg-[rgba(255,255,255,0.05)]">
+          <div className="h-full rounded-full bg-brass" style={{ width: `${pct}%` }} />
+        </div>
+      )}
     </div>
   );
 }

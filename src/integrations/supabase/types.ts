@@ -685,6 +685,7 @@ export type Database = {
         Args: { _action: string; _org: string }
         Returns: undefined
       }
+      billing_enabled: { Args: never; Returns: boolean }
       cancel_workspace_deletion: {
         Args: { _by: string; _org: string }
         Returns: undefined

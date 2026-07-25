@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "./paddle.server";
-import { PLANS, type PlanId } from "./plans";
+import { PLANS, BILLING_ENABLED, type PlanId } from "./plans";
 
 /**
  * Resolves a human-readable price id (e.g. "pro_monthly") to the Paddle
@@ -76,6 +76,8 @@ export type OrgUsage = {
   trial_days_left: number | null;
   /** True only when a real Paddle subscription backs this workspace. */
   has_subscription: boolean;
+  /** False while paid subscriptions are parked — everyone runs as Pro. */
+  billing_enabled: boolean;
   deletion_scheduled_at: string | null;
 };
 
@@ -116,7 +118,10 @@ export const getOrgUsage = createServerFn({ method: "GET" })
     const trialEnds = (org?.trial_ends_at as string | null) ?? null;
     const hasSubscription = !!sub?.paddle_subscription_id;
     const onTrial =
-      !!trialEnds && !hasSubscription && new Date(trialEnds).getTime() > Date.now();
+      BILLING_ENABLED &&
+      !!trialEnds &&
+      !hasSubscription &&
+      new Date(trialEnds).getTime() > Date.now();
     const trialDaysLeft = onTrial
       ? Math.max(
           0,
@@ -126,17 +131,25 @@ export const getOrgUsage = createServerFn({ method: "GET" })
         )
       : null;
 
+    // Billing parked: every workspace is Pro with an active status, no trial
+    // clock and no dunning state. Never degrade to "free" here.
+    const plan = BILLING_ENABLED
+      ? ((org?.plan as OrgUsage["plan"]) ?? "free")
+      : ("pro" as const);
+    const planStatus = BILLING_ENABLED ? ((org?.plan_status as string) ?? "active") : "active";
+
     return {
       contracts: (usage as { contracts?: number } | null)?.contracts ?? 0,
       simulations: (usage as { simulations?: number } | null)?.simulations ?? 0,
       members: (usage as { members?: number } | null)?.members ?? 0,
-      plan: (org?.plan as OrgUsage["plan"]) ?? "free",
-      plan_status: (org?.plan_status as string) ?? "active",
-      plan_renews_at: (org?.plan_renews_at as string | null) ?? null,
-      trial_ends_at: trialEnds,
+      plan,
+      plan_status: planStatus,
+      plan_renews_at: BILLING_ENABLED ? ((org?.plan_renews_at as string | null) ?? null) : null,
+      trial_ends_at: BILLING_ENABLED ? trialEnds : null,
       on_trial: onTrial,
       trial_days_left: trialDaysLeft,
       has_subscription: hasSubscription,
+      billing_enabled: BILLING_ENABLED,
       deletion_scheduled_at: (org?.deletion_scheduled_at as string | null) ?? null,
     };
   });

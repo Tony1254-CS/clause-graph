@@ -9,11 +9,12 @@
 ## 🚀 Quick Start
 
 1. **Sign in** at `/auth` — email/password or Google.
-2. You're auto-provisioned a private workspace with a **30-day Pro trial** and a seeded corpus of sample contracts and a supply-chain graph.
+2. You're auto-provisioned a private workspace on **Pro, free, with unlimited usage** (early access — no trial clock, no card, nothing to cancel), pre-seeded with a sample contract corpus and a supply-chain graph.
 3. Open **Simulate Impact**, paste any regulation text, and watch the blast radius render on the central medallion.
 4. Click **Generate Action Plan** to get a policy draft, amendment language, and a technical checklist you can export as PDF.
 
 No setup, no credit card, no ceremony.
+
 
 ---
 
@@ -92,10 +93,12 @@ Each feature below lists **what it does**, **when to use it**, **where to find i
 - **Where**: `/settings/team`
 - **Powered by**: `team.functions.ts`, `user_roles` table
 
-### 13. Billing (Free / Pro / Enterprise)
-- **What**: Paddle-powered upgrade/downgrade with **pro-rated swaps** via the Paddle Node SDK. `past_due` dunning banner, one-click cancel. Every new user gets a **30-day Pro trial**; expiry auto-downgrades on the next quota check.
+### 13. Billing — parked (everything is free right now)
+- **What**: Subscriptions are fully built but **switched off**. Every workspace runs on Pro with unlimited contracts, simulations and seats. `/settings/billing` shows a plain "early access — nothing to pay" panel instead of pricing cards, and no upgrade prompt exists anywhere in the app.
+- **Under the hood**: the Paddle integration stays intact — checkout, pro-rated plan swaps via the Paddle Node SDK, customer portal, dunning, and the HMAC-verified webhook. Two switches turn it on: `public.billing_enabled()` in the database and `BILLING_ENABLED` in `src/lib/plans.ts`. Flip both and the paid experience returns with no rebuild.
 - **Where**: `/settings/billing`
 - **Powered by**: `billing.functions.ts`, `usePaddleCheckout.ts`, webhook `/api/public/payments/webhook`
+
 
 ### 14. Workspace Deletion (30-day grace)
 - **What**: Admin schedules deletion; workspace remains restorable for 30 days. Admins can cancel any time before the deadline.
@@ -132,17 +135,35 @@ Add more by inserting into `public.regulations` — the whole app auto-picks the
 
 ## 💰 Plans & Limits
 
-| | **Free** | **Pro** (30-day trial default) | **Enterprise** |
+**Current state: every workspace is on Pro, free, with unlimited usage.**
+Billing is parked while the product is in early access — there is no trial
+countdown, no paywall and no upgrade nag anywhere in the product.
+
+| | **Today (early access)** |
+|---|:-:|
+| Contracts | ∞ |
+| Simulations / month | ∞ |
+| Team members | ∞ |
+| Every feature (Radar, Supply Chain, Compliance-as-Code, PDF export) | ✓ |
+| Price | $0 |
+
+<details>
+<summary>The tier design kept for when billing is switched on</summary>
+
+| | **Free** | **Pro** — $49/mo | **Team** — $199/mo |
 |---|:-:|:-:|:-:|
 | Contracts | 3 | 50 | ∞ |
 | Simulations / month | 5 | 100 | ∞ |
 | Team members | 1 | 3 | ∞ |
-| Predictive Radar | — | ✓ | ✓ |
-| Compliance-as-Code | — | ✓ | ✓ |
-| Supply-chain graph | Preview | Full | Full + custom nodes |
-| SSO / audit log | — | — | ✓ |
+| Action plans + PDF export | — | ✓ | ✓ |
+| Predictive Radar / Compliance-as-Code | — | ✓ | ✓ |
 
-Limits are enforced at the database (`assert_within_quota`) — no client bypass is possible.
+Enabling it takes two edits: `public.billing_enabled()` → `SELECT true`, and
+`BILLING_ENABLED = true` in `src/lib/plans.ts`. Limits are enforced at the
+database (`assert_within_quota`) — no client bypass is possible.
+
+</details>
+
 
 ---
 
@@ -154,13 +175,16 @@ Limits are enforced at the database (`assert_within_quota`) — no client bypass
 - **Billing** — Paddle (Node SDK + Paddle.js).
 - **External** — Federal Register API.
 
-Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
+Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — including the complete database DDL, every RLS policy and every SQL function.
 
-### Vercel deployment notes
+Moving off Lovable to your own Supabase project and host: **[`MIGRATION.md`](./MIGRATION.md)**.
 
-ClauseGraph now detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
+### Self-hosted / Vercel deployment notes
 
-Set the same production environment variables in Vercel that the app uses at runtime: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `LOVABLE_API_KEY`, and the Paddle variables used by billing/webhooks. Private backend values must stay in Vercel's encrypted environment-variable UI — never commit them.
+ClauseGraph detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
+
+Set **both** the client and the server variables on the host — server functions read `process.env` at call time, so client-only vars make pages render with every panel empty: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY` (or your own `OPENAI_API_KEY`), plus the Paddle variables only if billing is switched on. Private values stay in the host's encrypted environment UI — never commit them.
+
 
 ---
 
@@ -195,7 +219,8 @@ src/
 | Symptom | Cause | Fix |
 |---|---|---|
 | "Contract not found" after a re-seed | Sample contract IDs were regenerated | Return to `/contracts` and open the newly-seeded item |
-| Trial banner disappears and quotas tighten | 30-day Pro trial expired, no paid subscription | Upgrade in `/settings/billing` — takes effect immediately |
+| Header says PRO but billing looked "Free" | Fixed — plan is now resolved server-side from one source; while billing is parked every workspace is Pro | Nothing to do; hard-refresh if a stale tab is open |
+| Blank panels on a self-hosted deployment | Server-side env vars missing on the host | Set the `SUPABASE_*` / AI key server variables (see deployment notes) |
 | "Unsupported provider" on Google sign-in | Google OAuth not enabled for the project | Ask the workspace owner to enable Google via the Connectors settings |
 | Simulate returns a canned result | AI Gateway rate-limited or unreachable — deterministic fallback served | Retry in a minute; check `LOVABLE_API_KEY` in your project secrets |
 | Upload stuck on "Extracting…" | Gemini timeout on a very large PDF | Split into smaller docs; the state auto-recovers on retry |

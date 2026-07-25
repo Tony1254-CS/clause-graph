@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, Check, ArrowUpRight } from "lucide-react";
-import { PLANS, formatLimit, type PlanId } from "@/lib/plans";
+import { PLANS, formatLimit, BILLING_ENABLED, type PlanId } from "@/lib/plans";
 import { isPlanLimitError } from "@/lib/plans";
 
 export type PlanLimitReason = "contracts" | "simulations" | "seats" | "generic";
@@ -28,6 +28,8 @@ const REASON_COPY: Record<PlanLimitReason, { title: string; body: string }> = {
 const EVENT = "clausegraph:plan-limit";
 
 export function openPlanLimitDialog(reason: PlanLimitReason = "generic") {
+  // Billing parked: no plan limits exist, so never nag anyone to upgrade.
+  if (!BILLING_ENABLED) return;
   window.dispatchEvent(new CustomEvent(EVENT, { detail: { reason } }));
 }
 

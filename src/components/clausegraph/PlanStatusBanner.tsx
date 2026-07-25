@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Clock } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
+import { BILLING_ENABLED } from "@/lib/plans";
 
 type OrgStatus = {
   plan_status?: string;
@@ -28,6 +29,35 @@ function fmtDate(iso: string | null | undefined) {
 }
 
 export function PlanStatusBanner() {
+  // Billing is parked — no dunning, pause or upgrade state can exist, so only
+  // the workspace-deletion notice can ever surface.
+  if (!BILLING_ENABLED) return <DeletionBanner />;
+  return <BillingStatusBanner />;
+}
+
+function DeletionBanner() {
+  const getUsage = useServerFn(getOrgUsage);
+  const q = useQuery({
+    queryKey: ["org-usage"],
+    queryFn: () => getUsage(),
+    staleTime: 30_000,
+  });
+  const scheduledDelete = (q.data as OrgStatus | undefined)?.deletion_scheduled_at;
+  if (!scheduledDelete) return null;
+  return (
+    <Banner tone="risk" icon={<AlertTriangle className="h-4 w-4" />}>
+      Your workspace is scheduled for deletion on{" "}
+      <span className="font-mono">{fmtDate(scheduledDelete)}</span>.{" "}
+      <Link to="/settings/account" className="underline underline-offset-2">
+        Cancel deletion
+      </Link>
+      .
+    </Banner>
+  );
+}
+
+
+function BillingStatusBanner() {
   const getUsage = useServerFn(getOrgUsage);
   const q = useQuery({
     queryKey: ["org-usage"],
