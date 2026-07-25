@@ -232,11 +232,13 @@ function PlanCard({
   plan,
   current,
   disabled,
+  busy,
   onSelect,
 }: {
   plan: (typeof PLANS)[PlanId];
   current: boolean;
   disabled: boolean;
+  busy?: boolean;
   onSelect: () => void;
 }) {
   return (
@@ -278,7 +280,8 @@ function PlanCard({
             : "border border-[var(--hairline)] text-muted-foreground"
         }`}
       >
-        {current ? "Current plan" : plan.priceId ? `Upgrade to ${plan.name}` : "Included"}
+        {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {current ? "Current plan" : plan.priceId ? `Switch to ${plan.name}` : "Included"}
       </button>
     </div>
   );
