@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Sidebar, MobileRail } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { PlanLimitDialog } from "@/components/PlanLimitDialog";
+import { PlanStatusBanner } from "./PlanStatusBanner";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
