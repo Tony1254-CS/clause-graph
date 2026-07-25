@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Sparkles } from "lucide-react";
 import { getOrgUsage } from "@/lib/billing.functions";
 
 type OrgStatus = {
@@ -9,7 +9,10 @@ type OrgStatus = {
   plan_renews_at?: string | null;
   cancel_at_period_end?: boolean;
   deletion_scheduled_at?: string | null;
+  on_trial?: boolean;
+  trial_days_left?: number | null;
 };
+
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return "";
