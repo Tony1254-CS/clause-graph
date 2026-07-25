@@ -9,6 +9,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function TopBar() {
   const { data: profile } = useQuery(profileQuery);
   const { data: contracts } = useQuery(contractsQuery);
+  const getUsage = useServerFn(getOrgUsage);
+  // Same server-resolved entitlement the billing page uses, so the badge can
+  // never disagree with what the workspace is actually allowed to do.
+  const { data: usage } = useQuery({
+    queryKey: ["org-usage"],
+    queryFn: () => getUsage(),
+    staleTime: 30_000,
+  });
+  const effectivePlan = usage?.plan ?? profile?.org?.plan;
   const contractCount = contracts?.length ?? 0;
   const orgName = profile?.org?.name ?? "Workspace";
 
