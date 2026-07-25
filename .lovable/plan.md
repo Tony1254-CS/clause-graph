@@ -1,109 +1,92 @@
 
-# Phase 2 — Auth & Multi-Tenancy
+# Phase 2.5 + Phase 3 — Team invites & Contract Upload Pipeline
 
-Goal: turn ClauseGraph from a single-user demo running on hardcoded JSON into a real multi-tenant app where each user belongs to an organization, sees only their org's data, and every table is protected by RLS. Nothing in Phases 3–7 (upload, simulate against real contracts, billing) can start until this is in place.
+Phase 2 (auth + multi-tenancy + RLS) is live. Two things remain from the full production plan before we can start billing:
 
-Stack decision (from your answers): stay on TanStack Start with Lovable Cloud (Postgres + Auth + Storage + Secrets). No separate Express service.
+1. **Team invites** — the last unfinished piece of Phase 2 §9.
+2. **Contract upload pipeline** — Phase 3: turn uploaded PDFs/DOCX into `contracts` + `clauses` rows with linked regulations, replacing the sample data.
+
+Stripe billing (Phase 6) and infra/observability (Phase 7) get separate plans after this lands.
 
 ---
 
-## 1. Enable Lovable Cloud
+## Part A — Team invites (finish Phase 2 §9)
 
-- Turn on Lovable Cloud so we get Postgres, Auth, Storage, `supabase` clients, `requireSupabaseAuth` middleware, and the `_authenticated` route gate wired in automatically.
-- Confirm the auto-provisioned env: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and the VITE_ mirror for the browser.
+Goal: an admin can invite a teammate by email, teammate signs up, lands in the same org (not a new one).
 
-## 2. Database schema (migration)
+- **`settings.team.tsx` route** (under `_authenticated/`): lists current members from `profiles` + `user_roles` (RLS-scoped, so admins and members both see just their org). Admin-only "Invite" form and "Remove" button; UI hides admin-only controls via `has_role`.
+- **`inviteTeammate` server fn** (`src/lib/team.functions.ts`, `requireSupabaseAuth`): verifies caller is admin for `current_org_id()` via `context.supabase.rpc('has_role', ...)`, then dynamically imports `supabaseAdmin` and calls `auth.admin.inviteUserByEmail(email, { data: { invited_org_id, full_name } })`. Never uses admin client to check the role.
+- **`removeTeammate` server fn**: same admin check, then deletes `user_roles` row and nulls / reassigns `profiles.org_id` (or blocks removing the last admin).
+- **`handle_new_user` trigger**: already reads `raw_user_meta_data.invited_org_id` and attaches the user as `member` — verified. No migration needed unless we tighten it further.
+- **Invite email**: use Supabase's built-in invite mailer (already covered in Phase 2 plan). Resend/branded email deferred.
+- **TopBar account menu**: add a "Team" link visible to all members; admin-only "Invite" quick action.
 
-One migration, in this order, so RLS is on before any row exists:
+Verification: two accounts, admin invites second, second signs up via the emailed link and lands in the same org's dashboard with the admin's contracts visible under the same RLS.
 
-- `organizations` — `id, name, plan default 'free', stripe_customer_id (nullable, wired in Phase 6), created_at`.
-- `app_role` enum: `admin`, `member`.
-- `user_roles` — `(user_id, org_id, role)`, unique on `(user_id, org_id, role)`. Roles live in a separate table, never on profiles.
-- `profiles` — `id references auth.users(id) on delete cascade, org_id references organizations(id), full_name, created_at`. One row per auth user; created by trigger on signup.
-- `regulations` — add `org_id uuid null references organizations(id)`. NULL = shared curated library visible to everyone; non-NULL = org-private.
-- `contracts` — add `org_id`, `source_file_url`, `extraction_status default 'pending'`, `uploaded_by references profiles(id)`, `created_at`. Phase 3 will use the file/extraction columns; we're adding them now so we don't re-migrate.
-- `clauses` — add `contract_id` FK, `confidence numeric` (nullable until Phase 3 fills it).
-- `simulation_runs` — `org_id, input_regulation_text, result_json jsonb, triggered_by references profiles(id), created_at`. Written by the existing simulate flow after this phase so we have an audit log.
-- `backtest_cases` — stays global (no `org_id`); it's reference data.
+---
 
-`GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated` and `GRANT ALL ... TO service_role` on every org-scoped public table (per Lovable Cloud rules; `anon` gets nothing except `SELECT` on `regulations WHERE org_id IS NULL`, which is what makes the curated ontology readable on public routes).
+## Part B — Contract Upload Pipeline (Phase 3)
 
-## 3. RLS policies
+Goal: a user uploads a contract file, we extract clauses via LLM, link each clause to relevant regulations from the org's ontology, and the contract shows up in `/contracts` alongside sample data.
 
-Enable RLS on every table above. All authenticated policies use a `security definer` helper `public.current_org_id()` that reads the caller's org from `user_roles` — this avoids recursive-RLS on `profiles`/`user_roles`.
+### 1. Storage bucket
 
-- `organizations`: member can SELECT their own row; admin can UPDATE it.
-- `user_roles`: member can SELECT rows in their org; admin can INSERT/DELETE within their org.
-- `profiles`: user can SELECT/UPDATE their own row; members can SELECT profiles in their org (needed for the team list).
-- `regulations`: `SELECT` when `org_id IS NULL OR org_id = current_org_id()`; INSERT/UPDATE/DELETE only when `org_id = current_org_id()`.
-- `contracts`, `clauses` (via `contract_id → contracts.org_id`), `simulation_runs`: all four operations gated on `org_id = current_org_id()`.
-- `backtest_cases`: `SELECT` to authenticated; no writes from clients.
+- Create a **private** bucket `contract-files` via `supabase--storage_create_bucket` (public=false).
+- RLS on `storage.objects`: authenticated users can INSERT/SELECT/DELETE only under path prefix `${current_org_id()}/…`. Enforced via policies on `storage.objects` that parse the path.
 
-A separate `has_role(_user_id, _org_id, _role)` security-definer function backs admin-only checks (invite/remove teammate in Phase 2, admin-only writes in later phases).
+### 2. Upload UI (`/contracts` route)
 
-Test with two separate signed-in orgs, confirming zero cross-tenant read/write on `contracts`, `clauses`, `simulation_runs`, and `user_roles`.
+- Add a "Upload contract" button on `/contracts/index`. Dropzone accepts `.pdf`, `.docx`, `.txt` up to ~10 MB.
+- Client-side: validate file, ask user for **Contract name** and **Counterparty** (required) and **Contract value USD** (optional numeric, mono field). Uses the app's existing glass-panel form styling.
+- Client uploads to Storage at `${org_id}/${uuid}.${ext}` using the browser Supabase client (RLS approves because path prefix matches `current_org_id()`).
+- After upload, client calls `startContractExtraction({ data: { fileKey, name, counterparty, value } })` server fn.
 
-## 4. Signup trigger
+### 3. `contracts` row + extraction pipeline
 
-A `handle_new_user()` trigger on `auth.users` insert:
+- `startContractExtraction` (auth server fn):
+  1. Verifies file exists in storage under the caller's org path.
+  2. Inserts a `contracts` row (`org_id`, `name`, `counterparty`, `value`, `source_file_url = fileKey`, `extraction_status = 'processing'`, `is_sample = false`, `uploaded_by = userId`).
+  3. Kicks off extraction in the same request (synchronous for MVP — see "Async decision" below).
+- **Text extraction** (server-only): PDFs via `pdfjs-dist` (Worker-compatible; no native binaries), DOCX via `mammoth`, TXT read as-is. All run inside the server fn on the TanStack worker runtime. Bail early on encrypted PDFs with a clear error.
+- **Clause segmentation + regulation linking** — one LLM call per contract via `google/gemini-3.6-flash` through Lovable AI Gateway:
+  - Input: extracted text + the org's regulation ontology (rows visible via RLS: curated shared library + org-added).
+  - Output (structured JSON): `{ clauses: [{ text, position, confidence, linked_reg_ids: string[] }] }`.
+  - Bounded response schema so we don't accept hallucinated reg IDs — filter output to only IDs that exist in the ontology.
+- Insert `clauses` rows in order; update `contracts.extraction_status` to `'complete'` (or `'failed'` with an error message column — add via migration if not present).
 
-1. Creates an `organizations` row (default name: "<email local-part>'s workspace"; user renames in settings).
-2. Inserts a `profiles` row linking `auth.users.id` → new `org_id`.
-3. Inserts a `user_roles` row with role `admin` for the creator.
-4. Copies 2–3 sample contracts from the curated dataset into the new org so the app isn't empty on first login. Sample rows tagged so the UI can label them "Sample data — upload your own to replace."
+### 4. Contract detail + status
 
-## 5. Auth UI (public routes)
+- `/contracts` list: cards show `extraction_status` badge (`processing`, `complete`, `failed`) with a small brass spinner while processing. Poll via TanStack Query `refetchInterval: 3s` when status is `processing`.
+- `/contracts/$id`: unchanged UI, but replaces the "sample data" banner when `is_sample = false`. Add a small "Re-run extraction" admin-only action for failures.
+- Delete contract action (admin or uploader): removes the row (`clauses` cascade) and the storage object. Confirmation dialog.
 
-- `/auth` — sign-in / sign-up tabs. Email + password (default). Google sign-in via the Lovable broker (`lovable.auth.signInWithOAuth("google", ...)`, `redirect_uri = window.location.origin`); provider enabled via `supabase--configure_social_auth`. Password HIBP check enabled.
-- `/auth/forgot-password` — calls `resetPasswordForEmail` with `redirectTo: ${origin}/reset-password`.
-- `/reset-password` — public route; reads `type=recovery` from the URL, calls `updateUser({ password })`.
-- All three routes SSR-on, no auth gate.
+### 5. Simulate against real contracts
 
-## 6. Route architecture
+Already wired in Phase 2 to read from `context.supabase` — no code change needed. Real uploaded contracts appear in the medallion graph and simulate results automatically, replacing sample data as users upload.
 
-- Move every authenticated app route under `src/routes/_authenticated/`: `dashboard`, `contracts`, `contracts/$contractId`, `regulations/$regId`, `feed`, `simulate`, `backtest`, plus new `settings/team` and `settings/organization`.
-- The `_authenticated/route.tsx` layout is integration-managed (`ssr: false`, redirect to `/auth`) — do not author it.
-- `src/routes/index.tsx` becomes a public landing page with a "Sign in" CTA; signed-in users get redirected to `/dashboard`.
-- Delete/relocate the existing route files as they move under the gate. No duplicate `/` route file.
+### 6. Async decision (kept simple, revisitable)
 
-## 7. Client wiring
+For MVP we run extraction synchronously inside the server fn (typical contract fits under the ~30s worker timeout with Flash). If a user uploads something large that times out, `extraction_status` stays `processing`; the "Re-run extraction" action retries. A proper job queue is deferred until we hit that limit — this keeps the plan shippable without new infra.
 
-- `src/routes/__root.tsx`: single `onAuthStateChange` subscriber filtered to `SIGNED_IN | SIGNED_OUT | USER_UPDATED`, calling `router.invalidate()` and `queryClient.invalidateQueries()` (skipping invalidate on `SIGNED_OUT`).
-- `src/start.ts`: keep `attachSupabaseAuth` (or existing bearer middleware) in `functionMiddleware` so every `createServerFn` call ships the user's JWT.
-- `TopBar`: replace the static "Simulate Impact" chrome with a session-aware account menu (avatar, org name, "Team", "Sign out"). Sign-out follows the four-step teardown: `cancelQueries → clear → signOut → navigate('/auth', { replace: true })`.
+### 7. Migrations required
 
-## 8. Server-function migration
+One migration:
+- `contracts.extraction_error text null` — for failure messages.
+- Storage RLS policies on `storage.objects` for the `contract-files` bucket (org-prefix path check).
+- Optional: index on `contracts(org_id, created_at desc)` for the list view.
 
-Every existing server fn (`simulate`, `backtest`, `action-plan`, plus new list/read fns for contracts/clauses/regulations/simulation_runs) gets `.middleware([requireSupabaseAuth])` and uses `context.supabase` — scoped to the caller by RLS. The current hardcoded JSON reads move into a one-time seed inside the signup trigger; runtime code reads from Postgres only.
+Bucket itself is created by tool call, not SQL.
 
-- `simulate` now queries the caller's contracts/regulations from Postgres, runs the LLM call, and writes a `simulation_runs` row before returning.
-- The Federal Register proxy stays public (server route under `/api/public/regulatory-feed` or an unauthenticated server fn) since it's not org-scoped.
+### 8. Verification
 
-## 9. Team management (in-scope for Phase 2, admin-only)
+- Upload a PDF as user A → row appears in `/contracts` with `processing` → flips to `complete` within ~15s → clauses render with regulation pills.
+- User B in a different org cannot list or fetch user A's contract or download the file (RLS + storage RLS both deny).
+- Failed extraction (encrypted PDF, garbage file) surfaces `extraction_error` in the UI without crashing the page.
+- Simulate Impact medallion now colors real uploaded contracts, not sample ones.
 
-- `settings/team` route under the gate:
-  - Lists current members (via `profiles` joined with `user_roles`, RLS-scoped).
-  - "Invite teammate" — admin-only form. Calls `supabase.auth.admin.inviteUserByEmail` inside a server fn that verifies the caller is admin via `has_role`, then loads `supabaseAdmin` (dynamic import). The invited user lands on `/auth`, sets a password, and a small variant of the signup trigger attaches them to the inviter's org instead of creating a new one (invite metadata carries `org_id`).
-  - Admin can remove a member (`user_roles` delete + `profiles.org_id` handling).
+---
 
-Resend for outgoing email is out of scope for this phase — Supabase's built-in invite email covers this until we need branded emails in a later phase.
+## What comes after this plan
 
-## 10. Verification checklist for this phase
-
-- Two fresh accounts sign up, each lands on their own dashboard with only their own sample contracts.
-- Signed-in user A cannot fetch signed-in user B's contract by ID (RLS denies, server fn returns 404/empty).
-- Existing simulate/backtest/action-plan flows still work end-to-end for a signed-in user, now writing `simulation_runs` rows.
-- Sign-out clears the cache and lands on `/auth`; back button does not restore the dashboard.
-- Password reset round-trip works.
-- Admin can invite a teammate; teammate signs up via the invite and lands in the same org.
-
-## Out of scope for this plan (Phase 2 only)
-
-Contract upload/extraction pipeline (Phase 3), billing (Phase 6), Sentry/uptime/backups (Phase 7 infra), Resend, custom domain, physical deploy — all get their own plans after Phase 2 lands.
-
-## Technical notes
-
-- Roles table + `has_role()` + `current_org_id()` are `security definer` with pinned `search_path = public` to prevent recursive-RLS and search-path attacks.
-- `SUPABASE_SERVICE_ROLE_KEY` never leaves server-only code; `supabaseAdmin` is loaded via `await import(...)` inside handler bodies, never at module scope of `.functions.ts` files.
-- Public routes (landing, `/auth`, `/reset-password`, `/feed` if we choose to keep the Federal Register feed public) must not call `requireSupabaseAuth`-gated fns in their loaders — SSR has no bearer.
-- Google OAuth `redirect_uri` is `window.location.origin`, not a protected route.
+- **Phase 6 — Stripe Billing** (separate plan): recommend Stripe (digital SaaS), enable seamless payments, plans (`free`, `pro`, `team`), quotas on `contracts` count / `simulation_runs` per month, checkout on `settings.billing`, webhook route under `/api/public/stripe`, `organizations.plan` + `stripe_customer_id` sync.
+- **Phase 7 — Observability & polish** (separate plan): Sentry, uptime checks, Cloud backups review, publish + custom domain.
