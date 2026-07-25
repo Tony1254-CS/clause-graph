@@ -135,17 +135,35 @@ Add more by inserting into `public.regulations` — the whole app auto-picks the
 
 ## 💰 Plans & Limits
 
-| | **Free** | **Pro** (30-day trial default) | **Enterprise** |
+**Current state: every workspace is on Pro, free, with unlimited usage.**
+Billing is parked while the product is in early access — there is no trial
+countdown, no paywall and no upgrade nag anywhere in the product.
+
+| | **Today (early access)** |
+|---|:-:|
+| Contracts | ∞ |
+| Simulations / month | ∞ |
+| Team members | ∞ |
+| Every feature (Radar, Supply Chain, Compliance-as-Code, PDF export) | ✓ |
+| Price | $0 |
+
+<details>
+<summary>The tier design kept for when billing is switched on</summary>
+
+| | **Free** | **Pro** — $49/mo | **Team** — $199/mo |
 |---|:-:|:-:|:-:|
 | Contracts | 3 | 50 | ∞ |
 | Simulations / month | 5 | 100 | ∞ |
 | Team members | 1 | 3 | ∞ |
-| Predictive Radar | — | ✓ | ✓ |
-| Compliance-as-Code | — | ✓ | ✓ |
-| Supply-chain graph | Preview | Full | Full + custom nodes |
-| SSO / audit log | — | — | ✓ |
+| Action plans + PDF export | — | ✓ | ✓ |
+| Predictive Radar / Compliance-as-Code | — | ✓ | ✓ |
 
-Limits are enforced at the database (`assert_within_quota`) — no client bypass is possible.
+Enabling it takes two edits: `public.billing_enabled()` → `SELECT true`, and
+`BILLING_ENABLED = true` in `src/lib/plans.ts`. Limits are enforced at the
+database (`assert_within_quota`) — no client bypass is possible.
+
+</details>
+
 
 ---
 
