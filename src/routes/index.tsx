@@ -1,33 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/clausegraph/AppShell";
-import { BlastRadiusSeal } from "@/components/clausegraph/BlastRadiusSeal";
+import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
+import { contractsQuery, regulationsQuery } from "@/data/queries";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ClauseGraph — Regulatory Impact Simulation" },
+      { title: "Dashboard — ClauseGraph" },
       {
         name: "description",
         content:
-          "Trace the downstream impact of pending regulations across contract portfolios. Quantify exposure before it lands.",
+          "Portfolio topology: contracts, regulations, and citation edges rendered as a static reference graph.",
       },
-      { property: "og:title", content: "ClauseGraph — Regulatory Impact Simulation" },
+      { property: "og:title", content: "Dashboard — ClauseGraph" },
       {
         property: "og:description",
         content:
-          "Trace the downstream impact of pending regulations across contract portfolios. Quantify exposure before it lands.",
+          "Portfolio topology: contracts, regulations, and citation edges rendered as a static reference graph.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(contractsQuery);
+    context.queryClient.ensureQueryData(regulationsQuery);
+  },
   component: Index,
 });
 
 function Index() {
+  const { data: contracts } = useSuspenseQuery(contractsQuery);
+  const { data: regulations } = useSuspenseQuery(regulationsQuery);
+
   return (
     <AppShell>
-      <BlastRadiusSeal />
+      <GraphMedallion contracts={contracts} regulations={regulations} />
     </AppShell>
   );
 }

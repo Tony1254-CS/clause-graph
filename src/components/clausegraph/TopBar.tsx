@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Zap, ChevronDown } from "lucide-react";
 
 export function TopBar() {
@@ -22,17 +23,18 @@ export function TopBar() {
         <div className="hidden md:flex items-center gap-2 pl-4 ml-2 border-l border-[var(--hairline)]">
           <span className="h-1.5 w-1.5 rounded-full bg-brass shadow-[0_0_8px_var(--brass)]" />
           <span className="font-mono text-[11px] text-muted-foreground">
-            <span className="text-foreground">247</span> active contracts monitored
+            <span className="text-foreground">15</span> active contracts monitored
           </span>
         </div>
       </div>
 
-      <button
+      <Link
+        to="/simulate"
         className="group inline-flex items-center gap-2 rounded-[12px] bg-brass px-5 py-2.5 text-[13px] font-medium text-[color:var(--primary-foreground)] transition-all duration-150 ease-out hover:bg-[color:var(--brass-strong)] active:scale-[0.98] shadow-[0_0_24px_-6px_rgba(201,166,107,0.4)]"
       >
         <Zap className="h-3.5 w-3.5" strokeWidth={2.2} />
         Simulate Impact
-      </button>
+      </Link>
     </header>
   );
 }
