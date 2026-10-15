@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { coerceComplianceCode, fallbackArtifact } from "./compliance-code.server";
-import { chatCompletion } from "./ai.server";
+import { requireAuth } from "./auth-middleware";
 
 export type Stack = "aws" | "gcp" | "azure";
 export type CodeArtifact = {
@@ -29,8 +27,8 @@ type Input = {
 };
 
 export const generateComplianceCode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: Input) => {
+  .middleware([requireAuth])
+  .validator((input: Input) => {
     const regulationText = String(input?.regulationText ?? "").trim();
     const gap = String(input?.gap ?? "").trim();
     if (!regulationText) throw new Error("Regulation text required");
@@ -45,20 +43,18 @@ export const generateComplianceCode = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }): Promise<ComplianceCode> => {
-    const { supabase, userId } = context;
+    const { userId, orgId } = context;
+    const { query } = await import("./db.server");
+    const { coerceComplianceCode, fallbackArtifact } = await import("./compliance-code.server");
+    const { chatCompletion } = await import("./ai.server");
 
-    // Server-side entitlement gate: compliance-as-code is a paid/trial feature.
-    const { data: gateProfile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (gateProfile?.org_id) {
-      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
-        _org: gateProfile.org_id,
-        _action: "generate_compliance_code",
-      });
-      if (quotaErr) throw new Error(quotaErr.message);
+    // Server-side entitlement gate: compliance-as-code
+    if (orgId) {
+      try {
+        await query(`SELECT assert_within_quota($1, 'generate_compliance_code')`, [orgId]);
+      } catch (quotaErr) {
+        throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
+      }
     }
 
     let result: ComplianceCode | null = null;
@@ -106,25 +102,28 @@ TARGET STACK: ${data.stack.toUpperCase()}`;
 
     const finalResult = result ?? fallbackArtifact(data.gap, data.stack);
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (profile?.org_id) {
-      const { error } = await supabase.from("compliance_artifacts").insert({
-        org_id: profile.org_id,
-        regulation_id: data.regulationId ?? null,
-        simulation_run_id: data.simulationRunId ?? null,
-        gap: finalResult.gap,
-        stack: finalResult.stack,
-        audit_script: JSON.parse(JSON.stringify(finalResult.audit_script)),
-        remediation: JSON.parse(JSON.stringify(finalResult.remediation)),
-        runbook: finalResult.runbook,
-        test_cases: finalResult.test_cases,
-        created_by: userId,
-      });
-      if (error) console.error("[compliance-code] persist error", error);
+    if (orgId) {
+      try {
+        await query(
+          `INSERT INTO public.compliance_artifacts 
+           (org_id, regulation_id, simulation_run_id, gap, stack, audit_script, remediation, runbook, test_cases, created_by)
+           VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $9, $10)`,
+          [
+            orgId,
+            data.regulationId ?? null,
+            data.simulationRunId ?? null,
+            finalResult.gap,
+            finalResult.stack,
+            JSON.stringify(finalResult.audit_script),
+            JSON.stringify(finalResult.remediation),
+            finalResult.runbook,
+            finalResult.test_cases,
+            userId,
+          ]
+        );
+      } catch (insertErr) {
+        console.error("[compliance-code] persist error", insertErr);
+      }
     }
 
     return finalResult;

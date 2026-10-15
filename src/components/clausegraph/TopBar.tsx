@@ -6,7 +6,7 @@ import { getOrgUsage } from "@/lib/billing.functions";
 import { BILLING_ENABLED } from "@/lib/plans";
 import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
-import { supabase } from "@/integrations/supabase/client";
+import { signOut } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopBar() {
@@ -46,7 +46,7 @@ export function TopBar() {
     setMenuOpen(false);
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await signOut();
     navigate({ to: "/auth", replace: true });
   }
 

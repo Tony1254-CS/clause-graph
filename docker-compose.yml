@@ -30,14 +30,9 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/clausegraph
+      - JWT_SECRET=${JWT_SECRET:-clausegraph-super-production-jwt-secret-key-2026!}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://wfyrmzwvzamkvxqtoxvt.supabase.co}
-      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_VIVhXXzSQyB_hc9yScHpLw_mpHDModU}
-      - VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID:-wfyrmzwvzamkvxqtoxvt}
-      - SUPABASE_URL=${SUPABASE_URL:-https://wfyrmzwvzamkvxqtoxvt.supabase.co}
-      - SUPABASE_PUBLISHABLE_KEY=${SUPABASE_PUBLISHABLE_KEY:-sb_publishable_VIVhXXzSQyB_hc9yScHpLw_mpHDModU}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { chatCompletion } from "./ai.server";
+import { requireAuth } from "./auth-middleware";
 import type { SimulationResult, Severity, ImpactEntry } from "./simulate-types";
 
 type BacktestRow = {
@@ -14,25 +13,27 @@ type BacktestRow = {
 };
 
 export const simulateBacktest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { caseId: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { caseId: string }) => {
     const id = String(input?.caseId ?? "");
     if (!id) throw new Error("caseId required");
     return { caseId: id };
   })
-  .handler(async ({ data, context }): Promise<SimulationResult> => {
-    const { data: row, error } = await context.supabase
-      .from("backtest_cases")
-      .select(
-        "id, company, regulation, summary, reconstructed_prompt, reconstructed_clauses, fallback",
-      )
-      .eq("id", data.caseId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!row) throw new Error("Unknown case");
-    const bt = row as BacktestRow;
+  .handler(async ({ data }): Promise<SimulationResult> => {
+    const { queryOne } = await import("./db.server");
+    const { chatCompletion } = await import("./ai.server");
 
-    const clauseCtx = bt.reconstructed_clauses.map((c) => ({ id: c.id, text: c.text }));
+    const row = await queryOne<BacktestRow>(
+      `SELECT id, company, regulation, summary, reconstructed_prompt, reconstructed_clauses, fallback 
+       FROM public.backtest_cases 
+       WHERE id = $1`,
+      [data.caseId]
+    );
+
+    if (!row) throw new Error("Unknown case");
+    const bt = row;
+
+    const clauseCtx = (bt.reconstructed_clauses ?? []).map((c) => ({ id: c.id, text: c.text }));
 
     const system = `You are a legal compliance analyst. Given a proposed regulation and a small set of RECONSTRUCTED contract clauses (synthetic, drafted to mirror a real enforcement case — NOT the company's actual contracts), identify which clauses are materially impacted. Return STRICT JSON:
 {"summary": string, "impacts": [{"contract_id": string, "severity": "low"|"medium"|"high", "suggested_amendment": string}]}
@@ -74,7 +75,7 @@ ${JSON.stringify(clauseCtx)}`;
       const rawArr = Array.isArray((parsed as { impacts?: unknown }).impacts)
         ? (parsed as { impacts: unknown[] }).impacts
         : [];
-      const validIds = new Set(bt.reconstructed_clauses.map((c) => c.id));
+      const validIds = new Set((bt.reconstructed_clauses ?? []).map((c) => c.id));
       const impacts: ImpactEntry[] = [];
       for (const item of rawArr) {
         if (!item || typeof item !== "object") continue;

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "./auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "./paddle.server";
 import { PLANS, BILLING_ENABLED, type PlanId } from "./plans";
 
@@ -8,8 +8,8 @@ import { PLANS, BILLING_ENABLED, type PlanId } from "./plans";
  * internal price id required by Paddle.js checkout.
  */
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { priceId: string; environment: PaddleEnv }) => data)
+  .middleware([requireAuth])
+  .validator((data: { priceId: string; environment: PaddleEnv }) => data)
   .handler(async ({ data }) => {
     if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
     const res = await gatewayFetch(
@@ -22,39 +22,32 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     return json.data[0].id;
   });
 
-
 /**
  * Create a Paddle customer portal session so the user can update payment
  * methods or cancel their subscription. Returns the overview URL.
  */
 export const createBillingPortalSession = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data?: { environment?: PaddleEnv }) => ({
+  .middleware([requireAuth])
+  .validator((data?: { environment?: PaddleEnv }) => ({
     environment: (data?.environment === "live" ? "live" : "sandbox") as PaddleEnv,
   }))
   .handler(async ({ data, context }) => {
     if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
-    const { supabase, userId } = context;
-
-
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    const orgId = prof?.org_id as string | undefined;
+    const { orgId } = context;
     if (!orgId) throw new Error("No workspace");
+    const { queryOne } = await import("./db.server");
 
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select(
-        "paddle_customer_id, paddle_subscription_id, environment",
-      )
-      .eq("org_id", orgId)
-      .eq("environment", data.environment)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const sub = await queryOne<{
+      paddle_customer_id: string;
+      paddle_subscription_id: string | null;
+      environment: string;
+    }>(
+      `SELECT paddle_customer_id, paddle_subscription_id, environment 
+       FROM public.subscriptions 
+       WHERE org_id = $1 AND environment = $2 
+       ORDER BY created_at DESC LIMIT 1`,
+      [orgId, data.environment]
+    );
 
     if (!sub?.paddle_customer_id) {
       throw new Error("No subscription yet — upgrade to a paid plan first.");
@@ -87,40 +80,43 @@ export type OrgUsage = {
 };
 
 export const getOrgUsage = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<OrgUsage> => {
-    const { supabase, userId } = context;
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    const orgId = prof?.org_id as string | undefined;
+    const { orgId } = context;
     if (!orgId) throw new Error("No workspace");
+    const { query, queryOne } = await import("./db.server");
 
-    // Resolve plan server-side first: this also expires a lapsed trial so
-    // reads and writes can never disagree about entitlement.
-    await supabase.rpc("resolve_org_plan", { _org: orgId });
+    // Resolve plan server-side first
+    await query(`SELECT resolve_org_plan($1)`, [orgId]);
 
-    const [{ data: usage }, { data: org }, { data: sub }] = await Promise.all([
-      supabase.rpc("get_org_usage", { _org: orgId }).maybeSingle(),
-      supabase
-        .from("organizations")
-        .select(
-          "plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id, deletion_scheduled_at",
-        )
-        .eq("id", orgId)
-        .maybeSingle(),
-      supabase
-        .from("subscriptions")
-        .select("paddle_subscription_id, status")
-        .eq("org_id", orgId)
-        .in("status", ["active", "trialing", "past_due", "paused"])
-        .limit(1)
-        .maybeSingle(),
+    const [usageRes, org, sub] = await Promise.all([
+      queryOne<{ contracts: number; simulations: number; members: number }>(
+        `SELECT (get_org_usage($1)).*`,
+        [orgId]
+      ),
+      queryOne<{
+        plan: string;
+        plan_status: string;
+        plan_renews_at: string | null;
+        trial_ends_at: string | null;
+        paddle_customer_id: string | null;
+        deletion_scheduled_at: string | null;
+      }>(
+        `SELECT plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id, deletion_scheduled_at 
+         FROM public.organizations 
+         WHERE id = $1`,
+        [orgId]
+      ),
+      queryOne<{ paddle_subscription_id: string; status: string }>(
+        `SELECT paddle_subscription_id, status 
+         FROM public.subscriptions 
+         WHERE org_id = $1 AND status IN ('active', 'trialing', 'past_due', 'paused') 
+         LIMIT 1`,
+        [orgId]
+      ),
     ]);
 
-    const trialEnds = (org?.trial_ends_at as string | null) ?? null;
+    const trialEnds = org?.trial_ends_at ?? null;
     const hasSubscription = !!sub?.paddle_subscription_id;
     const onTrial =
       BILLING_ENABLED &&
@@ -136,65 +132,57 @@ export const getOrgUsage = createServerFn({ method: "GET" })
         )
       : null;
 
-    // Billing parked: every workspace is Pro with an active status, no trial
-    // clock and no dunning state. Never degrade to "free" here.
     const plan = BILLING_ENABLED
       ? ((org?.plan as OrgUsage["plan"]) ?? "free")
       : ("pro" as const);
-    const planStatus = BILLING_ENABLED ? ((org?.plan_status as string) ?? "active") : "active";
+    const planStatus = BILLING_ENABLED ? (org?.plan_status ?? "active") : "active";
 
     return {
-      contracts: (usage as { contracts?: number } | null)?.contracts ?? 0,
-      simulations: (usage as { simulations?: number } | null)?.simulations ?? 0,
-      members: (usage as { members?: number } | null)?.members ?? 0,
+      contracts: Number(usageRes?.contracts ?? 0),
+      simulations: Number(usageRes?.simulations ?? 0),
+      members: Number(usageRes?.members ?? 0),
       plan,
       plan_status: planStatus,
-      plan_renews_at: BILLING_ENABLED ? ((org?.plan_renews_at as string | null) ?? null) : null,
+      plan_renews_at: BILLING_ENABLED ? (org?.plan_renews_at ?? null) : null,
       trial_ends_at: BILLING_ENABLED ? trialEnds : null,
       on_trial: onTrial,
       trial_days_left: trialDaysLeft,
       has_subscription: hasSubscription,
       billing_enabled: BILLING_ENABLED,
-      deletion_scheduled_at: (org?.deletion_scheduled_at as string | null) ?? null,
+      deletion_scheduled_at: org?.deletion_scheduled_at ?? null,
     };
   });
 
-
 /**
- * Change plan on an existing paid subscription. Swaps the items on the current
- * Paddle subscription rather than creating a new one — avoids double-billing.
- * Upgrades bill pro-rated immediately; downgrades take effect at next renewal.
+ * Change plan on an existing paid subscription.
  */
 export const changeSubscriptionPlan = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { newPlanId: PlanId; environment?: PaddleEnv }) => ({
+  .middleware([requireAuth])
+  .validator((data: { newPlanId: PlanId; environment?: PaddleEnv }) => ({
     newPlanId: data.newPlanId,
     environment: (data.environment === "live" ? "live" : "sandbox") as PaddleEnv,
   }))
   .handler(async ({ data, context }) => {
     if (!BILLING_ENABLED) throw new Error("Billing is currently disabled");
-    const { supabase, userId } = context;
+    const { orgId } = context;
+    const { queryOne } = await import("./db.server");
 
     const target = PLANS[data.newPlanId];
     if (!target?.priceId) throw new Error("Invalid plan");
-
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    const orgId = prof?.org_id as string | undefined;
     if (!orgId) throw new Error("No workspace");
 
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("paddle_subscription_id, environment, status, price_id")
-      .eq("org_id", orgId)
-      .eq("environment", data.environment)
-      .in("status", ["active", "trialing", "past_due"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const sub = await queryOne<{
+      paddle_subscription_id: string;
+      environment: string;
+      status: string;
+      price_id: string;
+    }>(
+      `SELECT paddle_subscription_id, environment, status, price_id 
+       FROM public.subscriptions 
+       WHERE org_id = $1 AND environment = $2 AND status IN ('active', 'trialing', 'past_due') 
+       ORDER BY created_at DESC LIMIT 1`,
+      [orgId, data.environment]
+    );
 
     if (!sub?.paddle_subscription_id) {
       throw new Error("NO_ACTIVE_SUB");
@@ -220,7 +208,7 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
 
     const { getPaddleClient } = await import("./paddle.server");
     const paddle = getPaddleClient(env);
-    await paddle.subscriptions.update(sub.paddle_subscription_id as string, {
+    await paddle.subscriptions.update(sub.paddle_subscription_id, {
       items: [{ priceId: paddlePriceId, quantity: 1 }],
       prorationBillingMode: isUpgrade
         ? "prorated_immediately"

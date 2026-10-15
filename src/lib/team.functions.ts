@@ -1,93 +1,104 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertAdmin } from "./team.server";
+import { requireAuth } from "./auth-middleware";
 
 export const inviteTeammate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { email: string; fullName?: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { email: string; fullName?: string }) => {
     const email = String(input?.email ?? "").trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Valid email required");
     return { email, fullName: String(input?.fullName ?? "").trim() || null };
   })
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId, orgId } = context;
 
-    const { data: profile, error: pErr } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (pErr) throw new Error("Could not load your workspace");
-    if (!profile?.org_id) throw new Error("Organization not found");
+    if (!orgId) throw new Error("Organization not found");
 
-    // Admin check is scoped to *this* workspace, not "admin anywhere".
-    await assertAdmin(supabase as never, userId, profile.org_id as string);
+    const { assertAdmin } = await import("./team.server");
+    const { query, transaction } = await import("./db.server");
+    const { hashPassword } = await import("./auth.server");
 
-    // Enforce seat quota
-    const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
-      _org: profile.org_id,
-      _action: "invite_teammate",
-    });
-    if (quotaErr) throw new Error(quotaErr.message);
+    // Admin check is scoped to *this* workspace
+    await assertAdmin(userId, orgId);
 
-    // Invite link must land on the app, not on the backend URL.
-    const origin =
-      getRequestHeader("origin") ??
-      (getRequestHeader("referer") ? new URL(getRequestHeader("referer")!).origin : null) ??
-      process.env.APP_URL ??
-      "";
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      data.email,
-      {
-        data: { invited_org_id: profile.org_id, full_name: data.fullName },
-        ...(origin ? { redirectTo: `${origin}/dashboard` } : {}),
-      },
-    );
-    if (iErr) {
-      // Never forward the provider message: it discloses whether an address
-      // is already registered (account enumeration).
-      console.error("[team] invite failed", iErr.message);
-      throw new Error("Could not send that invite. Check the address and try again.");
+    // Enforce seat quota in PostgreSQL
+    try {
+      await query(`SELECT assert_within_quota($1, 'invite_teammate')`, [orgId]);
+    } catch (quotaErr) {
+      throw new Error(quotaErr instanceof Error ? quotaErr.message : "Seat quota exceeded");
     }
 
-    return { ok: true, userId: invited.user?.id ?? null };
+    const teammateId = await transaction(async (client) => {
+      // Check if user already exists
+      const existing = await client.query<{ id: string }>(
+        `SELECT id FROM auth.users WHERE LOWER(email) = $1`,
+        [data.email]
+      );
+
+      let targetUserId: string;
+
+      if (existing.rows.length > 0) {
+        targetUserId = existing.rows[0].id;
+      } else {
+        // Create user account with a temporary default password hash
+        const tempPass = await hashPassword("TeammateInvite2026!");
+        const inserted = await client.query<{ id: string }>(
+          `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
+           VALUES ($1, $2, $3::jsonb)
+           RETURNING id`,
+          [data.email, tempPass, JSON.stringify({ full_name: data.fullName })]
+        );
+        targetUserId = inserted.rows[0].id;
+      }
+
+      // Add profile and role in this org if not exists
+      await client.query(
+        `INSERT INTO public.profiles (id, org_id, full_name, email)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (id) DO UPDATE SET org_id = EXCLUDED.org_id`,
+        [targetUserId, orgId, data.fullName, data.email]
+      );
+
+      await client.query(
+        `INSERT INTO public.user_roles (user_id, org_id, role)
+         VALUES ($1, $2, 'member')
+         ON CONFLICT (user_id, org_id, role) DO NOTHING`,
+        [targetUserId, orgId]
+      );
+
+      return targetUserId;
+    });
+
+    return { ok: true, userId: teammateId };
   });
 
 export const removeTeammate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { userId: string }) => {
     const id = String(input?.userId ?? "");
     if (!id) throw new Error("userId required");
     return { userId: id };
   })
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId, orgId } = context;
     if (data.userId === userId) throw new Error("Cannot remove yourself");
+    if (!orgId) throw new Error("Organization not found");
 
-    const { data: myProfile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (!myProfile?.org_id) throw new Error("Organization not found");
+    const { assertAdmin } = await import("./team.server");
+    const { transaction } = await import("./db.server");
 
-    await assertAdmin(supabase as never, userId, myProfile.org_id as string);
+    await assertAdmin(userId, orgId);
 
-    const { data: target } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", data.userId)
-      .maybeSingle();
-    if (target?.org_id !== myProfile.org_id) {
-      throw new Error("User not in your organization");
-    }
+    // Remove role and profile for this workspace in PostgreSQL
+    await transaction(async (client) => {
+      await client.query(
+        `DELETE FROM public.user_roles WHERE user_id = $1 AND org_id = $2`,
+        [data.userId, orgId]
+      );
+      await client.query(
+        `DELETE FROM public.profiles WHERE id = $1 AND org_id = $2`,
+        [data.userId, orgId]
+      );
+    });
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Best-effort: remove role + profile. Leave auth account intact (they may belong elsewhere).
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId).eq("org_id", myProfile.org_id);
-    await supabaseAdmin.from("profiles").delete().eq("id", data.userId).eq("org_id", myProfile.org_id);
     return { ok: true };
   });

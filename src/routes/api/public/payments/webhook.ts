@@ -1,17 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { query, queryOne, transaction } from "@/lib/db.server";
 import { verifyWebhook, EventName, type PaddleEnv } from "@/lib/paddle.server";
-
-let _supabase: SupabaseClient | null = null;
-function getSupabase(): SupabaseClient {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-  }
-  return _supabase;
-}
 
 // Map human-readable Paddle product IDs → app plan tier.
 function productToPlan(productExternalId: string | undefined): "free" | "pro" | "team" {
@@ -37,74 +26,89 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
   const plan = productToPlan(productExt);
   const periodEnd = currentBillingPeriod?.endsAt as string | undefined;
   const cancelAtPeriodEnd = scheduledChange?.action === "cancel";
-  const supa = getSupabase();
 
-  // Upsert subscription row
-  if (userId) {
-    const { error } = await supa.from("subscriptions").upsert(
-      {
-        user_id: userId,
-        org_id: orgId ?? null,
-        paddle_subscription_id: id,
-        paddle_customer_id: customerId,
-        product_id: productExt,
-        price_id: priceExt,
-        status,
-        current_period_start: currentBillingPeriod?.startsAt,
-        current_period_end: periodEnd,
-        cancel_at_period_end: cancelAtPeriodEnd,
-        environment: env,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "paddle_subscription_id" },
-    );
-    if (error) console.error("[paddle] subscriptions upsert failed", error);
-  }
+  await transaction(async (client) => {
+    // Upsert subscription row in PostgreSQL
+    if (userId) {
+      await client.query(
+        `INSERT INTO public.subscriptions 
+          (user_id, org_id, paddle_subscription_id, paddle_customer_id, product_id, price_id, status, current_period_start, current_period_end, cancel_at_period_end, environment, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
+         ON CONFLICT (paddle_subscription_id) DO UPDATE SET
+          user_id = EXCLUDED.user_id,
+          org_id = EXCLUDED.org_id,
+          paddle_customer_id = EXCLUDED.paddle_customer_id,
+          product_id = EXCLUDED.product_id,
+          price_id = EXCLUDED.price_id,
+          status = EXCLUDED.status,
+          current_period_start = EXCLUDED.current_period_start,
+          current_period_end = EXCLUDED.current_period_end,
+          cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+          environment = EXCLUDED.environment,
+          updated_at = now()`,
+        [
+          userId,
+          orgId ?? null,
+          id,
+          customerId,
+          productExt,
+          priceExt,
+          status,
+          currentBillingPeriod?.startsAt ?? null,
+          periodEnd ?? null,
+          cancelAtPeriodEnd,
+          env,
+        ]
+      );
+    }
 
-  // Update org plan
-  if (orgId) {
-    // Only downgrade to `free` on a truly canceled/past-terminal state; active
-    // paid subscriptions keep their tier.
-    const orgPlan =
-      status === "canceled" && !cancelAtPeriodEnd
-        ? "free"
-        : plan;
-    const paying = ["active", "trialing", "past_due", "paused"].includes(status);
-    const { error } = await supa
-      .from("organizations")
-      .update({
-        plan: orgPlan,
-        plan_status: status,
-        plan_renews_at: periodEnd ?? null,
-        paddle_customer_id: customerId,
-        // A real subscription supersedes the signup trial, so the read-side
-        // trial expiry can never downgrade a paying workspace.
-        ...(paying ? { trial_ends_at: null } : {}),
-      })
-      .eq("id", orgId);
-    if (error) console.error("[paddle] org update failed", error);
-  }
+    // Update org plan
+    if (orgId) {
+      const orgPlan = status === "canceled" && !cancelAtPeriodEnd ? "free" : plan;
+      const paying = ["active", "trialing", "past_due", "paused"].includes(status);
+
+      await client.query(
+        `UPDATE public.organizations
+         SET plan = $1,
+             plan_status = $2,
+             plan_renews_at = $3,
+             paddle_customer_id = $4,
+             trial_ends_at = CASE WHEN $5 THEN NULL ELSE trial_ends_at END
+         WHERE id = $6`,
+        [
+          orgPlan,
+          status,
+          periodEnd ?? null,
+          customerId,
+          paying,
+          orgId,
+        ]
+      );
+    }
+  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
-  const supa = getSupabase();
-  const { error } = await supa
-    .from("subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
-    .eq("paddle_subscription_id", data.id)
-    .eq("environment", env);
-  if (error) console.error("[paddle] cancel update failed", error);
-
   const orgId = data.customData?.orgId as string | undefined;
-  if (orgId) {
-    // Downgrade the org to free only after the period actually ends (Paddle
-    // sends subscription.canceled at the end of the grace window).
-    await supa
-      .from("organizations")
-      .update({ plan: "free", plan_status: "canceled" })
-      .eq("id", orgId);
-  }
+
+  await transaction(async (client) => {
+    await client.query(
+      `UPDATE public.subscriptions 
+       SET status = 'canceled', updated_at = now() 
+       WHERE paddle_subscription_id = $1 AND environment = $2`,
+      [data.id, env]
+    );
+
+    if (orgId) {
+      await client.query(
+        `UPDATE public.organizations 
+         SET plan = 'free', plan_status = 'canceled' 
+         WHERE id = $1`,
+        [orgId]
+      );
+    }
+  });
 }
 
 export const Route = createFileRoute("/api/public/payments/webhook")({
@@ -117,11 +121,18 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           const event = await verifyWebhook(request, env);
 
           // Idempotency: skip if we've already processed this event
-          const supa = getSupabase();
-          const { error: dupErr } = await supa
-            .from("paddle_events")
-            .insert({ event_id: event.eventId, event_type: event.eventType });
-          if (dupErr && dupErr.code === "23505") {
+          try {
+            const inserted = await queryOne(
+              `INSERT INTO public.paddle_events (event_id, event_type)
+               VALUES ($1, $2)
+               ON CONFLICT (event_id) DO NOTHING
+               RETURNING event_id`,
+              [event.eventId, event.eventType]
+            );
+            if (!inserted) {
+              return Response.json({ received: true, duplicate: true });
+            }
+          } catch {
             return Response.json({ received: true, duplicate: true });
           }
 
@@ -140,10 +151,10 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
               const d = event.data as any;
               const orgId = d?.customData?.orgId as string | undefined;
               if (orgId) {
-                await getSupabase()
-                  .from("organizations")
-                  .update({ plan_status: "past_due" })
-                  .eq("id", orgId);
+                await query(
+                  `UPDATE public.organizations SET plan_status = 'past_due' WHERE id = $1`,
+                  [orgId]
+                );
               }
               break;
             }

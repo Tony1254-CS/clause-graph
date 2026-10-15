@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, ShieldCheck, Zap, Network, Check } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getToken } from "@/lib/auth-client";
 import { PLANS, BILLING_ENABLED, type PlanId } from "@/lib/plans";
 
 export const Route = createFileRoute("/")({
@@ -31,18 +31,11 @@ function Landing() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session) {
-        navigate({ to: "/dashboard", replace: true });
-      } else {
-        setChecking(false);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
+    if (getToken()) {
+      navigate({ to: "/dashboard", replace: true });
+    } else {
+      setChecking(false);
+    }
   }, [navigate]);
 
   if (checking) {

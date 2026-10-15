@@ -1,13 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "./auth-middleware";
 import { fallbackSimulation } from "./simulate-fallback";
-import { coerceImpacts } from "./simulate.server";
-import { chatCompletion } from "./ai.server";
 import type { SimulationResult, SimulateInput } from "./simulate-types";
 
 export const simulateImpact = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: SimulateInput) => {
+  .middleware([requireAuth])
+  .validator((input: SimulateInput) => {
     const text = String(input?.regulationText ?? "").trim();
     if (!text) throw new Error("Regulation text is required");
     if (text.length > 20000) throw new Error("Regulation text too long");
@@ -18,41 +16,48 @@ export const simulateImpact = createServerFn({ method: "POST" })
     return { regulationText: text, runType, regulationId };
   })
   .handler(async ({ data, context }): Promise<SimulationResult> => {
-    const { supabase, userId } = context;
+    const { userId, orgId } = context;
+    const { query } = await import("./db.server");
+    const { coerceImpacts } = await import("./simulate.server");
+    const { chatCompletion } = await import("./ai.server");
 
-    // Enforce simulation quota against the caller's org
-    const { data: profileForQuota } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (profileForQuota?.org_id) {
-      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
-        _org: profileForQuota.org_id,
-        _action: "run_simulation",
-      });
-      if (quotaErr) throw new Error(quotaErr.message);
+    // Enforce simulation quota against caller's org in PostgreSQL
+    if (orgId) {
+      try {
+        await query(`SELECT assert_within_quota($1, 'run_simulation')`, [orgId]);
+      } catch (quotaErr) {
+        throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
+      }
     }
 
-    const [{ data: contractRows, error: cErr }, { data: regRows, error: rErr }] =
-      await Promise.all([
-        supabase
-          .from("contracts")
-          .select("id, name, counterparty, value, clauses(text, linked_regs)"),
-        supabase
-          .from("regulations")
-          .select("id, jurisdiction, title, summary, obligations"),
-      ]);
-    if (cErr) throw cErr;
-    if (rErr) throw rErr;
+    const [contractRows, regRows] = await Promise.all([
+      query<{
+        id: string;
+        name: string;
+        counterparty: string;
+        value: number | string;
+        clauses: Array<{ text: string; linked_regs: string[] | null }> | null;
+      }>(
+        `SELECT 
+          c.id, c.name, c.counterparty, c.value,
+          COALESCE(
+            json_agg(
+              json_build_object('text', cl.text, 'linked_regs', cl.linked_regs)
+            ) FILTER (WHERE cl.id IS NOT NULL),
+            '[]'::json
+          ) AS clauses
+         FROM public.contracts c
+         LEFT JOIN public.clauses cl ON cl.contract_id = c.id
+         WHERE c.org_id = $1
+         GROUP BY c.id`,
+        [orgId]
+      ),
+      query(
+        `SELECT id, jurisdiction, title, summary, obligations FROM public.regulations`
+      ),
+    ]);
 
-    const contracts = (contractRows ?? []) as Array<{
-      id: string;
-      name: string;
-      counterparty: string;
-      value: number | string;
-      clauses: Array<{ text: string; linked_regs: string[] | null }> | null;
-    }>;
+    const contracts = contractRows ?? [];
     const validIds = new Set(contracts.map((c) => c.id));
 
     if (contracts.length === 0) return { ...fallbackSimulation };
@@ -117,23 +122,24 @@ ${JSON.stringify(contractContext)}`;
       console.error("[simulate] exception", err);
     }
 
-    // Persist for audit history (best-effort)
-    const { data: profileRow } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (profileRow?.org_id) {
-      const { error: insertErr } = await supabase.from("simulation_runs").insert({
-        org_id: profileRow.org_id,
-        input_regulation_text: data.regulationText,
-        result_json: JSON.parse(JSON.stringify(result)),
-        triggered_by: userId,
-        run_type: data.runType,
-      });
-      if (insertErr) console.error("[simulate] persist error", insertErr);
+    // Persist for audit history in PostgreSQL (best-effort)
+    if (orgId) {
+      try {
+        await query(
+          `INSERT INTO public.simulation_runs (org_id, input_regulation_text, result_json, triggered_by, run_type)
+           VALUES ($1, $2, $3::jsonb, $4, $5)`,
+          [
+            orgId,
+            data.regulationText,
+            JSON.stringify(result),
+            userId,
+            data.runType,
+          ]
+        );
+      } catch (insertErr) {
+        console.error("[simulate] persist error", insertErr);
+      }
     }
-
 
     return result;
   });

@@ -10,7 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem('clausegraph-theme');if(t!=='light'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();`;
@@ -111,7 +110,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@500;600;700&display=swap",
       },
     ],
-
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -124,7 +122,6 @@ function RootShell({ children }: { children: ReactNode }) {
     // The inline theme script sets class="dark" before hydration, so the
     // server HTML and client tree differ on <html> by design.
     <html lang="en" suppressHydrationWarning>
-
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />
@@ -137,32 +134,12 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function AuthSync() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (
-        event !== "SIGNED_IN" &&
-        event !== "SIGNED_OUT" &&
-        event !== "USER_UPDATED"
-      )
-        return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [router, queryClient]);
-  return null;
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthSync />
         <Outlet />
       </ThemeProvider>
     </QueryClientProvider>

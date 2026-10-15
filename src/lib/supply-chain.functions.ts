@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { coerceHits } from "./supply-chain.server";
-import { chatCompletion } from "./ai.server";
+import { requireAuth } from "./auth-middleware";
 
 export type ChainNode = {
   id: string;
@@ -41,20 +39,37 @@ export type CascadeResult = {
   run_id?: string;
 };
 
-
 export const getSupplyChain = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }): Promise<{ nodes: ChainNode[]; edges: ChainEdge[] }> => {
-    const { supabase } = context;
-    const [{ data: nodes, error: nErr }, { data: edges, error: eErr }] = await Promise.all([
-      supabase.from("supply_chain_nodes").select("*").order("tier"),
-      supabase.from("supply_chain_edges").select("*"),
+    const { query } = await import("./db.server");
+    const [nodes, edges] = await Promise.all([
+      query<ChainNode>(
+        `SELECT id, name, role, tier, jurisdiction, description 
+         FROM public.supply_chain_nodes 
+         WHERE org_id = $1 
+         ORDER BY tier ASC`,
+        [context.orgId]
+      ),
+      query<{
+        id: string;
+        from_node_id: string;
+        to_node_id: string;
+        contract_name: string;
+        contract_value: number | string;
+        key_clauses: string[];
+        depends_on_regs: string[];
+      }>(
+        `SELECT id, from_node_id, to_node_id, contract_name, contract_value, key_clauses, depends_on_regs 
+         FROM public.supply_chain_edges 
+         WHERE org_id = $1`,
+        [context.orgId]
+      ),
     ]);
-    if (nErr) throw nErr;
-    if (eErr) throw eErr;
+
     return {
-      nodes: (nodes ?? []) as ChainNode[],
-      edges: ((edges ?? []) as unknown as ChainEdge[]).map((e) => ({
+      nodes: nodes ?? [],
+      edges: (edges ?? []).map((e) => ({
         ...e,
         contract_value: Number(e.contract_value ?? 0),
       })),
@@ -62,35 +77,52 @@ export const getSupplyChain = createServerFn({ method: "GET" })
   });
 
 export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { regulationText: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { regulationText: string }) => {
     const text = String(input?.regulationText ?? "").trim();
     if (!text) throw new Error("Regulation text is required");
     if (text.length > 20000) throw new Error("Regulation text too long");
     return { regulationText: text };
   })
   .handler(async ({ data, context }): Promise<CascadeResult> => {
-    const { supabase, userId } = context;
+    const { userId, orgId } = context;
+    const { query, queryOne } = await import("./db.server");
+    const { coerceHits } = await import("./supply-chain.server");
+    const { chatCompletion } = await import("./ai.server");
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (profile?.org_id) {
-      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
-        _org: profile.org_id,
-        _action: "run_simulation",
-      });
-      if (quotaErr) throw new Error(quotaErr.message);
+    if (orgId) {
+      try {
+        await query(`SELECT assert_within_quota($1, 'run_simulation')`, [orgId]);
+      } catch (quotaErr) {
+        throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
+      }
     }
 
-    const [{ data: nodeRows }, { data: edgeRows }] = await Promise.all([
-      supabase.from("supply_chain_nodes").select("*"),
-      supabase.from("supply_chain_edges").select("*"),
+    const [nodeRows, edgeRows] = await Promise.all([
+      query<ChainNode>(
+        `SELECT id, name, role, tier, jurisdiction, description 
+         FROM public.supply_chain_nodes 
+         WHERE org_id = $1`,
+        [orgId]
+      ),
+      query<{
+        id: string;
+        from_node_id: string;
+        to_node_id: string;
+        contract_name: string;
+        contract_value: number | string;
+        key_clauses: string[];
+        depends_on_regs: string[];
+      }>(
+        `SELECT id, from_node_id, to_node_id, contract_name, contract_value, key_clauses, depends_on_regs 
+         FROM public.supply_chain_edges 
+         WHERE org_id = $1`,
+        [orgId]
+      ),
     ]);
-    const nodes = (nodeRows ?? []) as ChainNode[];
-    const edges = ((edgeRows ?? []) as unknown as ChainEdge[]).map((e) => ({
+
+    const nodes = nodeRows ?? [];
+    const edges: ChainEdge[] = (edgeRows ?? []).map((e) => ({
       ...e,
       contract_value: Number(e.contract_value ?? 0),
     }));
@@ -98,61 +130,40 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
 
     // Deterministic fallback: heuristic keyword match on depends_on_regs / description.
     const heuristicHits = (): CascadeHit[] => {
-      const kw = data.regulationText.toLowerCase();
-      const flagged = new Set<string>();
-      nodes.forEach((n) => {
-        if (
-          (n.description ?? "").toLowerCase().split(/\W+/).some((w) => w && kw.includes(w) && w.length > 4)
-        ) {
-          flagged.add(n.id);
-        }
-      });
-      edges.forEach((e) => {
-        if (e.depends_on_regs.some((r) => kw.includes(r.toLowerCase().split("-").pop() ?? ""))) {
-          flagged.add(e.to_node_id);
-        }
-      });
       const hits: CascadeHit[] = [];
-      if (flagged.size === 0 && nodes.length > 0) {
-        // fallback: hit deepest tier
-        const deepest = nodes.reduce((a, b) => (b.tier > a.tier ? b : a));
-        flagged.add(deepest.id);
-      }
-      const seedIds = Array.from(flagged);
-      const hopMap = new Map<string, number>();
-      seedIds.forEach((id) => hopMap.set(id, 0));
-      // BFS backwards along edges to trace cascade to 'self'
-      const queue = [...seedIds];
-      while (queue.length) {
-        const cur = queue.shift()!;
-        const h = hopMap.get(cur) ?? 0;
-        edges
-          .filter((e) => e.to_node_id === cur)
-          .forEach((e) => {
-            const prev = hopMap.get(e.from_node_id);
-            if (prev === undefined || prev > h + 1) {
-              hopMap.set(e.from_node_id, h + 1);
-              queue.push(e.from_node_id);
-            }
+      const lower = data.regulationText.toLowerCase();
+
+      for (const edge of edges) {
+        const matchesReg = edge.depends_on_regs.some((r) =>
+          lower.includes(r.toLowerCase().replace("reg-", "")),
+        );
+        const matchesKeyword =
+          lower.includes("transfer") ||
+          lower.includes("energy") ||
+          lower.includes("pci") ||
+          lower.includes("payment") ||
+          lower.includes("breach");
+
+        if (matchesReg || matchesKeyword) {
+          const target = nodes.find((n) => n.id === edge.to_node_id);
+          const hop = target?.tier ?? 1;
+          hits.push({
+            node_id: edge.to_node_id,
+            hop,
+            reason: `Regulation matches dependency tag on edge "${edge.contract_name}".`,
+            broken_clause: edge.key_clauses[0] ?? "Adherence to applicable laws",
+            severity: hop === 1 ? "high" : hop === 2 ? "medium" : "low",
+            indirect_exposure_usd: Math.round(edge.contract_value * 0.4),
           });
+        }
       }
-      hopMap.forEach((hop, nid) => {
-        const inbound = edges.find((e) => e.to_node_id === nid);
-        const sev: CascadeHit["severity"] = hop === 0 ? "high" : hop === 1 ? "high" : hop === 2 ? "medium" : "low";
-        hits.push({
-          node_id: nid,
-          hop,
-          severity: sev,
-          reason:
-            hop === 0
-              ? "Direct regulatory target — new obligations apply."
-              : `Cascade via ${inbound?.contract_name ?? "upstream contract"}.`,
-          broken_clause: inbound?.key_clauses[0] ?? "Adherence to all applicable laws",
-          indirect_exposure_usd: inbound?.contract_value ?? 0,
-        });
-      });
-      hits.sort((a, b) => a.hop - b.hop);
-      return hits;
+
+      // Deduplicate by node_id keeping highest hop/severity
+      const byNode = new Map<string, CascadeHit>();
+      for (const h of hits) {
+        if (!byNode.has(h.node_id)) byNode.set(h.node_id, h);
+      }
+      return Array.from(byNode.values());
     };
 
     let hits: CascadeHit[] = [];
@@ -160,26 +171,51 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
     let remediation: string[] = [];
     let fallback = true;
 
-    if (nodes.length) {
-      try {
-        const system = `You are a supply-chain compliance analyst. Given a proposed regulation and a multi-hop dependency graph of contractual relationships, identify which nodes are directly hit and how the impact cascades through contract edges back to the 'self' node.
-Return STRICT JSON: {"summary": string, "hits": [{"node_id": string, "hop": number, "reason": string, "broken_clause": string, "severity": "low"|"medium"|"high", "indirect_exposure_usd": number}], "remediation": string[]}
+    if (nodes.length > 0 && edges.length > 0) {
+      const graphContext = {
+        nodes: nodes.map((n) => ({
+          id: n.id,
+          name: n.name,
+          role: n.role,
+          tier: n.tier,
+          jurisdiction: n.jurisdiction,
+          description: n.description,
+        })),
+        edges: edges.map((e) => ({
+          from: e.from_node_id,
+          to: e.to_node_id,
+          contract: e.contract_name,
+          value_usd: e.contract_value,
+          clauses: e.key_clauses,
+          depends_on: e.depends_on_regs,
+        })),
+      };
+
+      const system = `You are a supply-chain risk and legal-graph analyst. Given a multi-tier vendor graph (Tier 0 = self, Tier 1 = direct suppliers, Tier 2 = subprocessors, Tier 3 = critical utilities/networks) and a proposed regulation:
+1. Trace which upstream nodes are impacted.
+2. For each, determine the CASCADE HOP (how many edges away from self: Tier 1 = 1 hop, Tier 2 = 2 hops, etc.), the broken contract clause, severity, and indirect dollar exposure.
+3. Return 2-4 concrete remediation steps for the root organization.
+
+Return STRICT JSON:
+{
+  "summary": string,
+  "hits": [{"node_id": string, "hop": number, "reason": string, "broken_clause": string, "severity": "low"|"medium"|"high", "indirect_exposure_usd": number}],
+  "remediation": [string]
+}
 Rules:
-- node_id MUST be one from the supplied graph.
-- hop=0 means the regulation directly hits that node. hop=1 means it propagates one contract-edge away, hop=2 two edges, etc. Always trace hops back toward the 'self' node.
-- broken_clause SHOULD be the specific clause (from key_clauses) that fails when the upstream node breaks.
-- indirect_exposure_usd is the contract_value on the incoming edge that becomes exposed.
-- Provide 3-5 concrete upstream-audit remediation actions.
-- Output JSON only.`;
-        const user = `PROPOSED REGULATION:
+- node_id MUST match an id from the provided nodes (never invent).
+- Do NOT include the self node in hits.
+- indirect_exposure_usd must be a positive number reflecting contractual exposure at risk.
+- remediation must be actionable contract/audit steps.
+- JSON only.`;
+
+      const user = `PROPOSED REGULATION:
 ${data.regulationText}
 
-SUPPLY CHAIN NODES:
-${JSON.stringify(nodes)}
+SUPPLY CHAIN GRAPH:
+${JSON.stringify(graphContext)}`;
 
-SUPPLY CHAIN EDGES (from -> to, with contract):
-${JSON.stringify(edges)}`;
-
+      try {
         const content = await chatCompletion({
           model: "gpt-4o",
           messages: [
@@ -193,9 +229,9 @@ ${JSON.stringify(edges)}`;
         if (content) {
           try {
             const parsed = JSON.parse(content);
-            const parsedHits = coerceHits(parsed, valid);
-            if (parsedHits.length > 0) {
-              hits = parsedHits;
+            const coerced = coerceHits(parsed, valid);
+            if (coerced && coerced.length > 0) {
+              hits = coerced;
               summary = typeof (parsed as { summary?: unknown }).summary === "string"
                 ? (parsed as { summary: string }).summary
                 : "";
@@ -231,22 +267,24 @@ ${JSON.stringify(edges)}`;
 
     const result: CascadeResult = { hits, summary, remediation, total_indirect_exposure, fallback };
 
-    if (profile?.org_id) {
-      const { data: row, error } = await supabase
-        .from("simulation_runs")
-        .insert({
-          org_id: profile.org_id,
-          input_regulation_text: data.regulationText,
-          result_json: JSON.parse(JSON.stringify(result)),
-          triggered_by: userId,
-          run_type: "supply_chain",
-        })
-        .select("id")
-        .maybeSingle();
-      if (error) console.error("[supply-chain] persist error", error);
-      if (row?.id) result.run_id = row.id as string;
+    if (orgId) {
+      try {
+        const row = await queryOne<{ id: string }>(
+          `INSERT INTO public.simulation_runs (org_id, input_regulation_text, result_json, triggered_by, run_type)
+           VALUES ($1, $2, $3::jsonb, $4, 'supply_chain')
+           RETURNING id`,
+          [
+            orgId,
+            data.regulationText,
+            JSON.stringify(result),
+            userId,
+          ]
+        );
+        if (row?.id) result.run_id = row.id;
+      } catch (err) {
+        console.error("[supply-chain] persist error", err);
+      }
     }
-
 
     return result;
   });

@@ -1,14 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "./auth-middleware";
 import { fallbackActionPlan } from "./action-plan-fallback";
-import { coerceActionPlan } from "./action-plan.server";
-import { chatCompletion } from "./ai.server";
 import type { ActionPlan, ActionPlanInput } from "./action-plan-types";
 
 export const generateActionPlan = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-
-  .inputValidator((input: ActionPlanInput) => {
+  .middleware([requireAuth])
+  .validator((input: ActionPlanInput) => {
     if (!input || typeof input !== "object") throw new Error("Invalid input");
     const text = String(input.regulationText ?? "").trim();
     if (!text) throw new Error("Regulation text required");
@@ -20,20 +17,18 @@ export const generateActionPlan = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }): Promise<ActionPlan> => {
-    // Server-side entitlement gate: action plans are a paid/trial feature and
-    // draw on the monthly allowance.
-    const { supabase, userId } = context;
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (prof?.org_id) {
-      const { error: quotaErr } = await supabase.rpc("assert_within_quota", {
-        _org: prof.org_id,
-        _action: "generate_action_plan",
-      });
-      if (quotaErr) throw new Error(quotaErr.message);
+    const { orgId } = context;
+    const { query } = await import("./db.server");
+    const { coerceActionPlan } = await import("./action-plan.server");
+    const { chatCompletion } = await import("./ai.server");
+
+    // Server-side entitlement gate: action plans drawn on monthly allowance
+    if (orgId) {
+      try {
+        await query(`SELECT assert_within_quota($1, 'generate_action_plan')`, [orgId]);
+      } catch (quotaErr) {
+        throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
+      }
     }
 
     const system = `You are a senior compliance officer drafting a remediation action plan for legal review. Return STRICT JSON only:

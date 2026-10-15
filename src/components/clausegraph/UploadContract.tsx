@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { startContractExtraction } from "@/lib/upload.functions";
 import { profileQuery } from "@/data/queries";
 import { useQuery } from "@tanstack/react-query";
@@ -23,16 +22,8 @@ export function UploadContract({ onClose }: Props) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      let sourceFilePath: string | null = null;
       const file = fileRef.current?.files?.[0];
-      if (file && profile?.org?.id) {
-        const path = `${profile.org.id}/${crypto.randomUUID()}-${file.name}`;
-        const { error: upErr } = await supabase.storage
-          .from("contract-files")
-          .upload(path, file, { contentType: file.type || "text/plain" });
-        if (upErr) throw upErr;
-        sourceFilePath = path;
-      }
+      const sourceFilePath = file ? file.name : null;
       return start({
         data: {
           name,

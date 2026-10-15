@@ -1,31 +1,33 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getUserOrg } from "./account.server";
+import { requireAuth } from "./auth-middleware";
 import type { PaddleEnv } from "./paddle.server";
 
 /** Schedule workspace deletion 30 days out. Admin-only (enforced in SQL). */
 export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const orgId = await getUserOrg(supabase, userId);
+    const { userId, orgId } = context;
     if (!orgId) throw new Error("No workspace");
+    const { queryOne } = await import("./db.server");
 
     // Best-effort: cancel any active Paddle subscription so we don't keep billing.
     try {
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("paddle_subscription_id, environment, status")
-        .eq("org_id", orgId)
-        .in("status", ["active", "trialing", "past_due"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const sub = await queryOne<{
+        paddle_subscription_id: string;
+        environment: string;
+        status: string;
+      }>(
+        `SELECT paddle_subscription_id, environment, status 
+         FROM public.subscriptions 
+         WHERE org_id = $1 AND status IN ('active', 'trialing', 'past_due') 
+         ORDER BY created_at DESC LIMIT 1`,
+        [orgId]
+      );
 
       if (sub?.paddle_subscription_id) {
         const { getPaddleClient } = await import("./paddle.server");
         const paddle = getPaddleClient(sub.environment as PaddleEnv);
-        await paddle.subscriptions.cancel(sub.paddle_subscription_id as string, {
+        await paddle.subscriptions.cancel(sub.paddle_subscription_id, {
           effectiveFrom: "next_billing_period",
         });
       }
@@ -33,24 +35,21 @@ export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
       console.warn("[deletion] paddle cancel best-effort failed", e);
     }
 
-    const { data, error } = await supabase.rpc("request_workspace_deletion", {
-      _org: orgId,
-      _by: userId,
-    });
-    if (error) throw error;
-    return { scheduledAt: data as unknown as string };
+    const row = await queryOne<{ request_workspace_deletion: string }>(
+      `SELECT request_workspace_deletion($1, $2)`,
+      [orgId, userId]
+    );
+
+    return { scheduledAt: row?.request_workspace_deletion ?? new Date().toISOString() };
   });
 
 export const cancelWorkspaceDeletion = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const orgId = await getUserOrg(supabase, userId);
+    const { userId, orgId } = context;
     if (!orgId) throw new Error("No workspace");
-    const { error } = await supabase.rpc("cancel_workspace_deletion", {
-      _org: orgId,
-      _by: userId,
-    });
-    if (error) throw error;
+    const { query } = await import("./db.server");
+
+    await query(`SELECT cancel_workspace_deletion($1, $2)`, [orgId, userId]);
     return { ok: true };
   });

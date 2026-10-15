@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { Loader2, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  getToken,
+  signInWithPassword,
+  signUpWithPassword,
+  signInDemo,
+} from "@/lib/auth-client";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -54,81 +59,18 @@ function AuthPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate({ to: safeRedirect(search.redirect), replace: true });
-      }
-    });
-  }, [navigate, search.redirect]);
-
-  async function handleGoogle() {
-    setError(null);
-    setBusy(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect(search.redirect))}`,
-        },
-      });
-      if (error) {
-        setError(error.message ?? "Google sign-in failed");
-        setBusy(false);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
-      setBusy(false);
+    if (getToken()) {
+      navigate({ to: safeRedirect(search.redirect), replace: true });
     }
-  }
+  }, [navigate, search.redirect]);
 
   async function handleDemoAccess() {
     setError(null);
-    setNotice("Signing in to pre-seeded enterprise evaluation workspace...");
+    setNotice("Signing in to pre-seeded enterprise evaluation workspace (PostgreSQL 16)...");
     setBusy(true);
     try {
-      const demoEmail = "judge@clausegraph.ai";
-      const demoPassword = "DemoPassword2026!";
-
-      // Try sign-in first
-      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
-      });
-
-      if (!signInErr && signInData.session) {
-        navigate({ to: safeRedirect(search.redirect), replace: true });
-        return;
-      }
-
-      // Auto-provision if not existing
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-        email: demoEmail,
-        password: demoPassword,
-        options: {
-          data: { full_name: "Hackathon Evaluation Lead" },
-        },
-      });
-
-      if (signUpErr) {
-        setError(signUpErr.message);
-        setBusy(false);
-        return;
-      }
-
-      if (signUpData.session) {
-        navigate({ to: safeRedirect(search.redirect), replace: true });
-      } else {
-        const { error: retryErr } = await supabase.auth.signInWithPassword({
-          email: demoEmail,
-          password: demoPassword,
-        });
-        if (retryErr) {
-          setError(retryErr.message);
-          setBusy(false);
-        } else {
-          navigate({ to: safeRedirect(search.redirect), replace: true });
-        }
-      }
+      await signInDemo();
+      navigate({ to: safeRedirect(search.redirect), replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Demo access failed");
       setBusy(false);
@@ -142,33 +84,13 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error: err } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: fullName || undefined },
-          },
-        });
-        if (err) throw err;
-        setNotice(
-          "Account created. If email confirmation is required, check your inbox to continue.",
-        );
-        // If auto-confirm is on, session is live now.
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          navigate({ to: safeRedirect(search.redirect), replace: true });
-        }
+        await signUpWithPassword(email, password, fullName || undefined);
+        navigate({ to: safeRedirect(search.redirect), replace: true });
       } else if (mode === "signin") {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-        if (err) throw err;
+        await signInWithPassword(email, password);
         navigate({ to: safeRedirect(search.redirect), replace: true });
       } else {
-        const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + "/reset-password",
-        });
-        if (err) throw err;
-        setNotice("Password reset link sent. Check your inbox.");
+        setNotice("If this workspace exists, an admin can update your password under settings.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -205,36 +127,27 @@ function AuthPage() {
           </h1>
 
           {mode !== "forgot" && (
-            <>
+            <div className="mt-6 mb-5">
               <button
                 type="button"
                 onClick={handleDemoAccess}
                 disabled={busy}
-                className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-[var(--brass)] to-[#14c6a4] px-4 py-2.5 text-[13.5px] font-semibold text-[color:var(--primary-foreground)] shadow-[0_0_24px_-4px_rgba(14,164,143,0.55)] transition-all duration-150 ease-out hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-[var(--brass)] to-[#14c6a4] px-4 py-2.5 text-[13.5px] font-semibold text-[color:var(--primary-foreground)] shadow-[0_0_24px_-4px_rgba(14,164,143,0.55)] transition-all duration-150 ease-out hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
               >
                 <span>⚡ Instant Hackathon Demo (1-Click Judge Access)</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleGoogle}
-                disabled={busy}
-                className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2.5 text-[13.5px] text-foreground transition-all duration-150 ease-out hover:border-brass hover:text-brass disabled:opacity-50"
-              >
-                <GoogleGlyph />
-                Continue with Google
-              </button>
               <div className="mt-5 flex items-center gap-3">
                 <div className="h-px flex-1 bg-[var(--hairline)]" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  or
+                  or with email
                 </span>
                 <div className="h-px flex-1 bg-[var(--hairline)]" />
               </div>
-            </>
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             {mode === "signup" && (
               <label className="flex flex-col gap-1.5">
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -369,16 +282,5 @@ function AuthPage() {
         </div>
       </div>
     </main>
-  );
-}
-
-function GoogleGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.9h5.4c-.2 1.4-1.6 4.1-5.4 4.1-3.3 0-5.9-2.7-5.9-6.1s2.7-6.1 5.9-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.6 14.7 2.6 12 2.6 6.8 2.6 2.6 6.8 2.6 12s4.2 9.4 9.4 9.4c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-2H12z"
-      />
-    </svg>
   );
 }
