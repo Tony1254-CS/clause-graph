@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { fallbackSimulation } from "./simulate-fallback";
 import { coerceImpacts } from "./simulate.server";
+import { chatCompletion } from "./ai.server";
 import type { SimulationResult, SimulateInput } from "./simulate-types";
 
 export const simulateImpact = createServerFn({ method: "POST" })
@@ -54,8 +55,7 @@ export const simulateImpact = createServerFn({ method: "POST" })
     }>;
     const validIds = new Set(contracts.map((c) => c.id));
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey || contracts.length === 0) return { ...fallbackSimulation };
+    if (contracts.length === 0) return { ...fallbackSimulation };
 
     const contractContext = contracts.map((c) => ({
       id: c.id,
@@ -88,32 +88,17 @@ ${JSON.stringify(contractContext)}`;
 
     let result: SimulationResult = { ...fallbackSimulation };
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45_000);
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
 
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-        }),
-      }).finally(() => clearTimeout(timeout));
-
-      if (res.ok) {
-        const json = (await res.json()) as {
-          choices?: Array<{ message?: { content?: string } }>;
-        };
-        const content = json.choices?.[0]?.message?.content ?? "";
+      if (content) {
         try {
           const parsed = JSON.parse(content);
           const impacts = coerceImpacts(parsed, validIds);
@@ -127,8 +112,6 @@ ${JSON.stringify(contractContext)}`;
         } catch {
           /* fallback */
         }
-      } else {
-        console.error("[simulate] gateway error", res.status, await res.text().catch(() => ""));
       }
     } catch (err) {
       console.error("[simulate] exception", err);

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { coerceHits } from "./supply-chain.server";
+import { chatCompletion } from "./ai.server";
 
 export type ChainNode = {
   id: string;
@@ -95,8 +96,6 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
     }));
     const valid = new Set(nodes.map((n) => n.id));
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-
     // Deterministic fallback: heuristic keyword match on depends_on_regs / description.
     const heuristicHits = (): CascadeHit[] => {
       const kw = data.regulationText.toLowerCase();
@@ -161,7 +160,7 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
     let remediation: string[] = [];
     let fallback = true;
 
-    if (apiKey && nodes.length) {
+    if (nodes.length) {
       try {
         const system = `You are a supply-chain compliance analyst. Given a proposed regulation and a multi-hop dependency graph of contractual relationships, identify which nodes are directly hit and how the impact cascades through contract edges back to the 'self' node.
 Return STRICT JSON: {"summary": string, "hits": [{"node_id": string, "hop": number, "reason": string, "broken_clause": string, "severity": "low"|"medium"|"high", "indirect_exposure_usd": number}], "remediation": string[]}
@@ -181,26 +180,17 @@ ${JSON.stringify(nodes)}
 SUPPLY CHAIN EDGES (from -> to, with contract):
 ${JSON.stringify(edges)}`;
 
-        const controller = new AbortController();
-        const t = setTimeout(() => controller.abort(), 45_000);
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          signal: controller.signal,
-          headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
-          body: JSON.stringify({
-            model: "google/gemini-3.6-flash",
-            messages: [
-              { role: "system", content: system },
-              { role: "user", content: user },
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.2,
-          }),
-        }).finally(() => clearTimeout(t));
+        const content = await chatCompletion({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.2,
+        });
 
-        if (res.ok) {
-          const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-          const content = j.choices?.[0]?.message?.content ?? "";
+        if (content) {
           try {
             const parsed = JSON.parse(content);
             const parsedHits = coerceHits(parsed, valid);
@@ -216,8 +206,6 @@ ${JSON.stringify(edges)}`;
           } catch {
             /* fall through */
           }
-        } else {
-          console.error("[supply-chain] gateway", res.status, await res.text().catch(() => ""));
         }
       } catch (err) {
         console.error("[supply-chain] exception", err);

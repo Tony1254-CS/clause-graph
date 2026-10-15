@@ -1,3 +1,5 @@
+import { chatCompletion } from "./ai.server";
+
 type ExtractedClause = { text: string; linked_regs: string[] };
 
 const SYSTEM = `You are a contracts analyst. Given a contract's raw text and a regulatory ontology, do TWO things:
@@ -20,42 +22,21 @@ export async function runContractExtraction(contractId: string, rawText: string)
       summary: r.summary,
     }));
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    const content = await chatCompletion({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: SYSTEM },
+        {
+          role: "user",
+          content: `REGULATORY ONTOLOGY:\n${JSON.stringify(ontology)}\n\nCONTRACT TEXT:\n${rawText}`,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.1,
+      timeoutMs: 90_000,
+    });
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 90_000);
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
-        messages: [
-          { role: "system", content: SYSTEM },
-          {
-            role: "user",
-            content: `REGULATORY ONTOLOGY:\n${JSON.stringify(ontology)}\n\nCONTRACT TEXT:\n${rawText}`,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.1,
-      }),
-    }).finally(() => clearTimeout(timeout));
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`AI gateway ${res.status}: ${body.slice(0, 200)}`);
-    }
-
-    const json = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = json.choices?.[0]?.message?.content ?? "";
+    if (!content) throw new Error("AI extraction returned empty response");
     const parsed = JSON.parse(content) as { clauses?: ExtractedClause[] };
     const validRegIds = new Set(ontology.map((r) => r.id));
     const clauses: ExtractedClause[] = (parsed.clauses ?? [])

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { coerceComplianceCode, fallbackArtifact } from "./compliance-code.server";
+import { chatCompletion } from "./ai.server";
 
 export type Stack = "aws" | "gcp" | "azure";
 export type CodeArtifact = {
@@ -45,7 +46,6 @@ export const generateComplianceCode = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }): Promise<ComplianceCode> => {
     const { supabase, userId } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
 
     // Server-side entitlement gate: compliance-as-code is a paid/trial feature.
     const { data: gateProfile } = await supabase
@@ -63,10 +63,8 @@ export const generateComplianceCode = createServerFn({ method: "POST" })
 
     let result: ComplianceCode | null = null;
 
-
-    if (apiKey) {
-      try {
-        const system = `You are a compliance engineer. Given a regulation requirement and a described compliance gap in a typical ${data.stack.toUpperCase()} environment, produce (a) an executable audit script that checks for the gap and (b) an infrastructure-as-code remediation snippet that fixes it.
+    try {
+      const system = `You are a compliance engineer. Given a regulation requirement and a described compliance gap in a typical ${data.stack.toUpperCase()} environment, produce (a) an executable audit script that checks for the gap and (b) an infrastructure-as-code remediation snippet that fixes it.
 Return STRICT JSON, no code fences:
 {"audit_script": {"language": "python"|"bash", "code": string, "description": string},
  "remediation": {"language": "terraform"|"yaml"|"bash", "code": string, "description": string},
@@ -77,7 +75,7 @@ Rules:
 - Prefer boto3 for AWS Python audits, gcloud for GCP, az CLI for Azure.
 - Prefer Terraform for AWS remediation, YAML/kubectl for k8s scenarios.
 - Keep each code block under 3500 characters.`;
-        const user = `REGULATION:
+      const user = `REGULATION:
 ${data.regulationText}
 
 COMPLIANCE GAP:
@@ -85,37 +83,25 @@ ${data.gap}
 
 TARGET STACK: ${data.stack.toUpperCase()}`;
 
-        const controller = new AbortController();
-        const t = setTimeout(() => controller.abort(), 45_000);
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          signal: controller.signal,
-          headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
-          body: JSON.stringify({
-            model: "google/gemini-3.6-flash",
-            messages: [
-              { role: "system", content: system },
-              { role: "user", content: user },
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.2,
-          }),
-        }).finally(() => clearTimeout(t));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
 
-        if (res.ok) {
-          const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-          const content = j.choices?.[0]?.message?.content ?? "";
-          try {
-            result = coerceComplianceCode(JSON.parse(content), data.gap, data.stack);
-          } catch {
-            /* fallback */
-          }
-        } else {
-          console.error("[compliance-code] gateway", res.status, await res.text().catch(() => ""));
+      if (content) {
+        try {
+          result = coerceComplianceCode(JSON.parse(content), data.gap, data.stack);
+        } catch {
+          /* fallback */
         }
-      } catch (err) {
-        console.error("[compliance-code] exception", err);
       }
+    } catch (err) {
+      console.error("[compliance-code] exception", err);
     }
 
     const finalResult = result ?? fallbackArtifact(data.gap, data.stack);

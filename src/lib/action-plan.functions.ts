@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { fallbackActionPlan } from "./action-plan-fallback";
 import { coerceActionPlan } from "./action-plan.server";
+import { chatCompletion } from "./ai.server";
 import type { ActionPlan, ActionPlanInput } from "./action-plan-types";
 
 export const generateActionPlan = createServerFn({ method: "POST" })
@@ -35,9 +36,6 @@ export const generateActionPlan = createServerFn({ method: "POST" })
       if (quotaErr) throw new Error(quotaErr.message);
     }
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) return { ...fallbackActionPlan };
-
     const system = `You are a senior compliance officer drafting a remediation action plan for legal review. Return STRICT JSON only:
 {
   "policy_draft": string,
@@ -62,34 +60,18 @@ IMPACTED CONTRACTS:
 ${JSON.stringify(data.impacts)}`;
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45_000);
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.3,
-        }),
-      }).finally(() => clearTimeout(timeout));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.3,
+      });
 
-      if (!res.ok) {
-        console.error("[action-plan] gateway error", res.status);
-        return { ...fallbackActionPlan };
-      }
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const content = json.choices?.[0]?.message?.content ?? "";
+      if (!content) return { ...fallbackActionPlan };
+
       let parsed: unknown;
       try {
         parsed = JSON.parse(content);

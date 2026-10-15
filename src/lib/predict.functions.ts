@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { bandFor, daysBetween, daysSince, fallbackHypothetical, windowFor } from "./predict.server";
+import { chatCompletion } from "./ai.server";
 
 export type ProbabilityBand = "high" | "medium" | "low";
 
@@ -154,9 +155,6 @@ export const generateHypotheticalAmendment = createServerFn({ method: "POST" })
       direction: a.direction as Amendment["direction"],
     }));
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) return fallbackHypothetical(reg.id as string, reg.title as string, history);
-
     const historyText = history
       .map((h) => `- ${h.amended_on} [${h.direction}]: ${h.summary}`)
       .join("\n");
@@ -179,35 +177,20 @@ ${historyText || "(no recorded amendments)"}
 Draft the adversarial what-if amendment.`;
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30_000);
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.4,
-        }),
-      }).finally(() => clearTimeout(timeout));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.4,
+      });
 
-      if (!res.ok) {
-        console.error("[predict] gateway error", res.status, await res.text().catch(() => ""));
+      if (!content) {
         return fallbackHypothetical(reg.id as string, reg.title as string, history);
       }
 
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const content = json.choices?.[0]?.message?.content ?? "";
       const parsed = JSON.parse(content) as {
         amendment_text?: unknown;
         rationale?: unknown;

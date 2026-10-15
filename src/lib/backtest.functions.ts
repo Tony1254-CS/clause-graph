@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { chatCompletion } from "./ai.server";
 import type { SimulationResult, Severity, ImpactEntry } from "./simulate-types";
 
 type BacktestRow = {
@@ -31,9 +32,6 @@ export const simulateBacktest = createServerFn({ method: "POST" })
     if (!row) throw new Error("Unknown case");
     const bt = row as BacktestRow;
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) return { ...bt.fallback };
-
     const clauseCtx = bt.reconstructed_clauses.map((c) => ({ id: c.id, text: c.text }));
 
     const system = `You are a legal compliance analyst. Given a proposed regulation and a small set of RECONSTRUCTED contract clauses (synthetic, drafted to mirror a real enforcement case — NOT the company's actual contracts), identify which clauses are materially impacted. Return STRICT JSON:
@@ -53,31 +51,18 @@ RECONSTRUCTED CLAUSES:
 ${JSON.stringify(clauseCtx)}`;
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45_000);
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-        }),
-      }).finally(() => clearTimeout(timeout));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
 
-      if (!res.ok) return { ...bt.fallback };
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const content = json.choices?.[0]?.message?.content ?? "";
+      if (!content) return { ...bt.fallback };
+
       let parsed: unknown;
       try {
         parsed = JSON.parse(content);
