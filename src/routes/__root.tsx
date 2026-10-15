@@ -10,7 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -41,9 +40,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -88,8 +84,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
       { property: "og:description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
       { name: "twitter:description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
-      { property: "og:image", content: "https://clause-graph.lovable.app/og-cover.jpg" },
-      { name: "twitter:image", content: "https://clause-graph.lovable.app/og-cover.jpg" },
+      { property: "og:image", content: "/og-cover.jpg" },
+      { name: "twitter:image", content: "/og-cover.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
       { name: "theme-color", content: "#07090C" },

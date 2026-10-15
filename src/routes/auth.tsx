@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { z } from "zod";
 import { Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -66,16 +65,16 @@ function AuthPage() {
     setError(null);
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect(search.redirect))}`,
+        },
       });
-      if (result.error) {
-        setError(result.error.message ?? "Google sign-in failed");
+      if (error) {
+        setError(error.message ?? "Google sign-in failed");
         setBusy(false);
-        return;
       }
-      if (result.redirected) return;
-      navigate({ to: safeRedirect(search.redirect), replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
       setBusy(false);
