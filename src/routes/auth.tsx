@@ -81,6 +81,60 @@ function AuthPage() {
     }
   }
 
+  async function handleDemoAccess() {
+    setError(null);
+    setNotice("Signing in to pre-seeded enterprise evaluation workspace...");
+    setBusy(true);
+    try {
+      const demoEmail = "judge@clausegraph.ai";
+      const demoPassword = "DemoPassword2026!";
+
+      // Try sign-in first
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+
+      if (!signInErr && signInData.session) {
+        navigate({ to: safeRedirect(search.redirect), replace: true });
+        return;
+      }
+
+      // Auto-provision if not existing
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+        email: demoEmail,
+        password: demoPassword,
+        options: {
+          data: { full_name: "Hackathon Evaluation Lead" },
+        },
+      });
+
+      if (signUpErr) {
+        setError(signUpErr.message);
+        setBusy(false);
+        return;
+      }
+
+      if (signUpData.session) {
+        navigate({ to: safeRedirect(search.redirect), replace: true });
+      } else {
+        const { error: retryErr } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
+        if (retryErr) {
+          setError(retryErr.message);
+          setBusy(false);
+        } else {
+          navigate({ to: safeRedirect(search.redirect), replace: true });
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Demo access failed");
+      setBusy(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -154,9 +208,18 @@ function AuthPage() {
             <>
               <button
                 type="button"
+                onClick={handleDemoAccess}
+                disabled={busy}
+                className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-[var(--brass)] to-[#14c6a4] px-4 py-2.5 text-[13.5px] font-semibold text-[color:var(--primary-foreground)] shadow-[0_0_24px_-4px_rgba(14,164,143,0.55)] transition-all duration-150 ease-out hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+              >
+                <span>⚡ Instant Hackathon Demo (1-Click Judge Access)</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleGoogle}
                 disabled={busy}
-                className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2.5 text-[13.5px] text-foreground transition-all duration-150 ease-out hover:border-brass hover:text-brass disabled:opacity-50"
+                className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2.5 text-[13.5px] text-foreground transition-all duration-150 ease-out hover:border-brass hover:text-brass disabled:opacity-50"
               >
                 <GoogleGlyph />
                 Continue with Google

@@ -8,12 +8,21 @@
 
 ## 🚀 Quick Start
 
-1. **Sign in** at `/auth` — email/password or Google.
-2. You're auto-provisioned a private workspace on **Pro, free, with unlimited usage** (early access — no trial clock, no card, nothing to cancel), pre-seeded with a sample contract corpus and a supply-chain graph.
-3. Open **Simulate Impact**, paste any regulation text, and watch the blast radius render on the central medallion.
-4. Click **Generate Action Plan** to get a policy draft, amendment language, and a technical checklist you can export as PDF.
+### Option A: 1-Click Hackathon Evaluation
+1. Launch the app locally or visit the deployment.
+2. Go to `/auth` and click **"⚡ Instant Hackathon Demo (1-Click Judge Access)"**.
+3. You're auto-provisioned into an enterprise workspace with pre-seeded contracts, curated regulatory ontology, and multi-tier supply chain.
+4. Open **Simulate Impact**, paste any regulation, and watch the blast radius calculate financial exposure live!
 
-No setup, no credit card, no ceremony.
+### Option B: Run with Docker Compose (PostgreSQL 16 + Web App)
+```bash
+# 1. Clone & copy environment variables
+cp .env.example .env
+
+# 2. Start PostgreSQL and the fullstack app
+docker compose up --build
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser. All tables, functions, and seed data are automatically initialized via `docker/init.sql`.
 
 
 ---
