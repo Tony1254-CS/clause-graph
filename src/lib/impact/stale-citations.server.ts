@@ -114,7 +114,7 @@ export async function detectStaleCitations(orgId: string): Promise<StaleCitation
             c.name as contract_name, c.value as contract_value
      FROM public.clauses cl
      JOIN public.contracts c ON c.id = cl.contract_id
-     WHERE c.org_id = $1 AND c.status = 'active'`,
+     WHERE c.org_id = $1`,
     [orgId],
   );
 

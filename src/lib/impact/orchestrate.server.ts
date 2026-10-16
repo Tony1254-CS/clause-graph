@@ -118,7 +118,7 @@ export async function runImpactAnalysis(
     `SELECT cl.id, cl.contract_id, cl.text, cl.linked_regs
      FROM public.clauses cl
      JOIN public.contracts c ON c.id = cl.contract_id
-     WHERE c.org_id = $1 AND c.status = 'active'`,
+     WHERE c.org_id = $1`,
     [orgId],
   );
 
