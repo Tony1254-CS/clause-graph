@@ -59,7 +59,7 @@ export async function runContractExtraction(contractId: string, rawText: string)
         await client.query(
           `INSERT INTO public.clauses (contract_id, text, linked_regs, position, confidence)
            VALUES ($1, $2, $3, $4, 0.9)`,
-          [contractId, c.text, c.linked_regs, idx]
+          [contractId, c.text, c.linked_regs, idx],
         );
       }
 
@@ -67,7 +67,7 @@ export async function runContractExtraction(contractId: string, rawText: string)
         `UPDATE public.contracts 
          SET extraction_status = 'complete', extraction_error = null 
          WHERE id = $1`,
-        [contractId]
+        [contractId],
       );
     });
   } catch (err) {
@@ -77,7 +77,7 @@ export async function runContractExtraction(contractId: string, rawText: string)
       `UPDATE public.contracts 
        SET extraction_status = 'failed', extraction_error = $1 
        WHERE id = $2`,
-      [msg.slice(0, 500), contractId]
+      [msg.slice(0, 500), contractId],
     );
   }
 }

@@ -13,9 +13,15 @@ export const Route = createFileRoute("/_authenticated/settings/team")({
   head: () => ({
     meta: [
       { title: "Team — ClauseGraph" },
-      { name: "description", content: "Manage teammates and roles for your ClauseGraph organization." },
+      {
+        name: "description",
+        content: "Manage teammates and roles for your ClauseGraph organization.",
+      },
       { property: "og:title", content: "Team — ClauseGraph" },
-      { property: "og:description", content: "Manage teammates and roles for your ClauseGraph organization." },
+      {
+        property: "og:description",
+        content: "Manage teammates and roles for your ClauseGraph organization.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { Loader2, ArrowRight } from "lucide-react";
-import {
-  getToken,
-  signInWithPassword,
-  signUpWithPassword,
-  signInDemo,
-} from "@/lib/auth-client";
+import { getToken, signInWithPassword, signUpWithPassword, signInDemo } from "@/lib/auth-client";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -102,10 +97,7 @@ function AuthPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-[440px] px-6 pt-16 pb-24">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2.5 mb-12 group"
-        >
+        <Link to="/" className="inline-flex items-center gap-2.5 mb-12 group">
           <div className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center">
             <div className="h-2 w-2 rounded-full bg-brass" />
           </div>
@@ -116,7 +108,11 @@ function AuthPage() {
 
         <div className="glass-panel p-8">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
-            {mode === "signup" ? "Create workspace" : mode === "forgot" ? "Reset password" : "Sign in"}
+            {mode === "signup"
+              ? "Create workspace"
+              : mode === "forgot"
+                ? "Reset password"
+                : "Sign in"}
           </p>
           <h1 className="mt-3 font-display text-[26px] leading-[1.15] tracking-tight text-foreground">
             {mode === "signup"
@@ -198,9 +194,7 @@ function AuthPage() {
                 {error}
               </p>
             )}
-            {notice && (
-              <p className="text-[12.5px] text-muted-foreground">{notice}</p>
-            )}
+            {notice && <p className="text-[12.5px] text-muted-foreground">{notice}</p>}
 
             <button
               type="submit"

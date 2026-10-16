@@ -77,7 +77,10 @@ function SimulatePage() {
 
   const totalExposure = useMemo(() => {
     if (!result) return 0;
-    return result.impacts.reduce((sum, i) => sum + (contractsById.get(i.contract_id)?.value ?? 0), 0);
+    return result.impacts.reduce(
+      (sum, i) => sum + (contractsById.get(i.contract_id)?.value ?? 0),
+      0,
+    );
   }, [result, contractsById]);
 
   const sortedImpacts: ImpactEntry[] = useMemo(() => {
@@ -131,8 +134,8 @@ function SimulatePage() {
               Paste a proposed regulation
             </h2>
             <p className="mt-2 text-[13px] leading-[1.6] text-muted-foreground">
-              The model cross-references it against the full ontology and contract corpus,
-              then lights up affected agreements.
+              The model cross-references it against the full ontology and contract corpus, then
+              lights up affected agreements.
             </p>
             <textarea
               value={text}
@@ -177,7 +180,6 @@ function SimulatePage() {
               </p>
             )}
           </form>
-
 
           <GraphMedallion
             contracts={contracts}
@@ -234,7 +236,6 @@ function SimulatePage() {
                         key={i.contract_id}
                         className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] duration-150 ease-out transition-colors"
                       >
-
                         <div className="flex items-center justify-between gap-2">
                           <Link
                             to="/contracts/$contractId"
@@ -248,9 +249,7 @@ function SimulatePage() {
                             {SEV_LABEL[i.severity]}
                           </span>
                         </div>
-                        <p className="mt-1 text-[13px] leading-tight text-foreground">
-                          {c.name}
-                        </p>
+                        <p className="mt-1 text-[13px] leading-tight text-foreground">{c.name}</p>
                         <p className="mt-0.5 font-mono text-[11px] text-muted-foreground tabular-nums">
                           {formatUSD(c.value)}
                         </p>

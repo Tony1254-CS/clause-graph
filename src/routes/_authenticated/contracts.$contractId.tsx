@@ -6,7 +6,8 @@ import { contractQuery, formatUSD } from "@/data/queries";
 
 export const Route = createFileRoute("/_authenticated/contracts/$contractId")({
   head: ({ loaderData }) => {
-    const data = loaderData as { name: string; counterparty: string; clauses: unknown[] } | undefined;
+    const data = loaderData as
+      { name: string; counterparty: string; clauses: unknown[] } | undefined;
     const name = data?.name ?? "Contract";
     const desc = data
       ? `${data.name} with ${data.counterparty}. ${data.clauses.length} clauses mapped to regulatory obligations.`
@@ -26,32 +27,32 @@ export const Route = createFileRoute("/_authenticated/contracts/$contractId")({
     context.queryClient.ensureQueryData(contractQuery(params.contractId)),
   component: ContractDetail,
   errorComponent: DetailError,
-  notFoundComponent: () => {
-    const { contractId } = Route.useParams();
-    return (
-      <div className="glass-panel p-8 text-center max-w-md">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Contract unavailable
-        </p>
-        <p className="mt-3 font-display text-[20px] leading-[1.25] text-foreground">
-          This contract no longer exists in your workspace.
-        </p>
-        <p className="mt-2 text-[13px] leading-[1.55] text-muted-foreground">
-          It may have been removed, or the sample corpus was re-seeded and this link is now stale.
-        </p>
-        <p className="mt-3 font-mono text-[10px] text-muted-foreground break-all">
-          {contractId}
-        </p>
-        <Link
-          to="/contracts"
-          className="mt-5 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm hover:text-brass transition-colors"
-        >
-          Back to contracts
-        </Link>
-      </div>
-    );
-  },
+  notFoundComponent: ContractNotFound,
 });
+
+function ContractNotFound() {
+  const { contractId } = Route.useParams();
+  return (
+    <div className="glass-panel p-8 text-center max-w-md">
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        Contract unavailable
+      </p>
+      <p className="mt-3 font-display text-[20px] leading-[1.25] text-foreground">
+        This contract no longer exists in your workspace.
+      </p>
+      <p className="mt-2 text-[13px] leading-[1.55] text-muted-foreground">
+        It may have been removed, or the sample corpus was re-seeded and this link is now stale.
+      </p>
+      <p className="mt-3 font-mono text-[10px] text-muted-foreground break-all">{contractId}</p>
+      <Link
+        to="/contracts"
+        className="mt-5 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm hover:text-brass transition-colors"
+      >
+        Back to contracts
+      </Link>
+    </div>
+  );
+}
 
 function ContractDetail() {
   const { contractId } = Route.useParams();
@@ -135,4 +136,3 @@ function DetailError({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
-

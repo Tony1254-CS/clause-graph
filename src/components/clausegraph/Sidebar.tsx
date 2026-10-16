@@ -66,9 +66,7 @@ function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean;
       aria-label={item.label}
       title={item.label}
       className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-ui will-change-transform hover:translate-x-[1px] ${
-        isActive
-          ? "text-[var(--ink)]"
-          : "text-[var(--text-muted)] hover:text-[var(--ink)]"
+        isActive ? "text-[var(--ink)]" : "text-[var(--text-muted)] hover:text-[var(--ink)]"
       }`}
     >
       <span
@@ -79,7 +77,10 @@ function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean;
         style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
       />
       <span className="grid h-9 w-10 shrink-0 place-items-center">
-        <Icon className="h-[17px] w-[17px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
+        <Icon
+          className="h-[17px] w-[17px] transition-transform duration-200 group-hover:scale-110"
+          strokeWidth={1.5}
+        />
       </span>
       <span
         className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-300 ease-out ${
@@ -127,7 +128,9 @@ export function Sidebar() {
           </span>
           <span
             className={`min-w-0 truncate pr-3 font-display text-[15px] font-semibold tracking-tight transition-all duration-200 ${
-              expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
+              expanded
+                ? "translate-x-0 opacity-100"
+                : "pointer-events-none -translate-x-2 opacity-0"
             }`}
           >
             ClauseGraph

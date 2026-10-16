@@ -16,7 +16,10 @@ export function bandFor(p: number): ProbabilityBand {
   return "low";
 }
 
-export function windowFor(avgIntervalDays: number | null, daysSinceLast: number | null): 3 | 6 | 12 | 18 {
+export function windowFor(
+  avgIntervalDays: number | null,
+  daysSinceLast: number | null,
+): 3 | 6 | 12 | 18 {
   if (!avgIntervalDays || daysSinceLast === null) return 18;
   const remainingDays = Math.max(0, avgIntervalDays - daysSinceLast);
   const remainingMonths = remainingDays / 30;
@@ -31,9 +34,7 @@ export function fallbackHypothetical(
   title: string,
   history: Amendment[],
 ): HypotheticalAmendment {
-  const patterns = history
-    .slice(0, 3)
-    .map((h) => `${h.amended_on}: ${h.summary}`);
+  const patterns = history.slice(0, 3).map((h) => `${h.amended_on}: ${h.summary}`);
   return {
     regulation_id: regulationId,
     amendment_text: `PROPOSED AMENDMENT TO ${title}. Building on the historical trajectory of this instrument, obligations are further tightened: notification, disclosure and remediation windows are shortened by approximately one third, and the personal-scope of covered entities is expanded to include material affiliates and processors. Enforcement authorities may impose enhanced monetary penalties for repeated non-conformity. This adversarial what-if scenario is generated from public amendment history and is not an actual proposal.`,

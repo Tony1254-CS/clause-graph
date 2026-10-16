@@ -6,10 +6,10 @@ import { queryOne } from "./db.server";
  * can never authorise a mutation here.
  */
 export async function assertAdmin(userId: string, orgId: string) {
-  const row = await queryOne<{ has_role: boolean }>(
-    `SELECT has_role($1, $2, 'admin')`,
-    [userId, orgId]
-  );
+  const row = await queryOne<{ has_role: boolean }>(`SELECT has_role($1, $2, 'admin')`, [
+    userId,
+    orgId,
+  ]);
   if (!row || row.has_role !== true) {
     throw new Error("Admins only");
   }

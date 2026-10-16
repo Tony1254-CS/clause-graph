@@ -96,7 +96,10 @@ export function formatLimit(n: number): string {
  * Effective quota for a plan. While billing is parked every limit is
  * unlimited, regardless of the plan stored on the workspace.
  */
-export function effectiveLimit(planId: PlanId, key: "contracts" | "simulationsPerMonth" | "seats"): number {
+export function effectiveLimit(
+  planId: PlanId,
+  key: "contracts" | "simulationsPerMonth" | "seats",
+): number {
   if (!BILLING_ENABLED) return UNLIMITED;
   return PLANS[planId][key];
 }

@@ -14,7 +14,9 @@ export function RegulationPill({ regId }: { regId: string }) {
     >
       <span className="font-mono text-[10px] text-[var(--brass)] transition-colors">{regId}</span>
       <span className="h-3 w-px bg-[var(--hairline-strong)] transition-colors group-hover:bg-[var(--brass)]" />
-      <span className="text-foreground/90 transition-colors group-hover:text-foreground">{title}</span>
+      <span className="text-foreground/90 transition-colors group-hover:text-foreground">
+        {title}
+      </span>
     </Link>
   );
 }

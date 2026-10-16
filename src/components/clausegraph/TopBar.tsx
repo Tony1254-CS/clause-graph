@@ -22,9 +22,7 @@ export function TopBar() {
   });
   // While billing is parked every workspace is Pro — never let a failed query
   // make the badge disagree with what the app actually allows.
-  const effectivePlan = BILLING_ENABLED
-    ? (usage?.plan ?? profile?.org?.plan)
-    : "pro";
+  const effectivePlan = BILLING_ENABLED ? (usage?.plan ?? profile?.org?.plan) : "pro";
   const contractCount = contracts?.length ?? 0;
   const orgName = profile?.org?.name ?? "Workspace";
 
@@ -50,8 +48,11 @@ export function TopBar() {
     navigate({ to: "/auth", replace: true });
   }
 
-  const initial =
-    (profile?.full_name?.trim().charAt(0) || profile?.email?.trim().charAt(0) || "?").toUpperCase();
+  const initial = (
+    profile?.full_name?.trim().charAt(0) ||
+    profile?.email?.trim().charAt(0) ||
+    "?"
+  ).toUpperCase();
 
   return (
     <header className="relative z-20 grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--hairline)] px-4 py-3 backdrop-blur-xl sm:px-8 lg:px-10">
@@ -90,8 +91,14 @@ export function TopBar() {
           to="/simulate"
           className="group relative inline-flex h-10 shrink-0 items-center gap-2 overflow-hidden rounded-full bg-[var(--brass)] px-3.5 text-[13px] font-semibold text-[color:var(--primary-foreground)] shadow-[var(--glow-brass)] transition-ui press hover:-translate-y-[1px] hover:bg-[var(--brass-strong)] hover:shadow-[0_0_32px_-6px_color-mix(in_oklab,var(--brass)_85%,transparent)] sm:h-11 sm:px-5"
         >
-          <span aria-hidden className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
-          <Zap className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-[-8deg]" strokeWidth={2.2} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+          />
+          <Zap
+            className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-[-8deg]"
+            strokeWidth={2.2}
+          />
           <span className="hidden sm:inline">Simulate Impact</span>
         </Link>
 

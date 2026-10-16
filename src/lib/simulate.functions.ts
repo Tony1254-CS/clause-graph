@@ -50,11 +50,9 @@ export const simulateImpact = createServerFn({ method: "POST" })
          LEFT JOIN public.clauses cl ON cl.contract_id = c.id
          WHERE c.org_id = $1
          GROUP BY c.id`,
-        [orgId]
+        [orgId],
       ),
-      query(
-        `SELECT id, jurisdiction, title, summary, obligations FROM public.regulations`
-      ),
+      query(`SELECT id, jurisdiction, title, summary, obligations FROM public.regulations`),
     ]);
 
     const contracts = contractRows ?? [];
@@ -128,13 +126,7 @@ ${JSON.stringify(contractContext)}`;
         await query(
           `INSERT INTO public.simulation_runs (org_id, input_regulation_text, result_json, triggered_by, run_type)
            VALUES ($1, $2, $3::jsonb, $4, $5)`,
-          [
-            orgId,
-            data.regulationText,
-            JSON.stringify(result),
-            userId,
-            data.runType,
-          ]
+          [orgId, data.regulationText, JSON.stringify(result), userId, data.runType],
         );
       } catch (insertErr) {
         console.error("[simulate] persist error", insertErr);

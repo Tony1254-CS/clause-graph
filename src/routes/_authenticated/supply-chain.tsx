@@ -27,9 +27,17 @@ export const Route = createFileRoute("/_authenticated/supply-chain")({
   head: () => ({
     meta: [
       { title: "Supply Chain Blast Radius — ClauseGraph" },
-      { name: "description", content: "Trace how a regulation propagates across counterparty contracts three hops upstream." },
+      {
+        name: "description",
+        content:
+          "Trace how a regulation propagates across counterparty contracts three hops upstream.",
+      },
       { property: "og:title", content: "Supply Chain Blast Radius — ClauseGraph" },
-      { property: "og:description", content: "Trace how a regulation propagates across counterparty contracts three hops upstream." },
+      {
+        property: "og:description",
+        content:
+          "Trace how a regulation propagates across counterparty contracts three hops upstream.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

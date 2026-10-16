@@ -12,14 +12,12 @@ export const Route = createFileRoute("/_authenticated/contracts/")({
       { title: "Contracts — ClauseGraph" },
       {
         name: "description",
-        content:
-          "Active contract portfolio with AI-extracted clauses and regulatory links.",
+        content: "Active contract portfolio with AI-extracted clauses and regulatory links.",
       },
       { property: "og:title", content: "Contracts — ClauseGraph" },
       {
         property: "og:description",
-        content:
-          "Active contract portfolio with AI-extracted clauses and regulatory links.",
+        content: "Active contract portfolio with AI-extracted clauses and regulatory links.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -106,7 +104,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
 
 function ContractsError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();

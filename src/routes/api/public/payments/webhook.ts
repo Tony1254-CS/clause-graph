@@ -58,7 +58,7 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
           periodEnd ?? null,
           cancelAtPeriodEnd,
           env,
-        ]
+        ],
       );
     }
 
@@ -75,14 +75,7 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
              paddle_customer_id = $4,
              trial_ends_at = CASE WHEN $5 THEN NULL ELSE trial_ends_at END
          WHERE id = $6`,
-        [
-          orgPlan,
-          status,
-          periodEnd ?? null,
-          customerId,
-          paying,
-          orgId,
-        ]
+        [orgPlan, status, periodEnd ?? null, customerId, paying, orgId],
       );
     }
   });
@@ -97,7 +90,7 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
       `UPDATE public.subscriptions 
        SET status = 'canceled', updated_at = now() 
        WHERE paddle_subscription_id = $1 AND environment = $2`,
-      [data.id, env]
+      [data.id, env],
     );
 
     if (orgId) {
@@ -105,7 +98,7 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
         `UPDATE public.organizations 
          SET plan = 'free', plan_status = 'canceled' 
          WHERE id = $1`,
-        [orgId]
+        [orgId],
       );
     }
   });
@@ -127,7 +120,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
                VALUES ($1, $2)
                ON CONFLICT (event_id) DO NOTHING
                RETURNING event_id`,
-              [event.eventId, event.eventType]
+              [event.eventId, event.eventType],
             );
             if (!inserted) {
               return Response.json({ received: true, duplicate: true });
@@ -153,7 +146,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
               if (orgId) {
                 await query(
                   `UPDATE public.organizations SET plan_status = 'past_due' WHERE id = $1`,
-                  [orgId]
+                  [orgId],
                 );
               }
               break;

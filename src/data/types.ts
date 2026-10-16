@@ -28,7 +28,6 @@ export type Contract = {
   source_file_url: string | null;
 };
 
-
 export type FederalRegisterDoc = {
   document_number: string;
   title: string;

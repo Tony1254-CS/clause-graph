@@ -26,12 +26,13 @@ export function ContractCard({ contract }: { contract: Contract }) {
         <StatusBadge contract={contract} />
       </div>
 
-
       <div className="mt-auto flex items-end justify-between border-t border-[var(--hairline)] pt-4">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
           Notional
         </span>
-        <span className="font-mono text-[15px] text-[var(--brass)]">{formatUSD(contract.value)}</span>
+        <span className="font-mono text-[15px] text-[var(--brass)]">
+          {formatUSD(contract.value)}
+        </span>
       </div>
     </Link>
   );
@@ -41,7 +42,10 @@ function StatusBadge({ contract }: { contract: Contract }) {
   const s = contract.extraction_status;
   if (s === "complete") return null;
   const map = {
-    processing: { label: "Analyzing…", color: "text-[var(--brass)] border-[var(--hairline-strong)]" },
+    processing: {
+      label: "Analyzing…",
+      color: "text-[var(--brass)] border-[var(--hairline-strong)]",
+    },
     pending: { label: "Pending", color: "text-muted-foreground border-[var(--hairline)]" },
     failed: { label: "Extraction failed", color: "text-[var(--risk)] border-[var(--risk)]/40" },
   } as const;
@@ -57,4 +61,3 @@ function StatusBadge({ contract }: { contract: Contract }) {
     </span>
   );
 }
-

@@ -14,7 +14,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
         {/* Ambient drifting mint aura — very subtle */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] ambient-drift bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--brass)_10%,transparent),transparent_70%)]" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-[420px] w-[420px] ambient-drift bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_8%,transparent),transparent_65%)]" style={{ animationDelay: "-14s" }} />
+        <div
+          className="pointer-events-none absolute -bottom-24 -right-24 h-[420px] w-[420px] ambient-drift bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_8%,transparent),transparent_65%)]"
+          style={{ animationDelay: "-14s" }}
+        />
 
         {/* Route pending progress hairline */}
         <div
@@ -43,9 +46,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <footer className="hidden h-10 shrink-0 items-center justify-between border-t border-[var(--hairline)] px-6 text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--text-muted)] sm:flex lg:px-10">
               <span>© {new Date().getFullYear()} ClauseGraph</span>
               <nav className="flex items-center gap-5">
-                <Link to="/terms" className="transition-ui hover:text-[var(--ink)]">Terms</Link>
-                <Link to="/privacy" className="transition-ui hover:text-[var(--ink)]">Privacy</Link>
-                <Link to="/refund" className="transition-ui hover:text-[var(--ink)]">Refunds</Link>
+                <Link to="/terms" className="transition-ui hover:text-[var(--ink)]">
+                  Terms
+                </Link>
+                <Link to="/privacy" className="transition-ui hover:text-[var(--ink)]">
+                  Privacy
+                </Link>
+                <Link to="/refund" className="transition-ui hover:text-[var(--ink)]">
+                  Refunds
+                </Link>
               </nav>
             </footer>
           </div>

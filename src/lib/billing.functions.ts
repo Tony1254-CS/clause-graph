@@ -46,7 +46,7 @@ export const createBillingPortalSession = createServerFn({ method: "POST" })
        FROM public.subscriptions 
        WHERE org_id = $1 AND environment = $2 
        ORDER BY created_at DESC LIMIT 1`,
-      [orgId, data.environment]
+      [orgId, data.environment],
     );
 
     if (!sub?.paddle_customer_id) {
@@ -92,7 +92,7 @@ export const getOrgUsage = createServerFn({ method: "GET" })
     const [usageRes, org, sub] = await Promise.all([
       queryOne<{ contracts: number; simulations: number; members: number }>(
         `SELECT (get_org_usage($1)).*`,
-        [orgId]
+        [orgId],
       ),
       queryOne<{
         plan: string;
@@ -105,14 +105,14 @@ export const getOrgUsage = createServerFn({ method: "GET" })
         `SELECT plan, plan_status, plan_renews_at, trial_ends_at, paddle_customer_id, deletion_scheduled_at 
          FROM public.organizations 
          WHERE id = $1`,
-        [orgId]
+        [orgId],
       ),
       queryOne<{ paddle_subscription_id: string; status: string }>(
         `SELECT paddle_subscription_id, status 
          FROM public.subscriptions 
          WHERE org_id = $1 AND status IN ('active', 'trialing', 'past_due', 'paused') 
          LIMIT 1`,
-        [orgId]
+        [orgId],
       ),
     ]);
 
@@ -124,17 +124,10 @@ export const getOrgUsage = createServerFn({ method: "GET" })
       !hasSubscription &&
       new Date(trialEnds).getTime() > Date.now();
     const trialDaysLeft = onTrial
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(trialEnds!).getTime() - Date.now()) / 86_400_000,
-          ),
-        )
+      ? Math.max(0, Math.ceil((new Date(trialEnds!).getTime() - Date.now()) / 86_400_000))
       : null;
 
-    const plan = BILLING_ENABLED
-      ? ((org?.plan as OrgUsage["plan"]) ?? "free")
-      : ("pro" as const);
+    const plan = BILLING_ENABLED ? ((org?.plan as OrgUsage["plan"]) ?? "free") : ("pro" as const);
     const planStatus = BILLING_ENABLED ? (org?.plan_status ?? "active") : "active";
 
     return {
@@ -181,7 +174,7 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
        FROM public.subscriptions 
        WHERE org_id = $1 AND environment = $2 AND status IN ('active', 'trialing', 'past_due') 
        ORDER BY created_at DESC LIMIT 1`,
-      [orgId, data.environment]
+      [orgId, data.environment],
     );
 
     if (!sub?.paddle_subscription_id) {
@@ -203,16 +196,14 @@ export const changeSubscriptionPlan = createServerFn({ method: "POST" })
 
     // Detect upgrade vs downgrade by monthly USD amount
     const currentAmount =
-      (Object.values(PLANS).find((p) => p.priceId === sub.price_id)?.priceUsd) ?? 0;
+      Object.values(PLANS).find((p) => p.priceId === sub.price_id)?.priceUsd ?? 0;
     const isUpgrade = target.priceUsd > currentAmount;
 
     const { getPaddleClient } = await import("./paddle.server");
     const paddle = getPaddleClient(env);
     await paddle.subscriptions.update(sub.paddle_subscription_id, {
       items: [{ priceId: paddlePriceId, quantity: 1 }],
-      prorationBillingMode: isUpgrade
-        ? "prorated_immediately"
-        : "prorated_next_billing_period",
+      prorationBillingMode: isUpgrade ? "prorated_immediately" : "prorated_next_billing_period",
     });
 
     return { changed: true as const, upgraded: isUpgrade };

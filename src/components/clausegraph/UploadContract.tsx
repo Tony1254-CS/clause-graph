@@ -96,7 +96,9 @@ export function UploadContract({ onClose }: Props) {
             </label>
           </div>
           <label className="block">
-            <span className="text-xs uppercase tracking-wider text-text-muted">Contract value (USD)</span>
+            <span className="text-xs uppercase tracking-wider text-text-muted">
+              Contract value (USD)
+            </span>
             <input
               type="number"
               className="mt-1 w-full glass-input font-mono"
@@ -116,7 +118,9 @@ export function UploadContract({ onClose }: Props) {
                 onChange={onFileChange}
                 className="text-sm text-text-muted"
               />
-              {fileName ? <span className="font-mono text-xs text-[var(--brass)]">{fileName}</span> : null}
+              {fileName ? (
+                <span className="font-mono text-xs text-[var(--brass)]">{fileName}</span>
+              ) : null}
             </div>
             <p className="text-xs text-text-muted mt-1">
               .txt / .md supported now. PDF & DOCX support planned.
@@ -146,7 +150,9 @@ export function UploadContract({ onClose }: Props) {
             <button
               className="rounded-full bg-[var(--brass)] px-5 py-2 font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition hover:bg-[var(--brass-strong)] disabled:opacity-50"
               onClick={() => mutation.mutate()}
-              disabled={mutation.isPending || !name || !counterparty || !value || rawText.length < 40}
+              disabled={
+                mutation.isPending || !name || !counterparty || !value || rawText.length < 40
+              }
             >
               {mutation.isPending ? "Uploading…" : "Analyze Contract"}
             </button>

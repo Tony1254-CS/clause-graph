@@ -238,7 +238,11 @@ function PaidBillingPage() {
               disabled={portalLoading}
               className="inline-flex items-center gap-2 rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-[13px] text-foreground transition-colors hover:border-brass hover:text-brass disabled:opacity-60"
             >
-              {portalLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+              {portalLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ExternalLink className="h-3.5 w-3.5" />
+              )}
               Manage subscription
             </button>
           )}
@@ -302,7 +306,6 @@ function PaidBillingPage() {
           ))}
         </section>
 
-
         <p className="text-center font-mono text-[10.5px] text-muted-foreground">
           Payments are processed by Paddle, our merchant of record. Cancel anytime from the
           subscription portal.
@@ -314,7 +317,9 @@ function PaidBillingPage() {
 
 function UsageStat({ label, value, limit }: { label: string; value: number; limit: number }) {
   const unlimited = limit >= UNLIMITED;
-  const pct = unlimited ? 0 : Math.max(0, Math.min(100, limit > 0 ? Math.round((value / limit) * 100) : 0));
+  const pct = unlimited
+    ? 0
+    : Math.max(0, Math.min(100, limit > 0 ? Math.round((value / limit) * 100) : 0));
   return (
     <div>
       <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -322,7 +327,9 @@ function UsageStat({ label, value, limit }: { label: string; value: number; limi
       </p>
       <p className="mt-2 font-display text-[28px] text-foreground">
         {value}
-        <span className="ml-1 font-mono text-[13px] text-muted-foreground">/ {formatLimit(limit)}</span>
+        <span className="ml-1 font-mono text-[13px] text-muted-foreground">
+          / {formatLimit(limit)}
+        </span>
       </p>
       {!unlimited && (
         <div className="mt-2 h-1 rounded-full bg-[rgba(255,255,255,0.05)]">

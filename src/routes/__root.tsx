@@ -80,9 +80,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "ClauseGraph — Legal Compliance Blast Radius" },
       { property: "og:title", content: "ClauseGraph — Legal Compliance Blast Radius" },
       { name: "twitter:title", content: "ClauseGraph — Legal Compliance Blast Radius" },
-      { name: "description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
-      { property: "og:description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
-      { name: "twitter:description", content: "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel." },
+      {
+        name: "description",
+        content:
+          "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Simulate the blast radius of proposed regulations across your contract portfolio. Purpose-built for compliance officers and general counsel.",
+      },
       { property: "og:image", content: "/og-cover.jpg" },
       { name: "twitter:image", content: "/og-cover.jpg" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -8,10 +8,7 @@ import { AppShell } from "@/components/clausegraph/AppShell";
 import { profileQuery, myRoleQuery } from "@/data/queries";
 import { getOrgUsage } from "@/lib/billing.functions";
 import { RouteError } from "@/components/clausegraph/RouteError";
-import {
-  requestWorkspaceDeletion,
-  cancelWorkspaceDeletion,
-} from "@/lib/account.functions";
+import { requestWorkspaceDeletion, cancelWorkspaceDeletion } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/account")({
   head: () => ({
@@ -139,8 +136,8 @@ function AccountPage() {
                 <p className="mt-2 text-[13px] text-muted-foreground max-w-[62ch]">
                   This permanently removes the {orgName} workspace, all contracts, simulation
                   results, action plans, and teammates. Any active subscription will be canceled at
-                  the end of the current billing period. Deletion is scheduled for 30 days from
-                  now — you can cancel it any time before then from this page.
+                  the end of the current billing period. Deletion is scheduled for 30 days from now
+                  — you can cancel it any time before then from this page.
                 </p>
               </div>
             </div>
@@ -164,8 +161,7 @@ function AccountPage() {
             ) : (
               <div className="mt-5">
                 <label className="block text-[12.5px] text-muted-foreground">
-                  Type{" "}
-                  <span className="font-mono text-foreground">{orgName}</span> to confirm
+                  Type <span className="font-mono text-foreground">{orgName}</span> to confirm
                 </label>
                 <input
                   className="mt-2 w-full glass-input"
@@ -185,9 +181,7 @@ function AccountPage() {
               </div>
             )}
 
-            {error ? (
-              <p className="mt-3 text-[13px] text-[var(--risk)]">{error}</p>
-            ) : null}
+            {error ? <p className="mt-3 text-[13px] text-[var(--risk)]">{error}</p> : null}
           </section>
         ) : null}
       </div>
@@ -195,15 +189,7 @@ function AccountPage() {
   );
 }
 
-function Field({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">

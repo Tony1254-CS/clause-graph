@@ -395,32 +395,99 @@ INSERT INTO public.regulations (id, jurisdiction, title, summary, obligations, n
  '["written_notice_period","reason_in_writing","statutory_compensation"]'::jsonb, 0.04)
 ON CONFLICT (id) DO NOTHING;
 
--- Sample Contracts
+-- Sample Contracts (15 Enterprise Agreements)
 INSERT INTO public.sample_contracts (id, name, counterparty, value, position) VALUES
 ('SC-001', 'Data Processing Agreement — Helix Analytics (EU SaaS)', 'Helix Analytics BV', 12500000, 0),
 ('SC-002', 'Standard Contractual Clauses Addendum — Aegis Cloud',   'Aegis Cloud GmbH',   9800000, 1),
 ('SC-003', 'Consumer Terms of Service — EU Consumers',              'Nord Retail S.A.',   4200000, 2),
+('SC-004', 'Employee Privacy Notice — EU Workforce',                'Internal — DE/FR HR', 1800000, 3),
 ('SC-005', 'Consumer Privacy Notice — California',                  'Internal — US Legal', 2600000, 4),
+('SC-006', 'Adtech Data-Sharing Agreement — Pinecrest Media',       'Pinecrest Media Inc.', 6400000, 5),
 ('SC-007', 'Business Associate Agreement — Cedar Health',           'Cedar Health Systems, LLC', 15750000, 6),
+('SC-008', 'Cloud Hosting Master Agreement — HealthStack',          'HealthStack Cloud, Inc.', 22000000, 7),
 ('SC-009', 'Broker-Dealer Recordkeeping SLA — Ridgefield Securities','Ridgefield Securities LLC', 3400000, 8),
+('SC-010', 'Audit Committee Charter — Ridgefield Holdings',         'Ridgefield Holdings, Inc.', 950000, 9),
 ('SC-011', 'Merchant Acquiring Agreement — bKash Payments',         'bKash Limited',       18300000, 10),
-('SC-014', 'Fixed-Term Employment Contract — Padma Knitwear',       'Padma Knitwear Mills Ltd.', 420000, 13)
+('SC-012', 'Mobile Wallet Terms of Use — Nagad Consumers',          'Nagad Limited',       5900000, 11),
+('SC-013', 'ISP Data-Retention Compliance Policy — GrameenNet',     'GrameenNet Communications Ltd.', 2200000, 12),
+('SC-014', 'Fixed-Term Employment Contract — Padma Knitwear',       'Padma Knitwear Mills Ltd.', 420000, 13),
+('SC-015', 'Cross-Border Support Services Agreement — BD→EU flow',  'Delta Support Services Ltd. → Helix Analytics BV', 7800000, 14)
 ON CONFLICT (id) DO NOTHING;
 
--- Sample Clauses
+-- Sample Clauses (54 Clauses mapped to Regulatory Ontology)
 INSERT INTO public.sample_clauses (id, sample_contract_id, text, linked_regs, position) VALUES
-('SCL-001-0', 'SC-001', 'Processor shall process personal data only on documented instructions from Controller and only for the purposes set out in Annex I.', ARRAY['REG-GDPR-5'], 0),
-('SCL-001-1', 'SC-001', 'Processor shall notify Controller of any personal data breach without undue delay and within 24 hours of becoming aware of it.', ARRAY['REG-GDPR-33'], 1),
-('SCL-001-2', 'SC-001', 'Any transfer of personal data by Processor outside the EEA shall be made only under Standard Contractual Clauses.', ARRAY['REG-GDPR-44'], 2),
-('SCL-002-0', 'SC-002', 'The parties adopt the Standard Contractual Clauses set out in Commission Implementing Decision (EU) 2021/914.', ARRAY['REG-GDPR-44'], 0),
-('SCL-005-0', 'SC-005', 'California residents have the right to direct us not to sell or share their personal information via Do Not Sell link.', ARRAY['REG-CCPA-1798.120'], 0),
-('SCL-007-0', 'SC-007', 'Business Associate shall implement administrative, physical, and technical safeguards protecting confidentiality of ePHI.', ARRAY['REG-HIPAA-SEC'], 0),
-('SCL-009-0', 'SC-009', 'Service Provider shall preserve all books and records in non-rewriteable format for periods prescribed by SEC Rule 17a-4.', ARRAY['REG-SEC-17A4'], 0),
-('SCL-011-0', 'SC-011', 'Merchant shall implement 2FA for all digital payment transactions above BDT 5,000 per Bangladesh Bank guidelines.', ARRAY['REG-BB-DPS-2023'], 0),
-('SCL-014-0', 'SC-014', 'Either party may terminate upon 120 days written notice or payment of wages in lieu pursuant to §26 Labour Act.', ARRAY['REG-BD-LA-2006'], 0)
+-- SC-001: DPA — GDPR-5, 33, 44
+('SCL-001-0', 'SC-001', 'Processor shall process personal data only on documented instructions from Controller and only for the purposes set out in Annex I, and shall not retain personal data beyond the retention periods specified therein.', ARRAY['REG-GDPR-5'], 0),
+('SCL-001-1', 'SC-001', 'Processor shall notify Controller of any personal data breach without undue delay and in any event within 24 hours of becoming aware of it, providing the information necessary for Controller to comply with its notification obligation to the competent supervisory authority within 72 hours.', ARRAY['REG-GDPR-33'], 1),
+('SCL-001-2', 'SC-001', 'Any transfer of personal data by Processor to a country outside the European Economic Area shall be made only under the Standard Contractual Clauses attached as Annex III, and Processor shall carry out a transfer impact assessment prior to any such transfer.', ARRAY['REG-GDPR-44'], 2),
+('SCL-001-3', 'SC-001', 'Processor shall assist Controller in demonstrating compliance with the principles of lawfulness, fairness, transparency, purpose limitation, and data minimization, and shall make available all information reasonably necessary to demonstrate such compliance.', ARRAY['REG-GDPR-5'], 3),
+-- SC-002: SCC Addendum — GDPR-44
+('SCL-002-0', 'SC-002', 'The parties adopt the Standard Contractual Clauses set out in Commission Implementing Decision (EU) 2021/914, Module Two (controller to processor), as incorporated herein by reference.', ARRAY['REG-GDPR-44'], 0),
+('SCL-002-1', 'SC-002', 'Data importer represents that it has no reason to believe that the laws and practices in the destination country prevent it from fulfilling its obligations under these Clauses, and shall notify data exporter promptly if such circumstances change.', ARRAY['REG-GDPR-44'], 1),
+('SCL-002-2', 'SC-002', 'Data importer shall implement the supplementary technical and organizational measures set out in Annex II, including end-to-end encryption of personal data in transit and pseudonymization prior to any government access request.', ARRAY['REG-GDPR-44'], 2),
+-- SC-003: EU consumer ToS — GDPR-5, 33
+('SCL-003-0', 'SC-003', 'We collect only the personal data strictly necessary to provide and secure the Services described in Section 2, and we retain it only for the periods disclosed in our Privacy Notice.', ARRAY['REG-GDPR-5'], 0),
+('SCL-003-1', 'SC-003', 'In the event of a personal data breach that is likely to result in a risk to your rights and freedoms, we will notify the competent supervisory authority within 72 hours and, where the risk is high, notify affected users without undue delay.', ARRAY['REG-GDPR-33'], 1),
+('SCL-003-2', 'SC-003', 'This Agreement shall be governed by the laws of the member state in which you have your habitual residence, without prejudice to any mandatory consumer protection provisions.', ARRAY[]::text[], 2),
+-- SC-004: EU Employee Privacy Notice — GDPR-5
+('SCL-004-0', 'SC-004', 'The Company processes employee personal data solely for purposes strictly necessary to the employment relationship, including payroll, benefits administration, performance management, and legal compliance, in accordance with the principle of data minimization.', ARRAY['REG-GDPR-5'], 0),
+('SCL-004-1', 'SC-004', 'Special category data (such as health data collected for sick leave certification) is processed only where necessary for carrying out obligations under employment and social security law and is retained no longer than statutorily required.', ARRAY['REG-GDPR-5'], 1),
+('SCL-004-2', 'SC-004', 'Employees may exercise their rights of access, rectification, erasure, and objection by contacting the Data Protection Officer at the address set forth on the Company intranet.', ARRAY[]::text[], 2),
+-- SC-005: California Privacy Notice — CCPA
+('SCL-005-0', 'SC-005', 'California residents have the right to direct us not to sell or share their personal information. To exercise this right, use the "Do Not Sell or Share My Personal Information" link at the footer of every page of the Service.', ARRAY['REG-CCPA-1798.120'], 0),
+('SCL-005-1', 'SC-005', 'We honor opt-out preference signals transmitted through Global Privacy Control (GPC), and treat any such signal as a valid opt-out request under §1798.120 for the browser or device from which it is received.', ARRAY['REG-CCPA-1798.120'], 1),
+('SCL-005-2', 'SC-005', 'We do not knowingly sell or share the personal information of consumers under 16 years of age without affirmative authorization in accordance with §1798.120(c).', ARRAY['REG-CCPA-1798.120'], 2),
+('SCL-005-3', 'SC-005', 'Verifiable consumer requests may be submitted through the online request portal or by calling the toll-free number published in Section 12 of this Notice.', ARRAY[]::text[], 3),
+-- SC-006: Adtech data-sharing — CCPA + GDPR-44
+('SCL-006-0', 'SC-006', 'Partner may receive Site Data for the purpose of cross-context behavioral advertising as defined under the CCPA; such disclosure is deemed a "sharing" for which each user has the right to opt out.', ARRAY['REG-CCPA-1798.120'], 0),
+('SCL-006-1', 'SC-006', 'Partner shall pass through and honor any opt-out preference signal, including GPC, and shall not enable downstream monetization of the affected identifier for at least 12 months.', ARRAY['REG-CCPA-1798.120'], 1),
+('SCL-006-2', 'SC-006', 'Where Site Data relates to identifiable EU data subjects, Partner shall not transfer such data outside the EEA except under an adequacy decision or Standard Contractual Clauses accompanied by a documented transfer impact assessment.', ARRAY['REG-GDPR-44'], 2),
+('SCL-006-3', 'SC-006', 'Partner shall provide monthly attestation reports listing the number of opt-out signals received and the corresponding suppression actions taken.', ARRAY['REG-CCPA-1798.120'], 3),
+-- SC-007: BAA — HIPAA
+('SCL-007-0', 'SC-007', 'Business Associate shall implement administrative, physical, and technical safeguards that reasonably and appropriately protect the confidentiality, integrity, and availability of electronic protected health information it creates, receives, maintains, or transmits on behalf of Covered Entity.', ARRAY['REG-HIPAA-SEC'], 0),
+('SCL-007-1', 'SC-007', 'Business Associate shall report any Security Incident of which it becomes aware to Covered Entity within 24 hours, and shall report any Breach of Unsecured PHI without unreasonable delay and no later than 30 calendar days after discovery.', ARRAY['REG-HIPAA-SEC'], 1),
+('SCL-007-2', 'SC-007', 'Business Associate shall ensure that any subcontractor that creates, receives, maintains, or transmits Electronic PHI on its behalf agrees in writing to the same restrictions and conditions that apply to Business Associate.', ARRAY['REG-HIPAA-SEC'], 2),
+('SCL-007-3', 'SC-007', 'Business Associate shall encrypt Electronic PHI at rest and in transit using algorithms consistent with NIST SP 800-111 and SP 800-52, respectively.', ARRAY['REG-HIPAA-SEC'], 3),
+-- SC-008: Cloud hosting — HIPAA + GDPR-33
+('SCL-008-0', 'SC-008', 'Provider shall maintain SOC 2 Type II and HITRUST attestations covering all in-scope services and shall provide Customer with the latest reports upon request.', ARRAY['REG-HIPAA-SEC'], 0),
+('SCL-008-1', 'SC-008', 'Provider shall notify Customer of any confirmed unauthorized access to Customer content within 6 hours of confirmation, and shall provide sufficient information for Customer to comply with its 72-hour supervisory-authority notification obligation.', ARRAY['REG-HIPAA-SEC','REG-GDPR-33'], 1),
+('SCL-008-2', 'SC-008', 'Provider shall not access, use, or disclose Customer content except as necessary to maintain or provide the Services, or as required by applicable law after providing Customer with prompt notice unless legally prohibited.', ARRAY['REG-HIPAA-SEC'], 2),
+('SCL-008-3', 'SC-008', 'Data at rest shall be encrypted using AES-256 with keys managed under a FIPS 140-2 Level 2 or higher validated module.', ARRAY['REG-HIPAA-SEC'], 3),
+-- SC-009: Broker-dealer recordkeeping — SEC-17A4 + SOX-302
+('SCL-009-0', 'SC-009', 'Service Provider shall preserve all books and records specified in Schedule A in a non-rewriteable, non-erasable format, or in an electronic recordkeeping system that maintains a complete, time-stamped audit trail of all record modifications, in either case for the periods prescribed by SEC Rule 17a-4.', ARRAY['REG-SEC-17A4'], 0),
+('SCL-009-1', 'SC-009', 'Service Provider shall designate at least one executive officer who has independent access to the required records and who is authorized to promptly produce such records to the Commission upon request.', ARRAY['REG-SEC-17A4'], 1),
+('SCL-009-2', 'SC-009', 'Service Provider shall provide sufficient documentation of controls over the preservation systems described herein to enable Client''s principal executive and financial officers to certify the effectiveness of Client''s disclosure controls and internal control over financial reporting.', ARRAY['REG-SOX-302','REG-SEC-17A4'], 2),
+('SCL-009-3', 'SC-009', 'Service Provider shall maintain an offsite backup of preserved records that can be restored to a fully readable state within 24 hours of a documented request.', ARRAY['REG-SEC-17A4'], 3),
+-- SC-010: Audit Committee Charter — SOX-302
+('SCL-010-0', 'SC-010', 'The Audit Committee shall review, prior to filing, the quarterly and annual reports of the Company and the certifications required to be delivered by the principal executive officer and principal financial officer pursuant to §302 of the Sarbanes-Oxley Act.', ARRAY['REG-SOX-302'], 0),
+('SCL-010-1', 'SC-010', 'The Committee shall receive from management, at least quarterly, an assessment of the design and operating effectiveness of the Company''s disclosure controls and procedures and internal control over financial reporting.', ARRAY['REG-SOX-302'], 1),
+('SCL-010-2', 'SC-010', 'The Committee shall be promptly informed of any material weakness in internal control over financial reporting and any fraud, whether or not material, that involves management or other employees with a significant role in internal control.', ARRAY['REG-SOX-302'], 2),
+-- SC-011: Merchant acquiring BD — BB-DPS-2023
+('SCL-011-0', 'SC-011', 'Merchant shall implement transaction authentication mechanisms consistent with the Bangladesh Bank Digital Payment Security Circular, including two-factor authentication for all customer-initiated transactions above BDT 5,000.', ARRAY['REG-BB-DPS-2023'], 0),
+('SCL-011-1', 'SC-011', 'Acquirer shall tokenize primary account numbers at the point of capture and shall not permit storage of full PANs on merchant systems.', ARRAY['REG-BB-DPS-2023'], 1),
+('SCL-011-2', 'SC-011', 'Merchant shall report any confirmed security incident affecting the payment environment to Acquirer and to Bangladesh Bank within 6 hours of confirmation.', ARRAY['REG-BB-DPS-2023'], 2),
+('SCL-011-3', 'SC-011', 'Chargebacks arising from unauthorized transactions where the merchant failed to enforce required authentication shall be borne by Merchant.', ARRAY['REG-BB-DPS-2023'], 3),
+-- SC-012: Mobile wallet ToS BD — BB-DPS-2023, DSA-2018
+('SCL-012-0', 'SC-012', 'Users must complete identity verification using a government-issued National ID or biometric registration in accordance with the applicable KYC guidelines before the wallet may be activated for peer transfers.', ARRAY['REG-BB-DPS-2023'], 0),
+('SCL-012-1', 'SC-012', 'The Company shall implement reasonable safeguards over identity information collected in connection with wallet registration and shall not sell, transfer, or use such information for purposes other than those disclosed to the user or required by lawful authority.', ARRAY['REG-BD-DSA-2018'], 1),
+('SCL-012-2', 'SC-012', 'The Company will cooperate with lawful production requests from designated investigating authorities under §26 of the Digital Security Act 2018 upon receipt of a written order specifying the identity information sought.', ARRAY['REG-BD-DSA-2018'], 2),
+('SCL-012-3', 'SC-012', 'Any incident that materially affects the confidentiality or availability of user funds or credentials will be reported to Bangladesh Bank within 6 hours of confirmation.', ARRAY['REG-BB-DPS-2023'], 3),
+-- SC-013: ISP data-retention policy BD — DSA-2018
+('SCL-013-0', 'SC-013', 'Subscriber identity information shall be retained in accordance with statutory retention orders and shall be released only in response to a written lawful production request from an authorized officer.', ARRAY['REG-BD-DSA-2018'], 0),
+('SCL-013-1', 'SC-013', 'Access to stored identity information shall be limited to a documented list of authorized personnel; all access shall be logged and reviewed monthly.', ARRAY['REG-BD-DSA-2018'], 1),
+('SCL-013-2', 'SC-013', 'Copies of any material provided under §26 lawful production requests shall be retained for at least three years together with the underlying request.', ARRAY['REG-BD-DSA-2018'], 2),
+-- SC-014: Fixed-term employment BD — LA-2006
+('SCL-014-0', 'SC-014', 'This engagement is a permanent worker engagement within the meaning of §4 of the Bangladesh Labour Act 2006. Either party may terminate this engagement upon 120 days'' written notice, or payment of wages in lieu of such notice.', ARRAY['REG-BD-LA-2006'], 0),
+('SCL-014-1', 'SC-014', 'Where termination is initiated by the Employer, the reason for termination shall be recorded in writing and communicated to the Worker.', ARRAY['REG-BD-LA-2006'], 1),
+('SCL-014-2', 'SC-014', 'Statutory compensation, wages due, and any leave encashment payable to the Worker shall be deposited in the Worker''s designated bank account within 30 days of the effective date of termination.', ARRAY['REG-BD-LA-2006'], 2),
+-- SC-015: Cross-border support BD→EU — LA-2006 + GDPR-44
+('SCL-015-0', 'SC-015', 'Service Provider shall provide customer support services from its Dhaka delivery center to Customer''s data subjects located in the European Economic Area, on the terms set out in the applicable Statement of Work.', ARRAY[]::text[], 0),
+('SCL-015-1', 'SC-015', 'Where Service Provider''s personnel access personal data of EU data subjects, such access constitutes a transfer under Article 44 GDPR and shall be governed by the Standard Contractual Clauses in Annex II supplemented by the technical measures in Annex III.', ARRAY['REG-GDPR-44'], 1),
+('SCL-015-2', 'SC-015', 'Termination of any support agent engaged under this Agreement shall comply with the notice, written-reason, and dues-deposit obligations of §26 of the Bangladesh Labour Act 2006 and shall not disrupt the continuity obligations owed to Customer.', ARRAY['REG-BD-LA-2006'], 2),
+('SCL-015-3', 'SC-015', 'Service Provider shall implement the pseudonymization and access-logging measures in Annex III prior to any onward transfer, whether internal or external.', ARRAY['REG-GDPR-44'], 3)
 ON CONFLICT (id) DO NOTHING;
 
--- Backtest Cases
+-- Backtest Cases (3 Landmark Enforcement Actions)
 INSERT INTO public.backtest_cases (id, company, fine_usd, case_date, regulation, summary, source, reconstructed_prompt, reconstructed_clauses, fallback, position) VALUES
 ('case-meta-gdpr', 'Meta Ireland', 1300000000, '2023-05-22', 'GDPR Article 46(1)', 
  'Irish DPC fined Meta €1.2B ($1.3B) and ordered suspension of transatlantic user data transfers under flawed Standard Contractual Clauses.',
@@ -436,5 +503,14 @@ INSERT INTO public.backtest_cases (id, company, fine_usd, case_date, regulation,
  'Covered consumer reporting entities must patch known security vulnerabilities within 30 days of discovery and maintain perimeter intrusion monitoring for all credit data stores.',
  '[{"id":"cl-eq-1","text":"Vendor provides portal hosting on Apache frameworks with quarterly maintenance and scheduled security patch review cycles."},
    {"id":"cl-eq-2","text":"Consumer credit records are stored in plaintext relational partitions accessible across internal test networks."}]'::jsonb,
- '{"summary":"Severe failure to patch known CVE vulnerability exposing sensitive consumer credit profiles.","impacts":[{"contract_id":"cl-eq-1","severity":"high","suggested_amendment":"Enforce automated critical CVE patching within 7 days and continuous penetration testing."}]}'::jsonb, 1)
+ '{"summary":"Severe failure to patch known CVE vulnerability exposing sensitive consumer credit profiles.","impacts":[{"contract_id":"cl-eq-1","severity":"high","suggested_amendment":"Enforce automated critical CVE patching within 7 days and continuous penetration testing."}]}'::jsonb, 1),
+
+('case-grameenphone-btrc', 'Grameenphone', 23000000, '2022-06-29', 'BTRC Directives / BD-DSA §26',
+ 'BTRC sanctioned Grameenphone $23M over telecommunication data localization, lawful intercept compliance, and unauthorized subscriber data handling.',
+ 'Bangladesh Telecommunication Regulatory Commission (BTRC) Enforcement Notice',
+ 'All telecommunications metadata, call detail records (CDRs), and subscriber location profiles must reside exclusively on onshore infrastructure with direct lawful intercept hooks.',
+ '[{"id":"cl-gp-1","text":"Company routes subscriber call detail records (CDRs) and telemetry through regional overseas cloud clusters for algorithmic network optimization."},
+   {"id":"cl-gp-2","text":"Subscriber identity records and lawful intercept feeds are stored in cross-border partitions without localized hardware security module (HSM) barriers."}]'::jsonb,
+ '{"summary":"Failure to enforce local data residency and lawful intercept safeguards under BTRC Directives and DSA §26.","impacts":[{"contract_id":"cl-gp-1","severity":"high","suggested_amendment":"Enforce strict physical in-country storage of all subscriber CDRs and local HSM lawful intercept processing."}]}'::jsonb, 2)
 ON CONFLICT (id) DO NOTHING;
+

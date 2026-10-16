@@ -53,10 +53,7 @@ export const Route = createFileRoute("/_authenticated/actions")({
   ),
 });
 
-const RUN_META: Record<
-  string,
-  { label: string; icon: typeof Zap; to: string }
-> = {
+const RUN_META: Record<string, { label: string; icon: typeof Zap; to: string }> = {
   reactive: { label: "Simulate Impact", icon: Zap, to: "/simulate" },
   forecast: { label: "Predictive Forecast", icon: Radar, to: "/predictive" },
   what_if: { label: "What-If Sandbox", icon: FlaskConical, to: "/what-if" },
@@ -79,11 +76,7 @@ const FILTERS = [
 
 function ts(iso: string): string {
   const d = new Date(iso);
-  return d
-    .toISOString()
-    .replace("T", " ")
-    .slice(0, 16)
-    .concat(" UTC");
+  return d.toISOString().replace("T", " ").slice(0, 16).concat(" UTC");
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {

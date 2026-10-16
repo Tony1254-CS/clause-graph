@@ -3,7 +3,11 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Radar } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
-import { predictAmendmentRisk, type ForecastEntry, type ProbabilityBand } from "@/lib/predict.functions";
+import {
+  predictAmendmentRisk,
+  type ForecastEntry,
+  type ProbabilityBand,
+} from "@/lib/predict.functions";
 import { Button } from "@/components/ui/button";
 
 export const forecastsQuery = () =>
@@ -129,8 +133,8 @@ function RadarDashboard() {
             <p className="mt-3 text-[13.5px] leading-[1.65] text-muted-foreground">
               A heuristic forecast built from each regulation's own public amendment history:
               average interval between amendments, time since the last one, and a small editorial
-              signal from active regulatory chatter. Click any card to draft an adversarial
-              what-if amendment and run it through the live blast-radius pipeline.
+              signal from active regulatory chatter. Click any card to draft an adversarial what-if
+              amendment and run it through the live blast-radius pipeline.
             </p>
             <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground/80">
               Heuristic forecast · Public record only · Not a leak, not a legal prediction
@@ -152,7 +156,10 @@ function RadarCard({ entry }: { entry: ForecastEntry }) {
   const style = BAND_STYLE[entry.band];
   const pct = Math.round(entry.probability * 100);
   const lastAmended = entry.last_amended_on
-    ? new Date(entry.last_amended_on).toLocaleDateString(undefined, { year: "numeric", month: "short" })
+    ? new Date(entry.last_amended_on).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+      })
     : "—";
   return (
     <Link
@@ -177,21 +184,31 @@ function RadarCard({ entry }: { entry: ForecastEntry }) {
         </span>
       </div>
 
-      <p className="text-[12.5px] leading-[1.55] text-muted-foreground line-clamp-3">{entry.summary}</p>
+      <p className="text-[12.5px] leading-[1.55] text-muted-foreground line-clamp-3">
+        {entry.summary}
+      </p>
 
       <dl className="mt-auto grid grid-cols-3 gap-3 pt-3 border-t border-[var(--hairline)]">
         <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">Last amended</dt>
-          <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">{lastAmended}</dd>
+          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+            Last amended
+          </dt>
+          <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">
+            {lastAmended}
+          </dd>
         </div>
         <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">History</dt>
+          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+            History
+          </dt>
           <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">
             {entry.amendment_count}×
           </dd>
         </div>
         <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">Window</dt>
+          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+            Window
+          </dt>
           <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">
             ≤ {entry.window_months} mo
           </dd>

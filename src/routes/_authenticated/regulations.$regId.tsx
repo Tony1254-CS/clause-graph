@@ -27,26 +27,28 @@ export const Route = createFileRoute("/_authenticated/regulations/$regId")({
   },
   component: RegulationDetail,
   errorComponent: DetailError,
-  notFoundComponent: () => {
-    const { regId } = Route.useParams();
-    return (
-      <AppShell>
-        <div className="glass-panel p-8 text-center max-w-md">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Not found
-          </p>
-          <p className="mt-2 text-foreground">No regulation with ID {regId}.</p>
-          <Link
-            to="/feed"
-            className="mt-4 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm"
-          >
-            Back to feed
-          </Link>
-        </div>
-      </AppShell>
-    );
-  },
+  notFoundComponent: RegulationNotFound,
 });
+
+function RegulationNotFound() {
+  const { regId } = Route.useParams();
+  return (
+    <AppShell>
+      <div className="glass-panel p-8 text-center max-w-md">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          Not found
+        </p>
+        <p className="mt-2 text-foreground">No regulation with ID {regId}.</p>
+        <Link
+          to="/feed"
+          className="mt-4 inline-block rounded-[12px] border border-[var(--hairline-strong)] px-4 py-2 text-sm"
+        >
+          Back to feed
+        </Link>
+      </div>
+    </AppShell>
+  );
+}
 
 function RegulationDetail() {
   const { regId } = Route.useParams();
@@ -93,10 +95,7 @@ function RegulationDetail() {
           </h2>
           <ol className="flex flex-col gap-2">
             {reg.obligations.map((ob, i) => (
-              <li
-                key={ob.id}
-                className="glass-panel-sm grid grid-cols-[40px_1fr] gap-4 p-4"
-              >
+              <li key={ob.id} className="glass-panel-sm grid grid-cols-[40px_1fr] gap-4 p-4">
                 <span className="font-mono text-[13px] text-brass pt-0.5">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -117,7 +116,9 @@ function RegulationDetail() {
             </span>
           </div>
           {citingContracts.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground">Not currently cited in the portfolio.</p>
+            <p className="text-[13px] text-muted-foreground">
+              Not currently cited in the portfolio.
+            </p>
           ) : (
             <ul className="flex flex-col divide-y divide-[var(--hairline)]">
               {citingContracts.map((c) => (
@@ -171,4 +172,3 @@ function DetailError({ error, reset }: { error: Error; reset: () => void }) {
     </AppShell>
   );
 }
-

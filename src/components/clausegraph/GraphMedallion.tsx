@@ -22,8 +22,6 @@ function useReducedMotion() {
   return reduced;
 }
 
-
-
 type Node = {
   id: string;
   label: string;
@@ -52,11 +50,16 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
   const reducedMotion = useReducedMotion();
   const nodeTransition = reducedMotion
     ? undefined
-    : { transition: "r 500ms cubic-bezier(0.19, 1, 0.22, 1), fill 500ms cubic-bezier(0.19, 1, 0.22, 1), stroke 400ms ease-out, opacity 500ms ease-out" };
+    : {
+        transition:
+          "r 500ms cubic-bezier(0.19, 1, 0.22, 1), fill 500ms cubic-bezier(0.19, 1, 0.22, 1), stroke 400ms ease-out, opacity 500ms ease-out",
+      };
   const edgeTransition = reducedMotion
     ? undefined
-    : { transition: "stroke 500ms cubic-bezier(0.19, 1, 0.22, 1), opacity 500ms ease-out, stroke-width 400ms ease-out" };
-
+    : {
+        transition:
+          "stroke 500ms cubic-bezier(0.19, 1, 0.22, 1), opacity 500ms ease-out, stroke-width 400ms ease-out",
+      };
 
   const innerRadius = 118;
   const outerRadius = 180;
@@ -112,8 +115,8 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
           Portfolio topology
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-          {contracts.length} contracts · {regulations.length} regulations ·{" "}
-          {edges.length} citations.{" "}
+          {contracts.length} contracts · {regulations.length} regulations · {edges.length}{" "}
+          citations.{" "}
           {impacts && impacts.size > 0
             ? `${impacts.size} contracts in blast radius.`
             : pulsing
@@ -128,7 +131,6 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
         <div
           className={`relative rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--surface-glass)_70%,transparent)] p-3 transition-shadow duration-200 ease-out backdrop-blur-2xl ${pulsing && !reducedMotion ? "rim-pulse" : ""}`}
           style={{ height: SIZE + 24, width: SIZE + 24, maxWidth: "80vw", maxHeight: "80vw" }}
-
         >
           <div className="relative h-full w-full rounded-full border border-[var(--hairline)] p-3">
             <div className="glass-panel relative h-full w-full overflow-hidden !rounded-full">
@@ -138,9 +140,33 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                 className="absolute inset-0 h-full w-full"
                 aria-label="Contract-regulation topology"
               >
-                <circle cx={CENTER} cy={CENTER} r={outerRadius} fill="none" stroke="var(--hairline-strong)" strokeWidth="1" opacity="0.5" />
-                <circle cx={CENTER} cy={CENTER} r={innerRadius} fill="none" stroke="var(--hairline)" strokeWidth="1" opacity="0.55" />
-                <circle cx={CENTER} cy={CENTER} r={50} fill="none" stroke="var(--brass)" strokeWidth="1" opacity="0.28" />
+                <circle
+                  cx={CENTER}
+                  cy={CENTER}
+                  r={outerRadius}
+                  fill="none"
+                  stroke="var(--hairline-strong)"
+                  strokeWidth="1"
+                  opacity="0.5"
+                />
+                <circle
+                  cx={CENTER}
+                  cy={CENTER}
+                  r={innerRadius}
+                  fill="none"
+                  stroke="var(--hairline)"
+                  strokeWidth="1"
+                  opacity="0.55"
+                />
+                <circle
+                  cx={CENTER}
+                  cy={CENTER}
+                  r={50}
+                  fill="none"
+                  stroke="var(--brass)"
+                  strokeWidth="1"
+                  opacity="0.28"
+                />
 
                 <g>
                   {edges.map((e) => (
@@ -154,7 +180,6 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
                       strokeWidth={e.impacted ? "1" : "0.6"}
                       opacity={e.impacted ? 0.9 : 0.7}
                       style={edgeTransition}
-
                     />
                   ))}
                 </g>

@@ -19,7 +19,6 @@ const SEV_DOT: Record<Severity, string> = {
 };
 
 export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
-
   const runBacktest = useServerFn(simulateBacktest);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -79,8 +78,8 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
           Reconstruction — not this company's actual contracts
         </p>
         <p className="mt-1.5 text-[12px] leading-[1.55] text-muted-foreground">
-          Clauses below are synthetic, drafted to mirror the enforcement pattern. Analysis
-          runs live via the same pipeline as Simulate Impact.
+          Clauses below are synthetic, drafted to mirror the enforcement pattern. Analysis runs live
+          via the same pipeline as Simulate Impact.
         </p>
       </div>
 
@@ -110,7 +109,6 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
         </ul>
       </div>
 
-
       <button
         onClick={onRun}
         disabled={status === "loading"}
@@ -137,12 +135,10 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
         </p>
       )}
 
-
       {result && (
         <div className="rounded-[20px] border border-[var(--hairline-strong)] bg-[var(--surface-glass)] p-4">
-
           <div className="flex items-center justify-between gap-2">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
               Reconstructed scenario · analyzed live
             </p>
             <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground border border-[var(--hairline)] rounded-full px-2 py-0.5">
@@ -156,7 +152,10 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
           )}
           <ul className="mt-3 flex flex-col gap-2.5">
             {result.impacts.map((i) => (
-              <li key={i.contract_id} className="rounded-[12px] border border-[var(--hairline)] p-2.5">
+              <li
+                key={i.contract_id}
+                className="rounded-[12px] border border-[var(--hairline)] p-2.5"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brass)]">
                     {i.contract_id}

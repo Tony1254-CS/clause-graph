@@ -14,7 +14,6 @@ type OrgStatus = {
   trial_days_left?: number | null;
 };
 
-
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return "";
   try {
@@ -56,7 +55,6 @@ function DeletionBanner() {
   );
 }
 
-
 function BillingStatusBanner() {
   const getUsage = useServerFn(getOrgUsage);
   const q = useQuery({
@@ -88,8 +86,8 @@ function BillingStatusBanner() {
   if (isPastDue) {
     return (
       <Banner tone="risk" icon={<AlertTriangle className="h-4 w-4" />}>
-        We couldn't process your last payment. Update your card in the subscription portal to
-        avoid losing access.{" "}
+        We couldn't process your last payment. Update your card in the subscription portal to avoid
+        losing access.{" "}
         <Link to="/settings/billing" className="underline underline-offset-2">
           Manage subscription
         </Link>
@@ -114,10 +112,8 @@ function BillingStatusBanner() {
   // Trial countdown is intentionally NOT shown here — the user rejected
   // trial/test banners in the header. Trial state lives on /settings/billing.
 
-
   return null;
 }
-
 
 function Banner({
   tone,

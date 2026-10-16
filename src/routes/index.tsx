@@ -46,21 +46,33 @@ function Landing() {
     <main className="relative min-h-screen overflow-hidden bg-background">
       {/* Ambient atmosphere */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-[0.18] blur-[120px] ambient-drift"
-             style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 60%)" }} />
-        <div className="absolute top-[30%] -right-40 h-[620px] w-[620px] rounded-full opacity-[0.10] blur-[140px] ambient-drift"
-             style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 65%)", animationDelay: "-14s" }} />
-        <div className="absolute inset-0 opacity-[0.035]"
-             style={{
-               backgroundImage:
-                 "linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px)",
-               backgroundSize: "56px 56px",
-               maskImage: "radial-gradient(ellipse at 50% 20%, black 40%, transparent 75%)",
-             }} />
+        <div
+          className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-[0.18] blur-[120px] ambient-drift"
+          style={{ background: "radial-gradient(circle, var(--brass) 0%, transparent 60%)" }}
+        />
+        <div
+          className="absolute top-[30%] -right-40 h-[620px] w-[620px] rounded-full opacity-[0.10] blur-[140px] ambient-drift"
+          style={{
+            background: "radial-gradient(circle, var(--brass) 0%, transparent 65%)",
+            animationDelay: "-14s",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(ellipse at 50% 20%, black 40%, transparent 75%)",
+          }}
+        />
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-[1240px] items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2.5 animate-fade-up" style={{ animationDelay: "40ms" }}>
+        <div
+          className="flex items-center gap-2.5 animate-fade-up"
+          style={{ animationDelay: "40ms" }}
+        >
           <div className="h-8 w-8 rounded-full border border-[var(--hairline-strong)] grid place-items-center">
             <div className="h-2 w-2 rounded-full bg-brass mint-glow-pulse" />
           </div>
@@ -90,16 +102,15 @@ function Landing() {
               className="mt-5 font-display text-[clamp(40px,6vw,68px)] leading-[1.02] tracking-[-0.02em] text-foreground max-w-[16ch] animate-fade-up"
               style={{ animationDelay: "80ms" }}
             >
-              See the blast radius{" "}
-              <span className="italic text-brass">before</span> the rule ships.
+              See the blast radius <span className="italic text-brass">before</span> the rule ships.
             </h1>
             <p
               className="mt-6 text-[16px] leading-[1.65] text-muted-foreground max-w-[54ch] animate-fade-up"
               style={{ animationDelay: "140ms" }}
             >
-              Paste a proposed regulation. ClauseGraph maps it against your portfolio in
-              seconds — which contracts break, which clauses need redrafting, how much
-              notional exposure is at stake, and what to change.
+              Paste a proposed regulation. ClauseGraph maps it against your portfolio in seconds —
+              which contracts break, which clauses need redrafting, how much notional exposure is at
+              stake, and what to change.
             </p>
 
             <div
@@ -116,7 +127,10 @@ function Landing() {
                 />
                 <Zap className="h-4 w-4" strokeWidth={2.2} />
                 Get started
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.2} />
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+                  strokeWidth={2.2}
+                />
               </Link>
               <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                 3 sample contracts · no credit card
@@ -134,8 +148,12 @@ function Landing() {
                 { k: "3", v: "Jurisdictions" },
               ].map((s) => (
                 <div key={s.v} className="border-l border-[var(--hairline-strong)] pl-4">
-                  <div className="font-display text-[26px] leading-none tracking-tight text-foreground">{s.k}</div>
-                  <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">{s.v}</div>
+                  <div className="font-display text-[26px] leading-none tracking-tight text-foreground">
+                    {s.k}
+                  </div>
+                  <div className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {s.v}
+                  </div>
                 </div>
               ))}
             </dl>
@@ -168,7 +186,6 @@ function Landing() {
           />
         </div>
       </section>
-
 
       <section className="mx-auto max-w-[1200px] px-6 pb-24">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
@@ -211,7 +228,9 @@ function Landing() {
                 <div>
                   {BILLING_ENABLED ? (
                     <>
-                      <span className="font-display text-[38px] text-foreground">${p.priceUsd}</span>
+                      <span className="font-display text-[38px] text-foreground">
+                        ${p.priceUsd}
+                      </span>
                       <span className="ml-1 font-mono text-[12px] text-muted-foreground">
                         / month
                       </span>
@@ -249,16 +268,21 @@ function Landing() {
         </div>
       </section>
 
-
       <footer className="border-t border-[var(--hairline)]">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-6 py-8 text-[12.5px] text-muted-foreground">
           <span className="font-mono text-[11px] uppercase tracking-[0.14em]">
             © {new Date().getFullYear()} ClauseGraph
           </span>
           <div className="flex gap-5">
-            <Link to="/terms" className="hover:text-brass">Terms</Link>
-            <Link to="/privacy" className="hover:text-brass">Privacy</Link>
-            <Link to="/refund" className="hover:text-brass">Refunds</Link>
+            <Link to="/terms" className="hover:text-brass">
+              Terms
+            </Link>
+            <Link to="/privacy" className="hover:text-brass">
+              Privacy
+            </Link>
+            <Link to="/refund" className="hover:text-brass">
+              Refunds
+            </Link>
           </div>
         </div>
       </footer>
@@ -278,16 +302,11 @@ function FeatureCard({
   i?: number;
 }) {
   return (
-    <div
-      className="glass-panel p-6 hover-lift stagger-item"
-      style={{ ["--i" as string]: i }}
-    >
+    <div className="glass-panel p-6 hover-lift stagger-item" style={{ ["--i" as string]: i }}>
       <div className="inline-grid h-10 w-10 place-items-center rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)]">
         <Icon className="h-[18px] w-[18px] text-brass" strokeWidth={1.6} />
       </div>
-      <h3 className="mt-5 font-display text-[19px] leading-[1.2] text-foreground">
-        {title}
-      </h3>
+      <h3 className="mt-5 font-display text-[19px] leading-[1.2] text-foreground">{title}</h3>
       <p className="mt-2 text-[13.5px] leading-[1.65] text-muted-foreground">{body}</p>
     </div>
   );
@@ -373,15 +392,7 @@ function HeroSeal() {
             { x: 328, y: 288, r: 2.6 },
           ].map((n, idx) => (
             <g key={idx}>
-              {n.hit && (
-                <circle
-                  cx={n.x}
-                  cy={n.y}
-                  r={n.r + 5}
-                  fill="var(--brass)"
-                  opacity="0.18"
-                />
-              )}
+              {n.hit && <circle cx={n.x} cy={n.y} r={n.r + 5} fill="var(--brass)" opacity="0.18" />}
               <circle
                 cx={n.x}
                 cy={n.y}
@@ -408,7 +419,9 @@ function HeroSeal() {
         {/* center label */}
         <div className="absolute inset-0 grid place-items-center pointer-events-none">
           <div className="text-center">
-            <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-brass">Impact</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-brass">
+              Impact
+            </div>
             <div className="mt-1 font-display text-[36px] leading-none tracking-tight text-foreground">
               $4.2M
             </div>
@@ -421,14 +434,17 @@ function HeroSeal() {
 
       {/* corner readouts */}
       <div className="absolute -top-2 left-4 rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)] backdrop-blur-md px-3 py-1.5">
-        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">Rule</div>
+        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+          Rule
+        </div>
         <div className="font-mono text-[11px] text-foreground">GDPR Art. 22</div>
       </div>
       <div className="absolute -bottom-2 right-4 rounded-[10px] border border-[var(--hairline-strong)] bg-[color:var(--surface-glass)] backdrop-blur-md px-3 py-1.5">
-        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">Severity</div>
+        <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+          Severity
+        </div>
         <div className="font-mono text-[11px] text-brass">HIGH · 3 hits</div>
       </div>
     </div>
   );
 }
-

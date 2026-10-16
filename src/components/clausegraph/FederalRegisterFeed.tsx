@@ -8,9 +8,7 @@ export function FederalRegisterFeed() {
   const isEmpty = !hasError && data.results.length === 0;
 
   return (
-    <section
-      className="glass-panel p-6"
-    >
+    <section className="glass-panel p-6">
       <header className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2 w-2">
@@ -89,9 +87,7 @@ export function FederalRegisterFeed() {
 
 export function FederalRegisterFeedSkeleton() {
   return (
-    <section
-      className="glass-panel p-6"
-    >
+    <section className="glass-panel p-6">
       <header className="flex items-center gap-2.5 mb-5">
         <span className="h-2 w-2 rounded-full bg-[color-mix(in_oklab,var(--brass)_40%,transparent)]" />
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -112,4 +108,3 @@ export function FederalRegisterFeedSkeleton() {
     </section>
   );
 }
-

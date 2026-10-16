@@ -63,8 +63,18 @@ variable "bucket_names" { type = list(string) }
   return {
     gap,
     stack,
-    audit_script: { language: "python", code: python, description: "Boto3 audit that lists every bucket and flags any without AES256/KMS encryption." },
-    remediation: { language: "terraform", code: terraform, description: "Terraform module that enforces AES256 encryption and denies unencrypted uploads on every bucket." },
+    audit_script: {
+      language: "python",
+      code: python,
+      description:
+        "Boto3 audit that lists every bucket and flags any without AES256/KMS encryption.",
+    },
+    remediation: {
+      language: "terraform",
+      code: terraform,
+      description:
+        "Terraform module that enforces AES256 encryption and denies unencrypted uploads on every bucket.",
+    },
     test_cases: [
       "Bucket without any encryption configuration → flagged",
       "Bucket with AES256 → passes",
@@ -76,7 +86,11 @@ variable "bucket_names" { type = list(string) }
   };
 }
 
-export function coerceComplianceCode(raw: unknown, gap: string, stack: Stack): ComplianceCode | null {
+export function coerceComplianceCode(
+  raw: unknown,
+  gap: string,
+  stack: Stack,
+): ComplianceCode | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const parseArt = (v: unknown, fallback: CodeArtifact["language"]): CodeArtifact | null => {
@@ -85,13 +99,24 @@ export function coerceComplianceCode(raw: unknown, gap: string, stack: Stack): C
     const code = String(x.code ?? "");
     if (!code) return null;
     const langRaw = String(x.language ?? fallback).toLowerCase();
-    const language = (["python", "bash", "terraform", "yaml"] as const).find((l) => l === langRaw) ?? fallback;
+    const language =
+      (["python", "bash", "terraform", "yaml"] as const).find((l) => l === langRaw) ?? fallback;
     return { language, code, description: String(x.description ?? "") };
   };
   const audit = parseArt(o.audit_script ?? o.audit, "python");
   const remediation = parseArt(o.remediation ?? o.fix, "terraform");
   if (!audit || !remediation) return null;
-  const tests = Array.isArray(o.test_cases) ? o.test_cases.map(String).filter(Boolean).slice(0, 8) : [];
+  const tests = Array.isArray(o.test_cases)
+    ? o.test_cases.map(String).filter(Boolean).slice(0, 8)
+    : [];
   const runbook = typeof o.runbook === "string" ? o.runbook : "";
-  return { gap, stack, audit_script: audit, remediation, test_cases: tests, runbook, fallback: false };
+  return {
+    gap,
+    stack,
+    audit_script: audit,
+    remediation,
+    test_cases: tests,
+    runbook,
+    fallback: false,
+  };
 }

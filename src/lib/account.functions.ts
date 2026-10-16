@@ -21,7 +21,7 @@ export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
          FROM public.subscriptions 
          WHERE org_id = $1 AND status IN ('active', 'trialing', 'past_due') 
          ORDER BY created_at DESC LIMIT 1`,
-        [orgId]
+        [orgId],
       );
 
       if (sub?.paddle_subscription_id) {
@@ -37,7 +37,7 @@ export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
 
     const row = await queryOne<{ request_workspace_deletion: string }>(
       `SELECT request_workspace_deletion($1, $2)`,
-      [orgId, userId]
+      [orgId, userId],
     );
 
     return { scheduledAt: row?.request_workspace_deletion ?? new Date().toISOString() };

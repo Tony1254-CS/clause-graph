@@ -28,11 +28,12 @@ export const signUpWithPasswordFn = createServerFn({ method: "POST" })
     return await registerUser(data);
   });
 
-export const demoLoginFn = createServerFn({ method: "POST" })
-  .handler(async (): Promise<{ user: AuthUser; token: string }> => {
+export const demoLoginFn = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ user: AuthUser; token: string }> => {
     const { ensureAndLoginDemoJudge } = await import("./auth.server");
     return await ensureAndLoginDemoJudge();
-  });
+  },
+);
 
 export const getCurrentUserFn = createServerFn({ method: "GET" })
   .middleware([requireAuth])
@@ -51,9 +52,9 @@ export const updatePasswordFn = createServerFn({ method: "POST" })
     const { hashPassword } = await import("./auth.server");
     const { query } = await import("./db.server");
     const hash = await hashPassword(data.password);
-    await query(
-      `UPDATE auth.users SET encrypted_password = $1, updated_at = now() WHERE id = $2`,
-      [hash, context.userId]
-    );
+    await query(`UPDATE auth.users SET encrypted_password = $1, updated_at = now() WHERE id = $2`, [
+      hash,
+      context.userId,
+    ]);
     return { ok: true };
   });

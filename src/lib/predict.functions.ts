@@ -49,7 +49,7 @@ export const predictAmendmentRisk = createServerFn({ method: "GET" })
       }>(
         `SELECT regulation_id, amended_on, summary, direction 
          FROM public.regulation_amendments 
-         ORDER BY amended_on DESC`
+         ORDER BY amended_on DESC`,
       ),
     ]);
 
@@ -68,9 +68,9 @@ export const predictAmendmentRisk = createServerFn({ method: "GET" })
     const out: ForecastEntry[] = [];
 
     for (const r of regs ?? []) {
-      const history = (byReg.get(r.id) ?? []).slice().sort((a, b) =>
-        a.amended_on.localeCompare(b.amended_on),
-      );
+      const history = (byReg.get(r.id) ?? [])
+        .slice()
+        .sort((a, b) => a.amended_on.localeCompare(b.amended_on));
       const boost = Number(r.news_signal_boost ?? 0) * 0.3;
 
       let avgIntervalDays: number | null = null;
@@ -149,14 +149,14 @@ export const generateHypotheticalAmendment = createServerFn({ method: "POST" })
     const [reg, amends] = await Promise.all([
       queryOne<{ id: string; title: string; summary: string; jurisdiction: string }>(
         `SELECT id, title, summary, jurisdiction FROM public.regulations WHERE id = $1`,
-        [data.regulationId]
+        [data.regulationId],
       ),
       query<{ amended_on: string; summary: string; direction: string }>(
         `SELECT amended_on, summary, direction 
          FROM public.regulation_amendments 
          WHERE regulation_id = $1 
          ORDER BY amended_on DESC`,
-        [data.regulationId]
+        [data.regulationId],
       ),
     ]);
 

@@ -27,7 +27,7 @@ export const simulateBacktest = createServerFn({ method: "POST" })
       `SELECT id, company, regulation, summary, reconstructed_prompt, reconstructed_clauses, fallback 
        FROM public.backtest_cases 
        WHERE id = $1`,
-      [data.caseId]
+      [data.caseId],
     );
 
     if (!row) throw new Error("Unknown case");

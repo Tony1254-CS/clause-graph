@@ -11,9 +11,8 @@ export { EventName };
 export type PaddleEnv = "sandbox" | "live";
 
 export function getConnectionApiKey(env: PaddleEnv): string {
-  const key = env === "sandbox"
-    ? process.env.PADDLE_SANDBOX_API_KEY
-    : process.env.PADDLE_LIVE_API_KEY;
+  const key =
+    env === "sandbox" ? process.env.PADDLE_SANDBOX_API_KEY : process.env.PADDLE_LIVE_API_KEY;
   return key || process.env.PADDLE_API_KEY || "";
 }
 
@@ -35,7 +34,7 @@ export async function gatewayFetch(
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       ...init?.headers,
     },
   });

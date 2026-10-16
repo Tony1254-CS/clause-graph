@@ -49,7 +49,7 @@ export const getSupplyChain = createServerFn({ method: "GET" })
          FROM public.supply_chain_nodes 
          WHERE org_id = $1 
          ORDER BY tier ASC`,
-        [context.orgId]
+        [context.orgId],
       ),
       query<{
         id: string;
@@ -63,7 +63,7 @@ export const getSupplyChain = createServerFn({ method: "GET" })
         `SELECT id, from_node_id, to_node_id, contract_name, contract_value, key_clauses, depends_on_regs 
          FROM public.supply_chain_edges 
          WHERE org_id = $1`,
-        [context.orgId]
+        [context.orgId],
       ),
     ]);
 
@@ -103,7 +103,7 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
         `SELECT id, name, role, tier, jurisdiction, description 
          FROM public.supply_chain_nodes 
          WHERE org_id = $1`,
-        [orgId]
+        [orgId],
       ),
       query<{
         id: string;
@@ -117,7 +117,7 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
         `SELECT id, from_node_id, to_node_id, contract_name, contract_value, key_clauses, depends_on_regs 
          FROM public.supply_chain_edges 
          WHERE org_id = $1`,
-        [orgId]
+        [orgId],
       ),
     ]);
 
@@ -232,9 +232,10 @@ ${JSON.stringify(graphContext)}`;
             const coerced = coerceHits(parsed, valid);
             if (coerced && coerced.length > 0) {
               hits = coerced;
-              summary = typeof (parsed as { summary?: unknown }).summary === "string"
-                ? (parsed as { summary: string }).summary
-                : "";
+              summary =
+                typeof (parsed as { summary?: unknown }).summary === "string"
+                  ? (parsed as { summary: string }).summary
+                  : "";
               const rem = (parsed as { remediation?: unknown }).remediation;
               if (Array.isArray(rem)) remediation = rem.map(String).filter(Boolean).slice(0, 6);
               fallback = false;
@@ -250,7 +251,9 @@ ${JSON.stringify(graphContext)}`;
 
     if (hits.length === 0) {
       hits = heuristicHits();
-      summary = summary || "Cascade traced from directly-impacted upstream provider back to your organization.";
+      summary =
+        summary ||
+        "Cascade traced from directly-impacted upstream provider back to your organization.";
       remediation = remediation.length
         ? remediation
         : [
@@ -273,12 +276,7 @@ ${JSON.stringify(graphContext)}`;
           `INSERT INTO public.simulation_runs (org_id, input_regulation_text, result_json, triggered_by, run_type)
            VALUES ($1, $2, $3::jsonb, $4, 'supply_chain')
            RETURNING id`,
-          [
-            orgId,
-            data.regulationText,
-            JSON.stringify(result),
-            userId,
-          ]
+          [orgId, data.regulationText, JSON.stringify(result), userId],
         );
         if (row?.id) result.run_id = row.id;
       } catch (err) {

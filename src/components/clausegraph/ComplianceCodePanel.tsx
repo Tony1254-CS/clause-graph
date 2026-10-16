@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Terminal, Copy, Check, Download, FileCode, PlayCircle } from "lucide-react";
-import { generateComplianceCode, type ComplianceCode, type Stack } from "@/lib/compliance-code.functions";
+import {
+  generateComplianceCode,
+  type ComplianceCode,
+  type Stack,
+} from "@/lib/compliance-code.functions";
 
 type Props = {
   regulationText: string;
@@ -36,15 +40,26 @@ function useTyping(text: string, enabled: boolean, cps = 260) {
 
 const EXT: Record<string, string> = { python: "py", bash: "sh", terraform: "tf", yaml: "yaml" };
 
-function CodeBlock({ code, language, animate }: { code: string; language: string; animate: boolean }) {
+function CodeBlock({
+  code,
+  language,
+  animate,
+}: {
+  code: string;
+  language: string;
+  animate: boolean;
+}) {
   const reducedMotion =
-    typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const { out, done, skip } = useTyping(code, animate && !reducedMotion);
   return (
     <div className="relative">
       <pre className="max-h-[420px] overflow-auto rounded-[12px] border border-[var(--hairline-strong)] bg-[rgba(11,14,20,0.6)] p-4 font-mono text-[12px] leading-[1.55] text-foreground/90 whitespace-pre">
         <code>{out}</code>
-        {!done && <span className="ml-0.5 inline-block h-4 w-2 translate-y-[3px] animate-pulse bg-[color-mix(in_oklab,var(--brass)_70%,transparent)]" />}
+        {!done && (
+          <span className="ml-0.5 inline-block h-4 w-2 translate-y-[3px] animate-pulse bg-[color-mix(in_oklab,var(--brass)_70%,transparent)]" />
+        )}
       </pre>
       {!done && (
         <button
@@ -61,7 +76,13 @@ function CodeBlock({ code, language, animate }: { code: string; language: string
   );
 }
 
-export function ComplianceCodePanel({ regulationText, gap, regulationId, simulationRunId, className }: Props) {
+export function ComplianceCodePanel({
+  regulationText,
+  gap,
+  regulationId,
+  simulationRunId,
+  className,
+}: Props) {
   const run = useServerFn(generateComplianceCode);
   const [stack, setStack] = useState<Stack>("aws");
   const [tab, setTab] = useState<"audit" | "remediation">("audit");
@@ -76,7 +97,9 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
     setArtifact(null);
     setError(null);
     try {
-      const res = await run({ data: { regulationText, gap, stack, regulationId, simulationRunId } });
+      const res = await run({
+        data: { regulationText, gap, stack, regulationId, simulationRunId },
+      });
       setArtifact(res);
       setStatus("done");
     } catch (err) {
@@ -111,7 +134,9 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
 
   if (status === "idle") {
     return (
-      <div className={`glass-panel p-5 flex flex-wrap items-center justify-between gap-4 ${className ?? ""}`}>
+      <div
+        className={`glass-panel p-5 flex flex-wrap items-center justify-between gap-4 ${className ?? ""}`}
+      >
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
             <Terminal className="h-3 w-3" strokeWidth={1.8} /> Compliance-as-Code
@@ -122,7 +147,10 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
           <p className="mt-0.5 text-[12px] text-muted-foreground truncate">Gap: {gap}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <div role="tablist" className="flex rounded-[12px] border border-[var(--hairline-strong)] p-0.5">
+          <div
+            role="tablist"
+            className="flex rounded-[12px] border border-[var(--hairline-strong)] p-0.5"
+          >
             {(["aws", "gcp", "azure"] as const).map((s) => (
               <button
                 key={s}
@@ -130,7 +158,9 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
                 aria-selected={stack === s}
                 onClick={() => setStack(s)}
                 className={`rounded-[10px] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-200 ${
-                  stack === s ? "bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--brass)]" : "text-muted-foreground hover:text-foreground"
+                  stack === s
+                    ? "bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--brass)]"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {s}
@@ -153,7 +183,9 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
     return (
       <div className={`glass-panel p-6 flex items-center gap-3 ${className ?? ""}`}>
         <Loader2 className="h-4 w-4 animate-spin text-[var(--brass)]" strokeWidth={2} />
-        <p className="text-[13px] text-muted-foreground">Compiling audit script and remediation IaC…</p>
+        <p className="text-[13px] text-muted-foreground">
+          Compiling audit script and remediation IaC…
+        </p>
       </div>
     );
   }
@@ -179,7 +211,8 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-            <FileCode className="h-3 w-3" strokeWidth={1.8} /> Compliance-as-Code · {stack.toUpperCase()}
+            <FileCode className="h-3 w-3" strokeWidth={1.8} /> Compliance-as-Code ·{" "}
+            {stack.toUpperCase()}
           </p>
           <h3 className="mt-2 font-display text-[22px] leading-[1.15] tracking-tight text-foreground">
             Executable remediation
@@ -213,7 +246,10 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
         </div>
       </header>
 
-      <div role="tablist" className="flex rounded-[12px] border border-[var(--hairline)] p-0.5 self-start">
+      <div
+        role="tablist"
+        className="flex rounded-[12px] border border-[var(--hairline)] p-0.5 self-start"
+      >
         {(["audit", "remediation"] as const).map((k) => (
           <button
             key={k}
@@ -221,7 +257,9 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
             aria-selected={tab === k}
             onClick={() => setTab(k)}
             className={`rounded-[10px] px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors duration-200 ${
-              tab === k ? "bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--brass)]" : "text-muted-foreground hover:text-foreground"
+              tab === k
+                ? "bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--brass)]"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {k}

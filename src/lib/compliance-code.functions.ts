@@ -119,7 +119,7 @@ TARGET STACK: ${data.stack.toUpperCase()}`;
             finalResult.runbook,
             finalResult.test_cases,
             userId,
-          ]
+          ],
         );
       } catch (insertErr) {
         console.error("[compliance-code] persist error", insertErr);

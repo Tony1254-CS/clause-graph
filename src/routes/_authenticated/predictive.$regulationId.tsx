@@ -8,10 +8,7 @@ import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
-import {
-  generateHypotheticalAmendment,
-  type HypotheticalAmendment,
-} from "@/lib/predict.functions";
+import { generateHypotheticalAmendment, type HypotheticalAmendment } from "@/lib/predict.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 import { forecastsQuery } from "./predictive";
@@ -44,9 +41,14 @@ export const Route = createFileRoute("/_authenticated/predictive/$regulationId")
   errorComponent: ({ error, reset }) => (
     <AppShell>
       <div className="glass-panel p-6 max-w-lg">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--risk)]">Error</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--risk)]">
+          Error
+        </p>
         <p className="mt-2 text-[13px] text-foreground">{error.message}</p>
-        <button onClick={reset} className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-brass">
+        <button
+          onClick={reset}
+          className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-brass"
+        >
           Retry →
         </button>
       </div>
@@ -200,19 +202,21 @@ function ForecastDetail() {
                 Amendment history
               </p>
               <ol className="mt-4 space-y-3">
-                {entry.amendments.map((a: import("@/lib/predict.functions").Amendment, i: number) => (
-                  <li key={i} className="flex gap-3 items-start">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brass shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-mono text-[11px] text-brass tabular-nums">
-                        {a.amended_on} · {a.direction}
-                      </p>
-                      <p className="mt-0.5 text-[12.5px] leading-[1.55] text-foreground">
-                        {a.summary}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                {entry.amendments.map(
+                  (a: import("@/lib/predict.functions").Amendment, i: number) => (
+                    <li key={i} className="flex gap-3 items-start">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brass shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] text-brass tabular-nums">
+                          {a.amended_on} · {a.direction}
+                        </p>
+                        <p className="mt-0.5 text-[12.5px] leading-[1.55] text-foreground">
+                          {a.summary}
+                        </p>
+                      </div>
+                    </li>
+                  ),
+                )}
               </ol>
             </div>
 
@@ -347,7 +351,8 @@ function ForecastDetail() {
                   {formatUSD(totalExposure)}
                 </p>
                 <p className="mt-1 text-[12px] text-muted-foreground">
-                  across {sortedImpacts.length} contract{sortedImpacts.length === 1 ? "" : "s"} on day one
+                  across {sortedImpacts.length} contract{sortedImpacts.length === 1 ? "" : "s"} on
+                  day one
                 </p>
                 {result.summary && (
                   <p className="mt-5 text-[12.5px] leading-[1.6] text-muted-foreground border-t border-[var(--hairline)] pt-4">

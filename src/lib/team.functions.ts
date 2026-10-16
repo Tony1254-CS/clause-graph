@@ -4,7 +4,9 @@ import { requireAuth } from "./auth-middleware";
 export const inviteTeammate = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .validator((input: { email: string; fullName?: string }) => {
-    const email = String(input?.email ?? "").trim().toLowerCase();
+    const email = String(input?.email ?? "")
+      .trim()
+      .toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Valid email required");
     return { email, fullName: String(input?.fullName ?? "").trim() || null };
   })
@@ -31,7 +33,7 @@ export const inviteTeammate = createServerFn({ method: "POST" })
       // Check if user already exists
       const existing = await client.query<{ id: string }>(
         `SELECT id FROM auth.users WHERE LOWER(email) = $1`,
-        [data.email]
+        [data.email],
       );
 
       let targetUserId: string;
@@ -45,7 +47,7 @@ export const inviteTeammate = createServerFn({ method: "POST" })
           `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
            VALUES ($1, $2, $3::jsonb)
            RETURNING id`,
-          [data.email, tempPass, JSON.stringify({ full_name: data.fullName })]
+          [data.email, tempPass, JSON.stringify({ full_name: data.fullName })],
         );
         targetUserId = inserted.rows[0].id;
       }
@@ -55,14 +57,14 @@ export const inviteTeammate = createServerFn({ method: "POST" })
         `INSERT INTO public.profiles (id, org_id, full_name, email)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (id) DO UPDATE SET org_id = EXCLUDED.org_id`,
-        [targetUserId, orgId, data.fullName, data.email]
+        [targetUserId, orgId, data.fullName, data.email],
       );
 
       await client.query(
         `INSERT INTO public.user_roles (user_id, org_id, role)
          VALUES ($1, $2, 'member')
          ON CONFLICT (user_id, org_id, role) DO NOTHING`,
-        [targetUserId, orgId]
+        [targetUserId, orgId],
       );
 
       return targetUserId;
@@ -90,14 +92,14 @@ export const removeTeammate = createServerFn({ method: "POST" })
 
     // Remove role and profile for this workspace in PostgreSQL
     await transaction(async (client) => {
-      await client.query(
-        `DELETE FROM public.user_roles WHERE user_id = $1 AND org_id = $2`,
-        [data.userId, orgId]
-      );
-      await client.query(
-        `DELETE FROM public.profiles WHERE id = $1 AND org_id = $2`,
-        [data.userId, orgId]
-      );
+      await client.query(`DELETE FROM public.user_roles WHERE user_id = $1 AND org_id = $2`, [
+        data.userId,
+        orgId,
+      ]);
+      await client.query(`DELETE FROM public.profiles WHERE id = $1 AND org_id = $2`, [
+        data.userId,
+        orgId,
+      ]);
     });
 
     return { ok: true };

@@ -19,7 +19,14 @@ const SEV_COLOR: Record<CascadeHit["severity"], string> = {
   low: "color-mix(in oklab, var(--risk) 45%, transparent)",
 };
 
-export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, selectedId }: Props) {
+export function SupplyChainGraph({
+  nodes,
+  edges,
+  hits,
+  animating,
+  onNodeClick,
+  selectedId,
+}: Props) {
   const layout = useMemo(() => {
     // Column-per-tier layout, top-to-bottom by index within tier.
     const tiers = new Map<number, ChainNode[]>();
@@ -69,9 +76,10 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
         const propagates = Boolean(fromHit && toHit);
         const midX = (a.x + b.x) / 2;
         const path = `M ${a.x} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${b.x} ${b.y}`;
-        const stroke = propagates && toHit
-          ? SEV_COLOR[toHit.severity]
-          : "color-mix(in oklab, var(--brass) 22%, transparent)";
+        const stroke =
+          propagates && toHit
+            ? SEV_COLOR[toHit.severity]
+            : "color-mix(in oklab, var(--brass) 22%, transparent)";
         const delay = animating && propagates && fromHit ? Math.max(fromHit.hop, 0) * 220 : 0;
         return (
           <g key={e.id}>
@@ -83,14 +91,18 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
               strokeDasharray={propagates ? "0" : "4 4"}
               style={{
                 opacity: 0,
-                animation: animating
-                  ? `edge-appear 380ms ease-out ${delay}ms forwards`
-                  : "none",
+                animation: animating ? `edge-appear 380ms ease-out ${delay}ms forwards` : "none",
                 animationFillMode: "forwards",
               }}
             />
             {!animating && (
-              <path d={path} fill="none" stroke={stroke} strokeWidth={propagates ? 2 : 1} strokeDasharray={propagates ? "0" : "4 4"} />
+              <path
+                d={path}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={propagates ? 2 : 1}
+                strokeDasharray={propagates ? "0" : "4 4"}
+              />
             )}
           </g>
         );
@@ -103,8 +115,12 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
         const hit = hits.get(n.id);
         const isSelf = n.role === "self";
         const r = isSelf ? 30 : 24;
-        const stroke = hit ? SEV_COLOR[hit.severity] : "color-mix(in oklab, var(--brass) 55%, transparent)";
-        const fill = hit ? "color-mix(in oklab, var(--risk) 10%, transparent)" : "color-mix(in oklab, var(--foreground) 3%, transparent)";
+        const stroke = hit
+          ? SEV_COLOR[hit.severity]
+          : "color-mix(in oklab, var(--brass) 55%, transparent)";
+        const fill = hit
+          ? "color-mix(in oklab, var(--risk) 10%, transparent)"
+          : "color-mix(in oklab, var(--foreground) 3%, transparent)";
         const delay = animating && hit ? hit.hop * 220 : 0;
         return (
           <g
@@ -119,9 +135,7 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
                 fill="url(#hit-glow)"
                 style={{
                   opacity: 0,
-                  animation: animating
-                    ? `node-hit 500ms ease-out ${delay}ms forwards`
-                    : "none",
+                  animation: animating ? `node-hit 500ms ease-out ${delay}ms forwards` : "none",
                   animationFillMode: "forwards",
                 }}
               />
@@ -133,9 +147,8 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
               strokeWidth={selectedId === n.id ? 2.5 : 1.5}
               style={{
                 transformOrigin: "center",
-                animation: animating && hit
-                  ? `node-pulse 500ms ease-out ${delay}ms forwards`
-                  : "none",
+                animation:
+                  animating && hit ? `node-pulse 500ms ease-out ${delay}ms forwards` : "none",
               }}
             />
             <text
@@ -150,14 +163,21 @@ export function SupplyChainGraph({ nodes, edges, hits, animating, onNodeClick, s
               y={-r - 22}
               textAnchor="middle"
               className="fill-muted-foreground"
-              style={{ font: "10px var(--font-mono, monospace)", letterSpacing: "0.14em", textTransform: "uppercase" }}
+              style={{
+                font: "10px var(--font-mono, monospace)",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+              }}
             >
               T{n.tier} · {n.jurisdiction ?? "—"}
             </text>
             <text
               y={4}
               textAnchor="middle"
-              style={{ font: `600 ${isSelf ? 11 : 10}px var(--font-mono, monospace)`, fill: hit ? SEV_COLOR[hit.severity] : "var(--brass)" }}
+              style={{
+                font: `600 ${isSelf ? 11 : 10}px var(--font-mono, monospace)`,
+                fill: hit ? SEV_COLOR[hit.severity] : "var(--brass)",
+              }}
             >
               {hit ? `HOP ${hit.hop}` : isSelf ? "YOU" : ""}
             </text>

@@ -77,7 +77,9 @@ export function PlanLimitDialog() {
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">Upgrade</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+              Upgrade
+            </p>
             <h2 className="mt-2 font-display text-[28px] leading-tight text-foreground">
               {copy.title}
             </h2>

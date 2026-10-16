@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_authenticated/what-if")({
       { title: "What-If Sandbox — ClauseGraph" },
       {
         name: "description",
-        content: "Paste any hypothetical regulation and simulate its blast radius across your live contract portfolio.",
+        content:
+          "Paste any hypothetical regulation and simulate its blast radius across your live contract portfolio.",
       },
       { property: "og:title", content: "What-If Sandbox — ClauseGraph" },
       {
@@ -144,8 +145,8 @@ function WhatIfSandbox() {
           </h1>
           <p className="mt-3 text-[13.5px] leading-[1.65] text-muted-foreground">
             Paste an entirely hypothetical regulation — one that doesn't exist and may never exist —
-            and run it through the same blast-radius pipeline as a real filing. Nothing is stored
-            as a real regulation; runs are tagged{" "}
+            and run it through the same blast-radius pipeline as a real filing. Nothing is stored as
+            a real regulation; runs are tagged{" "}
             <span className="font-mono text-[11.5px] text-brass">what_if</span>.
           </p>
         </header>

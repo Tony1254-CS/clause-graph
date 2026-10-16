@@ -22,7 +22,7 @@ export const getContractsFn = createServerFn({ method: "GET" })
        WHERE c.org_id = $1
        GROUP BY c.id
        ORDER BY c.created_at ASC`,
-      [context.orgId]
+      [context.orgId],
     );
     return rows;
   });
@@ -50,23 +50,22 @@ export const getContractByIdFn = createServerFn({ method: "GET" })
        LEFT JOIN public.clauses cl ON cl.contract_id = c.id
        WHERE c.id = $1 AND c.org_id = $2
        GROUP BY c.id`,
-      [data.id, context.orgId]
+      [data.id, context.orgId],
     );
     return row;
   });
 
 // ── Regulations ───────────────────────────────────────────────────────────
 
-export const getRegulationsFn = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const { query } = await import("./db.server");
-    const rows = await query(
-      `SELECT id, jurisdiction, title, summary, obligations 
+export const getRegulationsFn = createServerFn({ method: "GET" }).handler(async () => {
+  const { query } = await import("./db.server");
+  const rows = await query(
+    `SELECT id, jurisdiction, title, summary, obligations 
        FROM public.regulations 
-       ORDER BY id ASC`
-    );
-    return rows;
-  });
+       ORDER BY id ASC`,
+  );
+  return rows;
+});
 
 export const getRegulationByIdFn = createServerFn({ method: "GET" })
   .validator((input: { id: string }) => {
@@ -80,7 +79,7 @@ export const getRegulationByIdFn = createServerFn({ method: "GET" })
       `SELECT id, jurisdiction, title, summary, obligations 
        FROM public.regulations 
        WHERE id = $1`,
-      [data.id]
+      [data.id],
     );
     return row;
   });
@@ -105,23 +104,22 @@ export const getProfileFn = createServerFn({ method: "GET" })
        FROM public.profiles p
        LEFT JOIN public.organizations o ON o.id = p.org_id
        WHERE p.id = $1`,
-      [context.userId]
+      [context.userId],
     );
     return row;
   });
 
 // ── Backtest Cases ────────────────────────────────────────────────────────
 
-export const getBacktestCasesFn = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const { query } = await import("./db.server");
-    const rows = await query(
-      `SELECT id, company, fine_usd, case_date, regulation, summary, source, reconstructed_prompt, reconstructed_clauses, fallback, position
+export const getBacktestCasesFn = createServerFn({ method: "GET" }).handler(async () => {
+  const { query } = await import("./db.server");
+  const rows = await query(
+    `SELECT id, company, fine_usd, case_date, regulation, summary, source, reconstructed_prompt, reconstructed_clauses, fallback, position
        FROM public.backtest_cases
-       ORDER BY position ASC`
-    );
-    return rows;
-  });
+       ORDER BY position ASC`,
+  );
+  return rows;
+});
 
 // ── Simulation Runs ───────────────────────────────────────────────────────
 
@@ -135,7 +133,7 @@ export const getSimulationRunsFn = createServerFn({ method: "GET" })
        WHERE org_id = $1
        ORDER BY created_at DESC
        LIMIT 50`,
-      [context.orgId]
+      [context.orgId],
     );
     return rows;
   });
@@ -152,7 +150,7 @@ export const getComplianceArtifactsFn = createServerFn({ method: "GET" })
        WHERE org_id = $1
        ORDER BY created_at DESC
        LIMIT 50`,
-      [context.orgId]
+      [context.orgId],
     );
     return rows;
   });
@@ -174,7 +172,7 @@ export const getTeamMembersFn = createServerFn({ method: "GET" })
        LEFT JOIN public.user_roles r ON r.user_id = p.id AND r.org_id = p.org_id
        WHERE p.org_id = $1
        ORDER BY p.created_at ASC`,
-      [context.orgId]
+      [context.orgId],
     );
     return rows.map((r) => ({
       ...r,
@@ -188,7 +186,7 @@ export const getMyRoleFn = createServerFn({ method: "GET" })
     const { queryOne } = await import("./db.server");
     const row = await queryOne<{ role: "admin" | "member" }>(
       `SELECT role FROM public.user_roles WHERE user_id = $1 AND org_id = $2 LIMIT 1`,
-      [context.userId, context.orgId]
+      [context.userId, context.orgId],
     );
     return row?.role ?? null;
   });

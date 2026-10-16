@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { query, queryOne } from "./db.server";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "clausegraph-super-production-jwt-secret-key-2026!"
+  process.env.JWT_SECRET || "clausegraph-super-production-jwt-secret-key-2026!",
 );
 
 const TOKEN_EXPIRY = "7d";
@@ -104,7 +104,7 @@ export async function getUserDetails(userId: string): Promise<AuthUser | null> {
      LEFT JOIN public.organizations o ON o.id = p.org_id
      LEFT JOIN public.user_roles r ON r.user_id = u.id AND r.org_id = p.org_id
      WHERE u.id = $1`,
-    [userId]
+    [userId],
   );
 
   if (!row || !row.org_id) return null;
@@ -129,11 +129,11 @@ export async function registerUser(params: {
   fullName?: string;
 }): Promise<{ user: AuthUser; token: string }> {
   const normalizedEmail = params.email.trim().toLowerCase();
-  
+
   // Check if user already exists
   const existing = await queryOne<{ id: string }>(
     `SELECT id FROM auth.users WHERE LOWER(email) = $1`,
-    [normalizedEmail]
+    [normalizedEmail],
   );
   if (existing) {
     throw new Error("User with this email already exists");
@@ -147,11 +147,7 @@ export async function registerUser(params: {
     `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
      VALUES ($1, $2, $3::jsonb)
      RETURNING id, email`,
-    [
-      normalizedEmail,
-      hashedPassword,
-      JSON.stringify({ full_name: fullName }),
-    ]
+    [normalizedEmail, hashedPassword, JSON.stringify({ full_name: fullName })],
   );
 
   if (!inserted) {
@@ -180,10 +176,9 @@ export async function loginWithPassword(params: {
     id: string;
     email: string;
     encrypted_password: string | null;
-  }>(
-    `SELECT id, email, encrypted_password FROM auth.users WHERE LOWER(email) = $1`,
-    [normalizedEmail]
-  );
+  }>(`SELECT id, email, encrypted_password FROM auth.users WHERE LOWER(email) = $1`, [
+    normalizedEmail,
+  ]);
 
   if (!userRow || !userRow.encrypted_password) {
     throw new Error("Invalid email or password");
@@ -213,7 +208,7 @@ export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token
   // Try logging in first
   const existing = await queryOne<{ id: string; encrypted_password: string }>(
     `SELECT id, encrypted_password FROM auth.users WHERE LOWER(email) = $1`,
-    [demoEmail]
+    [demoEmail],
   );
 
   if (existing) {
@@ -231,7 +226,7 @@ export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token
      VALUES ($1, $2, '{"full_name": "Judge Evaluation Account"}'::jsonb)
      ON CONFLICT (email) DO UPDATE SET encrypted_password = EXCLUDED.encrypted_password
      RETURNING id`,
-    [demoEmail, hashedPassword]
+    [demoEmail, hashedPassword],
   );
 
   if (!inserted) throw new Error("Could not initialize evaluation workspace");

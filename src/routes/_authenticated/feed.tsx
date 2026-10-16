@@ -63,7 +63,9 @@ function FeedPage() {
                 CURATED · ClauseGraph ontology
               </span>
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">{regs.length} entries</span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {regs.length} entries
+            </span>
           </div>
 
           {regs.length === 0 ? (

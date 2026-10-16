@@ -4,8 +4,7 @@ const { Pool } = pg;
 
 // Connection string from environment with robust fallback for local dev / docker
 const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://clausegraph:clausegraph@localhost:5432/clausegraph";
+  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5435/clausegraph";
 
 let _pool: pg.Pool | null = null;
 
@@ -25,26 +24,20 @@ export function getPool(): pg.Pool {
   return _pool;
 }
 
-export async function query<T = any>(
-  text: string,
-  params?: unknown[],
-): Promise<T[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function query<T = any>(text: string, params?: unknown[]): Promise<T[]> {
   const pool = getPool();
   const res = await pool.query(text, params);
   return res.rows as T[];
 }
 
-export async function queryOne<T = any>(
-  text: string,
-  params?: unknown[],
-): Promise<T | null> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function queryOne<T = any>(text: string, params?: unknown[]): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows.length > 0 ? rows[0] : null;
 }
 
-export async function transaction<T>(
-  callback: (client: pg.PoolClient) => Promise<T>,
-): Promise<T> {
+export async function transaction<T>(callback: (client: pg.PoolClient) => Promise<T>): Promise<T> {
   const pool = getPool();
   const client = await pool.connect();
   try {

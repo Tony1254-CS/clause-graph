@@ -24,8 +24,7 @@ export async function initializePaddle() {
       'script[src="https://cdn.paddle.com/paddle/v2/paddle.js"]',
     );
     const attach = () => {
-      const paddleJsEnv =
-        getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
+      const paddleJsEnv = getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
       window.Paddle.Environment.set(paddleJsEnv);
       window.Paddle.Initialize({ token: clientToken });
       paddleInitialized = true;

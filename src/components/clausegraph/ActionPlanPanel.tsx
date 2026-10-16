@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  Loader2,
-  Wand2,
-  Copy,
-  FileDown,
-  Check,
-  ShieldAlert,
-  ClipboardList,
-} from "lucide-react";
+import { Loader2, Wand2, Copy, FileDown, Check, ShieldAlert, ClipboardList } from "lucide-react";
 import { generateActionPlan } from "@/lib/action-plan.functions";
 import type { ActionPlan, ActionPlanInput, TechPriority } from "@/lib/action-plan-types";
 
@@ -142,7 +134,6 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
   const [copied, setCopied] = useState(false);
   const [doneFixes, setDoneFixes] = useState<Set<string>>(new Set());
 
-
   async function onGenerate() {
     if (status === "loading") return;
     setStatus("loading");
@@ -187,7 +178,6 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
           <Wand2 className="h-3.5 w-3.5" strokeWidth={2} />
           Generate Action Plan
         </button>
-
       </div>
     );
   }
@@ -219,7 +209,6 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
       </div>
     );
   }
-
 
   if (!plan) return null;
 
@@ -263,7 +252,6 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
             <FileDown className="h-3.5 w-3.5" strokeWidth={2} />
             Export PDF
           </button>
-
         </div>
       </header>
 
@@ -273,8 +261,8 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
           Draft output — for legal review
         </p>
         <p className="mt-1.5 text-[12px] leading-[1.55] text-muted-foreground">
-          Every amendment below is a suggestion. Nothing here is a final legal position;
-          route through counsel before adopting.
+          Every amendment below is a suggestion. Nothing here is a final legal position; route
+          through counsel before adopting.
         </p>
       </div>
 
@@ -306,9 +294,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
                   For legal review
                 </span>
               </div>
-              <p className="mt-2 text-[13px] leading-[1.6] text-foreground/90">
-                {a.suggestion}
-              </p>
+              <p className="mt-2 text-[13px] leading-[1.6] text-foreground/90">{a.suggestion}</p>
               {a.rationale && (
                 <p className="mt-1.5 text-[12px] leading-[1.55] text-muted-foreground">
                   <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground mr-1.5">
@@ -334,9 +320,7 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
               <li
                 key={key}
                 className={`rounded-[12px] border p-3 flex gap-3 transition-ui ${
-                  done
-                    ? "border-[var(--hairline)] opacity-60"
-                    : "border-[var(--hairline)]"
+                  done ? "border-[var(--hairline)] opacity-60" : "border-[var(--hairline)]"
                 }`}
               >
                 <input
@@ -375,7 +359,6 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
             );
           })}
         </ul>
-
       </section>
     </div>
   );
