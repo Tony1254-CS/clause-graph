@@ -1,8 +1,8 @@
-import type { ActionPlan, TechPriority } from "./action-plan-types";
+import type { ActionPlan, TechPriority, SourceCitation } from "./action-plan-types";
 
 const PRIORITIES: TechPriority[] = ["P0", "P1", "P2"];
 
-export function coerceActionPlan(raw: unknown): ActionPlan | null {
+export function coerceActionPlan(raw: unknown, sources?: SourceCitation[]): ActionPlan | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const policy = typeof o.policy_draft === "string" ? o.policy_draft : "";
@@ -18,7 +18,15 @@ export function coerceActionPlan(raw: unknown): ActionPlan | null {
       const s = String(x.suggestion ?? "");
       const r = String(x.rationale ?? "");
       if (!id || !s) return null;
-      return { contract_id: id, contract_name: name, suggestion: s, rationale: r };
+      return {
+        contract_id: id,
+        contract_name: name,
+        suggestion: s,
+        rationale: r,
+        clause_quote: typeof x.clause_quote === "string" ? x.clause_quote : undefined,
+        rule_quote: typeof x.rule_quote === "string" ? x.rule_quote : undefined,
+        citation: typeof x.citation === "string" ? x.citation : undefined,
+      };
     })
     .filter(Boolean) as ActionPlan["amendments"];
   const tech_fixes = rawT
@@ -33,5 +41,5 @@ export function coerceActionPlan(raw: unknown): ActionPlan | null {
     })
     .filter(Boolean) as ActionPlan["tech_fixes"];
   if (amendments.length === 0 && tech_fixes.length === 0) return null;
-  return { policy_draft: policy, amendments, tech_fixes, fallback: false };
+  return { policy_draft: policy, amendments, tech_fixes, sources, fallback: false };
 }

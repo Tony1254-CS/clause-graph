@@ -19,7 +19,7 @@ describe("Tenant RLS and Role Isolation (Phase 2 T2.5)", () => {
 
   beforeAll(async () => {
     try {
-      appClient = new Client({ connectionString: appDbUrl });
+      appClient = new Client({ connectionString: appDbUrl, connectionTimeoutMillis: 1500 });
       await appClient.connect();
       canConnectApp = true;
     } catch {
@@ -27,7 +27,7 @@ describe("Tenant RLS and Role Isolation (Phase 2 T2.5)", () => {
     }
 
     try {
-      superClient = new Client({ connectionString: superDbUrl });
+      superClient = new Client({ connectionString: superDbUrl, connectionTimeoutMillis: 1500 });
       await superClient.connect();
       canConnectSuper = true;
     } catch {

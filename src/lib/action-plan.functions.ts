@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "./auth-middleware";
-import { fallbackActionPlan } from "./action-plan-fallback";
+import { buildDeterministicActionPlan } from "./action-plan-fallback";
 import type { ActionPlan, ActionPlanInput } from "./action-plan-types";
 
 export const generateActionPlan = createServerFn({ method: "POST" })
@@ -14,13 +14,14 @@ export const generateActionPlan = createServerFn({ method: "POST" })
       regulationText: text.slice(0, 20000),
       summary: input.summary,
       impacts: input.impacts,
+      sources: input.sources,
     };
   })
   .handler(async ({ data, context }): Promise<ActionPlan> => {
     const { orgId } = context;
     const { query } = await import("./db.server");
     const { coerceActionPlan } = await import("./action-plan.server");
-    const { chatCompletion } = await import("./ai.server");
+    const { chatCompletion, resolveAiProvider } = await import("./ai.server");
 
     // Server-side entitlement gate: action plans drawn on monthly allowance
     if (orgId) {
@@ -31,28 +32,37 @@ export const generateActionPlan = createServerFn({ method: "POST" })
       }
     }
 
+    const provider = resolveAiProvider();
+    if (provider.kind === "none") {
+      return buildDeterministicActionPlan(data);
+    }
+
     const system = `You are a senior compliance officer drafting a remediation action plan for legal review. Return STRICT JSON only:
 {
   "policy_draft": string,
-  "amendments": [{"contract_id": string, "contract_name": string, "suggestion": string, "rationale": string}],
+  "amendments": [{"contract_id": string, "contract_name": string, "suggestion": string, "rationale": string, "clause_quote": string, "citation": string}],
   "tech_fixes": [{"priority": "P0"|"P1"|"P2", "title": string, "detail": string}]
 }
 Rules:
 - policy_draft is ONE paragraph of proposed internal policy language (4–6 sentences).
 - amendments MUST cover every impacted contract from the input, using its exact contract_id.
 - Each amendment suggestion is one sentence of proposed contract language; rationale is one short sentence.
+- If clause_quote is available in the input, include it.
 - tech_fixes are 3–6 prioritized operational/engineering steps.
 - Nothing is presented as final. All output is a draft for legal review.
 - Output JSON only, no code fences, no prose.`;
 
-    const user = `PROPOSED REGULATION:
+    const user = `PROPOSED REGULATION / STATUTORY REQUIREMENT:
 ${data.regulationText}
 
 SIMULATION SUMMARY:
 ${data.summary ?? "(none)"}
 
-IMPACTED CONTRACTS:
-${JSON.stringify(data.impacts)}`;
+IMPACTED CONTRACTS WITH EVIDENCE:
+${JSON.stringify(data.impacts)}
+
+SOURCES / LEGAL INSTRUMENTS:
+${JSON.stringify(data.sources ?? [])}`;
 
     try {
       const content = await chatCompletion({
@@ -65,19 +75,19 @@ ${JSON.stringify(data.impacts)}`;
         temperature: 0.3,
       });
 
-      if (!content) return { ...fallbackActionPlan };
+      if (!content) return buildDeterministicActionPlan(data);
 
       let parsed: unknown;
       try {
         parsed = JSON.parse(content);
       } catch {
-        return { ...fallbackActionPlan };
+        return buildDeterministicActionPlan(data);
       }
-      const plan = coerceActionPlan(parsed);
-      if (!plan) return { ...fallbackActionPlan };
+      const plan = coerceActionPlan(parsed, data.sources);
+      if (!plan) return buildDeterministicActionPlan(data);
       return plan;
     } catch (err) {
       console.error("[action-plan] exception", err);
-      return { ...fallbackActionPlan };
+      return buildDeterministicActionPlan(data);
     }
   });

@@ -753,7 +753,12 @@ Lead with the **trust story** (evidence, abstention, review, eval numbers). Then
 | T2.3      | Amendment history port into regulatory_events        | Verified    | 31 regulatory events ported with source links; 29 verified vs 2 unverified (unverified excluded from cadence calculation)                                                     |
 | T2.4      | Impact, review, audit, jobs schema (0003)            | Verified    | FTS tsvector & citations on clauses, `impact_assessments`, `jobs`, `invitations`, append-only `audit_log` with trigger-enforced immutability                                   |
 | T2.5      | App DB role + RLS on tenant tables + withOrg (0004)  | Verified    | `clausegraph_app` role created; RLS enabled on tenant tables with `app.org_id` policy; `withOrg()` added; tested via `tests/integration/tenant-rls.test.ts` (4 passed)        |
-| T3.1–T3.6 | Impact pipeline                                      | Not Started |                                                                                                                                                                              |
+| T3.1      | Candidate retrieval (candidates.server.ts)           | Verified    | Tag match + legacy reg map + statutory citation regex + keyword scoring; unit tested in `impact-pipeline.test.ts`                             |
+| T3.2      | Classifier with quote validation (classify.server.ts) | Verified    | Zod schema, untrusted XML boundaries, exact substring quote verification, 1-retry with feedback, abstention on failure; unit-tested          |
+| T3.3      | Orchestrator & exposure (orchestrate, exposure)      | Verified    | `runImpactAnalysis` persists to `simulation_runs` & `impact_assessments`; deterministic `sum(distinct contract.value)` by status & severity   |
+| T3.4      | Evidence UI & review actions (simulate.tsx)          | Verified    | Per-clause evidence cards with highlighted quotes, official links, confidence; approve/edit/reject review actions write append-only audit_log |
+| T3.5      | Stale-citation detector (stale-citations.server.ts)  | Verified    | Flags SC-012/SC-013 citing repealed DSA 2018 §26; shows full repeal chain: DSA 2018 -> CSA 2023 -> CSO 2025 in force; alert banner in UI     |
+| T3.6      | Action plan grounding & sources appendix             | Verified    | Consumes impact assessments & quotes; PDF export includes prominent "Draft — Not Legal Advice" header and Sources Appendix                     |
 | T4.1–T4.7 | Ingestion                                            | Not Started |                                                                                                                                                                              |
 | T5.1–T5.8 | Quality / eval / demo                                | Not Started |                                                                                                                                                                              |
 
@@ -813,8 +818,16 @@ _(Append dated entries: what changed, commands run, results.)_
   - **T2.3:** Ported amendment chronology into `public.regulatory_events`. Verified count: 29 verified events, 2 unverified events with explicit provenance metadata.
   - **T2.4:** Created `0003_impact_and_review.sql` adding full-text search `tsvector` and `cited_instruments` to clauses, `is_synthetic` to contracts, and creating `impact_assessments`, `jobs`, `invitations`, and append-only `audit_log` with a trigger preventing UPDATE/DELETE.
   - **T2.5:** Created `0004_security_roles_rls.sql` establishing the `clausegraph_app` role and row-level security (RLS) on all tenant tables using the `app.org_id` session setting. Implemented `withOrg()` helper in `src/lib/db.server.ts`. Created automated integration tests in `tests/integration/tenant-rls.test.ts`.
-  - Validation commands all passed:
+- **2026-10-16 (Phase 3):** Evidence-backed impact pipeline complete.
+  - **T3.1:** Implemented deterministic candidate retrieval in `src/lib/impact/candidates.server.ts` combining explicit tag matches, legacy ID mapping (`LEGACY_REG_TAG_MAP`), statutory citation regexes (GDPR, CCPA, HIPAA, SEC 17a-4, SOX 302, BD Labour Act, BD DSA/CSO, BB circulars, EU AI Act), and lexical keyword scoring.
+  - **T3.2:** Implemented Zod-validated classifier in `src/lib/impact/classify.server.ts` with untrusted XML document boundaries (`<untrusted_clause>`, `<untrusted_obligation>`), anti-prompt-injection system prompt, exact substring quote verification on both contract clause and statutory obligation text, 1-retry with specific error feedback, and honest fallback to `verdict: "insufficient_evidence"` (abstention).
+  - **T3.3:** Implemented deterministic exposure engine in `src/lib/impact/exposure.server.ts` (`sum(distinct contract.value)` avoiding double-counting, split by approved vs pending review, with severity aggregation) and pipeline orchestrator in `src/lib/impact/orchestrate.server.ts` executing end-to-end analysis and atomically inserting records into `simulation_runs`, `impact_assessments`, and immutable `audit_log`.
+  - **T3.4:** Upgraded simulator UI in `src/routes/_authenticated/simulate.tsx` and review functions in `src/lib/impact/review.functions.ts`. Cards display verbatim highlighted clause quotes, rule quotes, official source links, provenance tags, and review actions (Approve / Edit / Reject) that update PostgreSQL and log immutable audit entries. Added first-class "Insufficient Evidence" bucket.
+  - **T3.5:** Implemented stale-citation detector in `src/lib/impact/stale-citations.server.ts`. Successfully flags SC-012/SC-013 citing repealed Digital Security Act 2018 §26, and traces the repeal chronology (DSA 2018 repealed -> CSA 2023 repealed -> CSO 2025 in force) in an in-app alert banner.
+  - **T3.6:** Upgraded action plan generator in `src/lib/action-plan.server.ts`, `src/lib/action-plan-fallback.ts`, and `src/components/clausegraph/ActionPlanPanel.tsx`. PDF brief includes prominent "Draft — Not Legal Advice" warning, clause grounding, and an authoritative Sources Appendix.
+  - **Testing & Verification:** Added `src/lib/__tests__/impact-pipeline.test.ts` (8 passed). All checkpoint commands passed:
     - `npx tsc --noEmit` -> exit 0
     - `npx eslint .` -> exit 0 (0 errors, 10 fast-refresh warnings)
-    - `npm test` -> 5 test suites, 23 tests passed (exit 0)
-    - `npm run build` -> built in 4.95s (exit 0)
+    - `npm test` -> 5 test suites, 27 tests passed (exit 0)
+    - `npm run test:integration` -> 1 test suite, 4 tests passed (exit 0)
+    - `npm run build` -> built client & server bundles in 3.94s (exit 0)
