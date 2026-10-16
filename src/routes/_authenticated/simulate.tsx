@@ -36,6 +36,10 @@ import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/simulate")({
+  validateSearch: (search: Record<string, unknown>): { text?: string; eventId?: string } => ({
+    text: typeof search.text === "string" ? search.text : undefined,
+    eventId: typeof search.eventId === "string" ? search.eventId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Simulate Impact — ClauseGraph" },
@@ -99,13 +103,21 @@ function HighlightedClause({ text, quote }: { text: string; quote?: string }) {
 }
 
 function SimulatePage() {
+  const search = Route.useSearch();
   const { data: contracts } = useSuspenseQuery(contractsQuery);
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
   const runSimulate = useServerFn(simulateImpact);
   const runReview = useServerFn(reviewImpactAssessment);
   const loadStaleCitations = useServerFn(getStaleCitationsFn);
 
-  const [text, setText] = useState("");
+  const [text, setText] = useState(search.text || "");
+  const [eventId, setEventId] = useState(search.eventId || "");
+
+  useEffect(() => {
+    if (search.text) setText(search.text);
+    if (search.eventId) setEventId(search.eventId);
+  }, [search.text, search.eventId]);
+
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +227,12 @@ function SimulatePage() {
 
     const startedAt = Date.now();
     try {
-      const res = await runSimulate({ data: { regulationText: trimmed } });
+      const res = await runSimulate({
+        data: {
+          regulationText: trimmed,
+          eventId: eventId || undefined,
+        },
+      });
       const elapsed = Date.now() - startedAt;
       if (elapsed < 1200) await new Promise((r) => setTimeout(r, 1200 - elapsed));
       setResult(res);

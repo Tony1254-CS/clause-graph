@@ -8,31 +8,39 @@ export const startContractExtraction = createServerFn({ method: "POST" })
       name: string;
       counterparty: string;
       value: number;
-      rawText: string;
+      rawText?: string | null;
+      fileBase64?: string | null;
+      fileName?: string | null;
       sourceFilePath?: string | null;
     }) => {
       const name = String(input?.name ?? "").trim();
       const counterparty = String(input?.counterparty ?? "").trim();
       const value = Number(input?.value ?? 0);
-      const rawText = String(input?.rawText ?? "").trim();
+      const rawText = input?.rawText ? String(input.rawText).trim() : null;
+      const fileBase64 = input?.fileBase64 ? String(input.fileBase64).trim() : null;
+      const fileName = input?.fileName ? String(input.fileName).trim() : null;
+
       if (!name) throw new Error("Contract name required");
       if (!counterparty) throw new Error("Counterparty required");
       if (!Number.isFinite(value) || value < 0) throw new Error("Valid contract value required");
-      if (rawText.length < 40) throw new Error("Contract text too short");
-      if (rawText.length > 120_000) throw new Error("Contract text too long");
+      if (!rawText && !fileBase64) throw new Error("Contract text or file is required");
+
       return {
         name,
         counterparty,
         value,
         rawText,
-        sourceFilePath: input?.sourceFilePath ?? null,
+        fileBase64,
+        fileName,
+        sourceFilePath: input?.sourceFilePath ?? fileName ?? null,
       };
     },
   )
   .handler(async ({ data, context }) => {
     const { userId, orgId } = context;
     const { query, queryOne } = await import("./db.server");
-    const { runContractExtraction } = await import("./upload.server");
+    const { extractTextFromFile, runContractExtraction } = await import("./upload.server");
+    const { enqueueJob } = await import("./jobs.server");
 
     if (!orgId) throw new Error("Organization not found");
 
@@ -41,6 +49,17 @@ export const startContractExtraction = createServerFn({ method: "POST" })
       await query(`SELECT assert_within_quota($1, 'upload_contract')`, [orgId]);
     } catch (quotaErr) {
       throw new Error(quotaErr instanceof Error ? quotaErr.message : "Upload quota exceeded");
+    }
+
+    // Extract text from uploaded binary file (PDF/DOCX/TXT) or use provided raw text
+    let contractText = data.rawText || "";
+    if (data.fileBase64 && data.fileName) {
+      const buffer = Buffer.from(data.fileBase64, "base64");
+      contractText = await extractTextFromFile(buffer, data.fileName);
+    }
+
+    if (contractText.length < 40) {
+      throw new Error("Extracted contract text is too short to contain legal clauses");
     }
 
     const inserted = await queryOne<{ id: string }>(
@@ -54,8 +73,22 @@ export const startContractExtraction = createServerFn({ method: "POST" })
     if (!inserted) throw new Error("Failed to create contract record");
     const contractId = inserted.id;
 
-    // Fire-and-forget the AI extraction; the client polls extraction_status.
-    void runContractExtraction(contractId, data.rawText).catch(async (err) => {
+    // Enqueue durable background job in Postgres jobs table
+    try {
+      await enqueueJob(
+        "ingest:contract",
+        { contractId, textLength: contractText.length, fileName: data.fileName },
+        { orgId },
+      );
+    } catch (jobErr) {
+      console.warn(
+        "[upload.functions] Failed to record durable job, processing synchronously",
+        jobErr,
+      );
+    }
+
+    // Asynchronously segment clauses and update contract status
+    void runContractExtraction(contractId, contractText).catch(async (err) => {
       console.error("[upload.functions] extraction failed", contractId, err);
       try {
         await query(

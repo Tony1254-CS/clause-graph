@@ -20,6 +20,7 @@ import {
   getTeamMembersFn,
   getMyRoleFn,
 } from "@/lib/data.functions";
+import { getRegulatoryEventsFn } from "@/lib/events.functions";
 
 type ClauseRow = {
   id: string;
@@ -340,3 +341,54 @@ export const myRoleQuery = queryOptions({
   },
   staleTime: 60_000,
 });
+
+export type RegulatoryEventItem = {
+  id: string;
+  instrument_id: string | null;
+  source_id: string;
+  external_id: string | null;
+  event_type:
+    | "proposed"
+    | "published"
+    | "adopted"
+    | "amended"
+    | "repealed"
+    | "effective"
+    | "guidance"
+    | "enforcement";
+  title: string;
+  url: string;
+  published_on: string | null;
+  effective_on: string | null;
+  raw: Record<string, unknown>;
+  content_sha256: string | null;
+  is_synthetic: boolean;
+  verification: "verified" | "unverified" | "disputed";
+  triage_status: "new" | "relevant" | "not_relevant" | "duplicate";
+  created_at: string;
+  instrument_short_name: string | null;
+  instrument_full_name: string | null;
+  instrument_jurisdiction: string | null;
+  source_name: string | null;
+  source_jurisdiction: string | null;
+  provisions_count: number;
+};
+
+export const regulatoryEventsQuery = (filters?: {
+  jurisdiction?: string;
+  sourceId?: string;
+  eventType?: string;
+  verification?: string;
+  triageStatus?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}) =>
+  queryOptions({
+    queryKey: ["regulatory-events", filters ?? {}],
+    queryFn: async (): Promise<RegulatoryEventItem[]> => {
+      const data = await getRegulatoryEventsFn({ data: filters });
+      return (data ?? []) as RegulatoryEventItem[];
+    },
+    staleTime: 30_000,
+  });

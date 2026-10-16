@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest run src/",
     "test:integration": "vitest run tests/integration",
-    "db:migrate": "node --experimental-strip-types scripts/migrate.ts"
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "worker": "node --experimental-strip-types scripts/worker.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -69,6 +70,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "tw-animate-css": "^1.3.4",
+    "unpdf": "^1.9.0",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "zod": "^3.24.2"

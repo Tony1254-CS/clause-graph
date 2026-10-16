@@ -759,8 +759,15 @@ Lead with the **trust story** (evidence, abstention, review, eval numbers). Then
 | T3.4      | Evidence UI & review actions (simulate.tsx)          | Verified    | Per-clause evidence cards with highlighted quotes, official links, confidence; approve/edit/reject review actions write append-only audit_log |
 | T3.5      | Stale-citation detector (stale-citations.server.ts)  | Verified    | Flags SC-012/SC-013 citing repealed DSA 2018 §26; shows full repeal chain: DSA 2018 -> CSA 2023 -> CSO 2025 in force; alert banner in UI     |
 | T3.6      | Action plan grounding & sources appendix             | Verified    | Consumes impact assessments & quotes; PDF export includes prominent "Draft — Not Legal Advice" header and Sources Appendix                     |
-| T4.1–T4.7 | Ingestion                                            | Not Started |                                                                                                                                                                              |
-| T5.1–T5.8 | Quality / eval / demo                                | Not Started |                                                                                                                                                                              |
+| T4.1      | Worker job loop, backoff, and dead-letter queue (jobs.server.ts, worker.ts)  | Verified    | Postgres SELECT FOR UPDATE SKIP LOCKED queue, exponential backoff (15s/45s/135s), dead-lettering at max_attempts (3), tested in sources-ingestion.test.ts |
+| T4.2      | Federal Register daily ingestion adapter (federal-register.server.ts)        | Verified    | HHS/SEC/FTC/CFPB filters, idempotent upsert into regulatory_events, source tracking, fixtures fallback |
+| T4.3      | eCFR point-in-time versioning adapter (ecfr.server.ts)                       | Verified    | Tracked CFR sections (45 CFR 164.312, 17 CFR 240.17a-4), SHA-256 change detection, instrument_versions & regulatory_events generation |
+| T4.4      | EUR-Lex CELEX adapter (eurlex.server.ts)                                     | Verified    | Ingestion of tracked CELEX regulations (GDPR 32016R0679, AI Act 32024R1689, Digital Omnibus 2026/1744) with official OJ links |
+| T4.5      | Bangladesh curated legal source adapter (bd-curated.server.ts)               | Verified    | Curated BD gazette & circular notifications (CSO 2025, CSA 2023 repeal, PDPO 2025, BB circular) with verification status |
+| T4.6      | Secure contract upload & span segmentation (upload.server.ts, upload.functions.ts) | Verified | Magic-byte verification (%PDF, PK\x03\x04, TXT), 10 MB limit enforcement, pure-JS unpdf extraction, clause char_start/char_end segmentation |
+| T4.7      | Events Inbox UI & triage (/feed redesign)                                    | Verified    | Multi-source filters (US, EU, BD), triage statuses (inbox/relevant/dismissed), provenance badges, direct "Analyze Impact" route link |
+| T5.1–T5.8 | Quality / eval / demo                                                        | Not Started |                                                                                                                                                                              |
+
 
 ---
 
@@ -831,3 +838,17 @@ _(Append dated entries: what changed, commands run, results.)_
     - `npm test` -> 5 test suites, 27 tests passed (exit 0)
     - `npm run test:integration` -> 1 test suite, 4 tests passed (exit 0)
     - `npm run build` -> built client & server bundles in 3.94s (exit 0)
+- **2026-10-16 (Phase 4):** Durable ingestion pipeline, multi-source adapters, PDF upload, and events inbox complete.
+  - **T4.1:** Created `src/lib/jobs.server.ts` implementing a durable PostgreSQL-backed queue with `SELECT FOR UPDATE SKIP LOCKED`, exponential backoff calculation (`3^attempts * 5` seconds), and dead-letter queueing on 3 consecutive failures. Created `scripts/worker.ts` with job loop dispatching contract extractions and statutory syncs. Added `"worker": "node --experimental-strip-types scripts/worker.ts"` to `package.json`.
+  - **T4.2:** Created `src/lib/sources/federal-register.server.ts` fetching daily rulemaking with HHS, SEC, FTC, and CFPB agency filters, idempotently upserting into `public.regulatory_events`, updating `public.sources.last_success_at`, and providing resilient fixtures for offline or rate-limited environments.
+  - **T4.3:** Created `src/lib/sources/ecfr.server.ts` tracking critical Point-in-Time Code of Federal Regulations sections (45 CFR §164.312 HIPAA Technical Safeguards, 17 CFR §240.17a-4 Broker-Dealer Electronic Records), computing SHA-256 version hashes, and generating `instrument_versions` and `regulatory_events` on statutory changes.
+  - **T4.4:** Created `src/lib/sources/eurlex.server.ts` tracking European Union CELEX regulations (GDPR `32016R0679`, AI Act `32024R1689`, Digital Omnibus `32026R1744`) with authoritative Official Journal URLs.
+  - **T4.5:** Created `src/lib/sources/bd-curated.server.ts` implementing the verified Bangladeshi legislative chain (CSO 2025 promulgated in Bangladesh Gazette Extraordinary, CSA 2023 repeal, Bangladesh Bank PSD Circular), and explicitly tagging unpromulgated items (PDPO 2025) as `verification: "unverified"`.
+  - **T4.6:** Implemented secure contract upload pipeline in `src/lib/upload.server.ts`, `src/lib/upload.functions.ts`, and `src/components/clausegraph/UploadContract.tsx`. Enforces magic-byte verification (`%PDF`, `PK\x03\x04`, `TXT`), 10 MB file size limit, pure-JS text extraction via `unpdf`, clause `char_start`/`char_end` span segmentation, and enqueuing durable jobs into PostgreSQL.
+  - **T4.7:** Redesigned `/feed` into an Events Inbox (`src/routes/_authenticated/feed.tsx`, `src/lib/events.server.ts`, `src/lib/events.functions.ts`, `src/data/queries.ts`) with multi-jurisdiction filtering (US, EU, BD), event-type categorization, verification provenance badges, triage actions (Inbox, Relevant, Dismissed), and a one-click "Analyze Impact" action routing directly to the simulator.
+  - **Testing & Verification:** Added `src/lib/__tests__/sources-ingestion.test.ts` (14 passed). All checkpoint commands passed:
+    - `npx tsc --noEmit` -> exit 0
+    - `npx eslint .` -> exit 0 (0 errors, 10 fast-refresh warnings)
+    - `npm test` -> 6 test suites, 41 tests passed (exit 0)
+    - `npm run build` -> built client & server bundles in 4.04s (exit 0)
+
