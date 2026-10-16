@@ -2,9 +2,15 @@ import pg from "pg";
 
 const { Pool } = pg;
 
+try {
+  process.loadEnvFile?.();
+} catch {
+  // Ignore missing or unreadable .env
+}
+
 // Connection string from environment with robust fallback for local dev / docker
 const connectionString =
-  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5435/clausegraph";
+  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/clausegraph";
 
 let _pool: pg.Pool | null = null;
 

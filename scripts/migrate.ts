@@ -4,8 +4,14 @@ import pg from "pg";
 
 const { Client } = pg;
 
+try {
+  process.loadEnvFile?.();
+} catch {
+  // Ignore
+}
+
 const connectionString =
-  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5435/clausegraph";
+  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/clausegraph";
 
 export async function runMigrations(opts?: { targetDbUrl?: string }): Promise<string[]> {
   const dbUrl = opts?.targetDbUrl || connectionString;
