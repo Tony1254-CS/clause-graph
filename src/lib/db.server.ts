@@ -53,6 +53,26 @@ export async function transaction<T>(callback: (client: pg.PoolClient) => Promis
   }
 }
 
+export async function withOrg<T>(
+  orgId: string,
+  callback: (client: pg.PoolClient) => Promise<T>,
+): Promise<T> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT set_config('app.org_id', $1, true)", [orgId]);
+    const result = await callback(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function checkDbHealth(): Promise<{ ok: boolean; latencyMs: number }> {
   const start = Date.now();
   try {

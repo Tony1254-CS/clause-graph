@@ -748,7 +748,11 @@ Lead with the **trust story** (evidence, abstention, review, eval numbers). Then
 | T1.8      | Untrack .env + rotate (S-4)                          | Verified    | `.env`, `.env.development`, `.env.production` untracked from git; added to `.gitignore`; default secrets removed from `.env.example` and `docker-compose.yml`                 |
 | T1.9      | Demo hardening (S-10)                                | Verified    | Demo workspace protected against deletion, member invites, and member removals in `account.functions.ts` and `team.functions.ts`                                           |
 | T1.10     | Dockerfile fix (B-8)                                 | Verified    | `Dockerfile` updated (`npm ci`, valid `COPY`, `npm run preview -- --host 0.0.0.0 --port 3000`); verified preview server serves SSR & healthcheck endpoint returns 200 OK  |
-| T2.1–T2.5 | Data foundation                                      | Not Started |                                                                                                                                                                              |
+| T2.1      | Migration runner (scripts/migrate.ts)                | Verified    | `scripts/migrate.ts` (`npm run db:migrate`) tracking `schema_migrations`; baseline mirrored as `0000_baseline.sql`; applies idempotently                                   |
+| T2.2      | Regulatory registry tables (0002)                    | Verified    | `sources`, `legal_instruments`, `instrument_versions`, `provisions`, `obligations` created; 13 instruments seeded with URLs (100% have URLs)                                 |
+| T2.3      | Amendment history port into regulatory_events        | Verified    | 31 regulatory events ported with source links; 29 verified vs 2 unverified (unverified excluded from cadence calculation)                                                     |
+| T2.4      | Impact, review, audit, jobs schema (0003)            | Verified    | FTS tsvector & citations on clauses, `impact_assessments`, `jobs`, `invitations`, append-only `audit_log` with trigger-enforced immutability                                   |
+| T2.5      | App DB role + RLS on tenant tables + withOrg (0004)  | Verified    | `clausegraph_app` role created; RLS enabled on tenant tables with `app.org_id` policy; `withOrg()` added; tested via `tests/integration/tenant-rls.test.ts` (4 passed)        |
 | T3.1–T3.6 | Impact pipeline                                      | Not Started |                                                                                                                                                                              |
 | T4.1–T4.7 | Ingestion                                            | Not Started |                                                                                                                                                                              |
 | T5.1–T5.8 | Quality / eval / demo                                | Not Started |                                                                                                                                                                              |
@@ -803,3 +807,14 @@ _(Append dated entries: what changed, commands run, results.)_
     - `npx eslint .` -> exit 0 (0 errors, 10 fast-refresh warnings)
     - `npm test` -> 4 test suites, 19 tests passed (exit 0)
     - `npm run build` -> built in 4.29s (exit 0)
+- **2026-10-16 (Phase 2):** Data foundation complete.
+  - **T2.1:** Implemented migration runner in `scripts/migrate.ts` with `public.schema_migrations` tracking. Added `npm run db:migrate` script to `package.json`. Created `0000_baseline.sql` mirroring `docker/init.sql`.
+  - **T2.2:** Created `0002_regulatory_registry.sql` defining `sources`, `legal_instruments`, `instrument_versions`, `provisions`, `obligations`, and `legacy_reg_map`. Seeded 13 verified and documented legal instruments across US, EU, and Bangladesh (including the complete BD cyber repeal chain DSA 2018 -> CSA 2023 -> CSO 2025 in force, PDPO 2025, EU AI Act, and Regulation 2026/1744). All 13 rows carry official source URLs.
+  - **T2.3:** Ported amendment chronology into `public.regulatory_events`. Verified count: 29 verified events, 2 unverified events with explicit provenance metadata.
+  - **T2.4:** Created `0003_impact_and_review.sql` adding full-text search `tsvector` and `cited_instruments` to clauses, `is_synthetic` to contracts, and creating `impact_assessments`, `jobs`, `invitations`, and append-only `audit_log` with a trigger preventing UPDATE/DELETE.
+  - **T2.5:** Created `0004_security_roles_rls.sql` establishing the `clausegraph_app` role and row-level security (RLS) on all tenant tables using the `app.org_id` session setting. Implemented `withOrg()` helper in `src/lib/db.server.ts`. Created automated integration tests in `tests/integration/tenant-rls.test.ts`.
+  - Validation commands all passed:
+    - `npx tsc --noEmit` -> exit 0
+    - `npx eslint .` -> exit 0 (0 errors, 10 fast-refresh warnings)
+    - `npm test` -> 5 test suites, 23 tests passed (exit 0)
+    - `npm run build` -> built in 4.95s (exit 0)
