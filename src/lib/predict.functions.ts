@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { bandFor, daysBetween, daysSince, fallbackHypothetical, windowFor } from "./predict.server";
+import { requireAuth } from "./auth-middleware";
 
 export type ProbabilityBand = "high" | "medium" | "low";
 
@@ -29,27 +28,37 @@ export type ForecastEntry = {
 };
 
 export const predictAmendmentRisk = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ForecastEntry[]> => {
-    const { supabase } = context;
-    const [{ data: regs, error: rErr }, { data: amends, error: aErr }] = await Promise.all([
-      supabase
-        .from("regulations")
-        .select("id, jurisdiction, title, summary, news_signal_boost"),
-      supabase
-        .from("regulation_amendments")
-        .select("regulation_id, amended_on, summary, direction")
-        .order("amended_on", { ascending: false }),
+  .middleware([requireAuth])
+  .handler(async (): Promise<ForecastEntry[]> => {
+    const { query } = await import("./db.server");
+    const { bandFor, daysBetween, daysSince, windowFor } = await import("./predict.server");
+
+    const [regs, amends] = await Promise.all([
+      query<{
+        id: string;
+        jurisdiction: string;
+        title: string;
+        summary: string;
+        news_signal_boost: number;
+      }>(`SELECT id, jurisdiction, title, summary, news_signal_boost FROM public.regulations`),
+      query<{
+        regulation_id: string;
+        amended_on: string;
+        summary: string;
+        direction: string;
+      }>(
+        `SELECT regulation_id, amended_on, summary, direction 
+         FROM public.regulation_amendments 
+         ORDER BY amended_on DESC`
+      ),
     ]);
-    if (rErr) throw rErr;
-    if (aErr) throw aErr;
 
     const byReg = new Map<string, Amendment[]>();
     for (const a of amends ?? []) {
       const list = byReg.get(a.regulation_id) ?? [];
       list.push({
-        amended_on: a.amended_on as string,
-        summary: a.summary as string,
+        amended_on: a.amended_on,
+        summary: a.summary,
         direction: a.direction as Amendment["direction"],
       });
       byReg.set(a.regulation_id, list);
@@ -73,41 +82,43 @@ export const predictAmendmentRisk = createServerFn({ method: "GET" })
         for (let i = 1; i < history.length; i++) {
           totalGap += daysBetween(history[i - 1].amended_on, history[i].amended_on);
         }
-        avgIntervalDays = totalGap / (history.length - 1);
+        avgIntervalDays = Math.round(totalGap / (history.length - 1));
+        const last = history[history.length - 1].amended_on;
+        lastAmendedOn = last;
+        daysSinceLast = daysSince(last, now);
+      } else if (history.length === 1) {
+        lastAmendedOn = history[0].amended_on;
+        daysSinceLast = daysSince(history[0].amended_on, now);
       }
 
-      if (history.length > 0) {
-        lastAmendedOn = history[history.length - 1].amended_on;
-        daysSinceLast = daysSince(lastAmendedOn, now);
-      }
-
-      let baseProbability = 0;
-      if (avgIntervalDays && daysSinceLast !== null) {
+      let baseProb = 0.25;
+      if (avgIntervalDays && daysSinceLast != null) {
         const ratio = daysSinceLast / avgIntervalDays;
-        baseProbability = Math.max(0, Math.min(0.7, ratio * 0.7));
-      } else if (daysSinceLast !== null) {
-        // Single-amendment history — modest base if it has been > 3 years.
-        baseProbability = Math.min(0.35, daysSinceLast / 365 / 10);
+        baseProb = Math.min(0.85, Math.max(0.15, 0.25 + 0.5 * Math.tanh(ratio - 1)));
+      } else if (history.length === 1) {
+        baseProb = 0.35;
       }
 
-      const probability = Math.min(1, baseProbability + boost);
+      const probability = Math.min(0.95, Math.max(0.05, baseProb + boost));
+      const band = bandFor(probability);
+      const window_months = windowFor(avgIntervalDays, daysSinceLast);
 
       out.push({
         regulation_id: r.id,
-        title: r.title as string,
-        jurisdiction: r.jurisdiction as string,
-        summary: r.summary as string,
+        title: r.title,
+        jurisdiction: r.jurisdiction,
+        summary: r.summary,
         last_amended_on: lastAmendedOn,
         amendment_count: history.length,
         avg_interval_days: avgIntervalDays,
         days_since_last: daysSinceLast,
         news_signal_boost: Number(r.news_signal_boost ?? 0),
-        base_probability: baseProbability,
-        boost,
-        probability,
-        band: bandFor(probability),
-        window_months: windowFor(avgIntervalDays, daysSinceLast),
-        amendments: history.slice().reverse(),
+        base_probability: Math.round(baseProb * 100) / 100,
+        boost: Math.round(boost * 100) / 100,
+        probability: Math.round(probability * 100) / 100,
+        band,
+        window_months,
+        amendments: history.reverse(),
       });
     }
 
@@ -124,38 +135,38 @@ export type HypotheticalAmendment = {
 };
 
 export const generateHypotheticalAmendment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { regulationId: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { regulationId: string }) => {
     const id = String(input?.regulationId ?? "").trim();
     if (!id) throw new Error("regulationId is required");
     return { regulationId: id };
   })
-  .handler(async ({ data, context }): Promise<HypotheticalAmendment> => {
-    const { supabase } = context;
-    const [{ data: reg, error: rErr }, { data: amends, error: aErr }] = await Promise.all([
-      supabase
-        .from("regulations")
-        .select("id, title, summary, jurisdiction")
-        .eq("id", data.regulationId)
-        .maybeSingle(),
-      supabase
-        .from("regulation_amendments")
-        .select("amended_on, summary, direction")
-        .eq("regulation_id", data.regulationId)
-        .order("amended_on", { ascending: false }),
+  .handler(async ({ data }): Promise<HypotheticalAmendment> => {
+    const { queryOne, query } = await import("./db.server");
+    const { fallbackHypothetical } = await import("./predict.server");
+    const { chatCompletion } = await import("./ai.server");
+
+    const [reg, amends] = await Promise.all([
+      queryOne<{ id: string; title: string; summary: string; jurisdiction: string }>(
+        `SELECT id, title, summary, jurisdiction FROM public.regulations WHERE id = $1`,
+        [data.regulationId]
+      ),
+      query<{ amended_on: string; summary: string; direction: string }>(
+        `SELECT amended_on, summary, direction 
+         FROM public.regulation_amendments 
+         WHERE regulation_id = $1 
+         ORDER BY amended_on DESC`,
+        [data.regulationId]
+      ),
     ]);
-    if (rErr) throw rErr;
-    if (aErr) throw aErr;
+
     if (!reg) throw new Error("Regulation not found");
 
     const history: Amendment[] = (amends ?? []).map((a) => ({
-      amended_on: a.amended_on as string,
-      summary: a.summary as string,
+      amended_on: a.amended_on,
+      summary: a.summary,
       direction: a.direction as Amendment["direction"],
     }));
-
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) return fallbackHypothetical(reg.id as string, reg.title as string, history);
 
     const historyText = history
       .map((h) => `- ${h.amended_on} [${h.direction}]: ${h.summary}`)
@@ -179,35 +190,20 @@ ${historyText || "(no recorded amendments)"}
 Draft the adversarial what-if amendment.`;
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30_000);
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.4,
-        }),
-      }).finally(() => clearTimeout(timeout));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.4,
+      });
 
-      if (!res.ok) {
-        console.error("[predict] gateway error", res.status, await res.text().catch(() => ""));
-        return fallbackHypothetical(reg.id as string, reg.title as string, history);
+      if (!content) {
+        return fallbackHypothetical(reg.id, reg.title, history);
       }
 
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const content = json.choices?.[0]?.message?.content ?? "";
       const parsed = JSON.parse(content) as {
         amendment_text?: unknown;
         rationale?: unknown;
@@ -218,9 +214,9 @@ Draft the adversarial what-if amendment.`;
       const patterns = Array.isArray(parsed.based_on_patterns)
         ? parsed.based_on_patterns.filter((s): s is string => typeof s === "string").slice(0, 4)
         : [];
-      if (!text) return fallbackHypothetical(reg.id as string, reg.title as string, history);
+      if (!text) return fallbackHypothetical(reg.id, reg.title, history);
       return {
-        regulation_id: reg.id as string,
+        regulation_id: reg.id,
         amendment_text: text,
         rationale,
         based_on_patterns: patterns,
@@ -228,6 +224,6 @@ Draft the adversarial what-if amendment.`;
       };
     } catch (err) {
       console.error("[predict] exception", err);
-      return fallbackHypothetical(reg.id as string, reg.title as string, history);
+      return fallbackHypothetical(reg.id, reg.title, history);
     }
   });

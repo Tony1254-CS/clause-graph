@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { signOut } from "@/lib/auth-client";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { profileQuery, myRoleQuery } from "@/data/queries";
 import { getOrgUsage } from "@/lib/billing.functions";
@@ -46,21 +46,6 @@ function AccountPage() {
   const getUsage = useServerFn(getOrgUsage);
   const usage = useQuery({ queryKey: ["org-usage"], queryFn: () => getUsage() });
 
-  // Query deletion_scheduled_at directly (not exposed via getOrgUsage yet)
-  const { data: orgMeta } = useQuery({
-    queryKey: ["org-meta"],
-    queryFn: async () => {
-      if (!profile.data?.org?.id) return null;
-      const { data } = await supabase
-        .from("organizations")
-        .select("deletion_scheduled_at")
-        .eq("id", profile.data.org.id)
-        .maybeSingle();
-      return data as { deletion_scheduled_at: string | null } | null;
-    },
-    enabled: !!profile.data?.org?.id,
-  });
-
   const requestDelete = useServerFn(requestWorkspaceDeletion);
   const cancelDelete = useServerFn(cancelWorkspaceDeletion);
 
@@ -69,7 +54,7 @@ function AccountPage() {
   const [error, setError] = useState<string | null>(null);
 
   const isAdmin = role.data === "admin";
-  const scheduledAt = orgMeta?.deletion_scheduled_at ?? null;
+  const scheduledAt = usage.data?.deletion_scheduled_at ?? null;
   const orgName = profile.data?.org?.name ?? "workspace";
   const canConfirm = confirm.trim().toLowerCase() === orgName.trim().toLowerCase();
 
@@ -78,7 +63,7 @@ function AccountPage() {
     setBusy("delete");
     try {
       await requestDelete();
-      await qc.invalidateQueries({ queryKey: ["org-meta"] });
+      await qc.invalidateQueries({ queryKey: ["org-usage"] });
       setConfirm("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Deletion failed");
@@ -92,7 +77,7 @@ function AccountPage() {
     setBusy("cancel");
     try {
       await cancelDelete();
-      await qc.invalidateQueries({ queryKey: ["org-meta"] });
+      await qc.invalidateQueries({ queryKey: ["org-usage"] });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Cancel failed");
     } finally {
@@ -102,7 +87,7 @@ function AccountPage() {
 
   async function handleSignOut() {
     setBusy("signout");
-    await supabase.auth.signOut();
+    await signOut();
     window.location.assign("/auth");
   }
 

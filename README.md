@@ -8,12 +8,21 @@
 
 ## 🚀 Quick Start
 
-1. **Sign in** at `/auth` — email/password or Google.
-2. You're auto-provisioned a private workspace on **Pro, free, with unlimited usage** (early access — no trial clock, no card, nothing to cancel), pre-seeded with a sample contract corpus and a supply-chain graph.
-3. Open **Simulate Impact**, paste any regulation text, and watch the blast radius render on the central medallion.
-4. Click **Generate Action Plan** to get a policy draft, amendment language, and a technical checklist you can export as PDF.
+### Option A: 1-Click Hackathon Evaluation
+1. Launch the app locally or visit the deployment.
+2. Go to `/auth` and click **"⚡ Instant Hackathon Demo (1-Click Judge Access)"**.
+3. You're auto-provisioned into an enterprise workspace with pre-seeded contracts, curated regulatory ontology, and multi-tier supply chain.
+4. Open **Simulate Impact**, paste any regulation, and watch the blast radius calculate financial exposure live!
 
-No setup, no credit card, no ceremony.
+### Option B: Run with Docker Compose (PostgreSQL 16 + Web App)
+```bash
+# 1. Clone & copy environment variables
+cp .env.example .env
+
+# 2. Start PostgreSQL and the fullstack app
+docker compose up --build
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser. All tables, functions, and seed data are automatically initialized via `docker/init.sql`.
 
 
 ---
@@ -26,7 +35,7 @@ Each feature below lists **what it does**, **when to use it**, **where to find i
 - **What**: A workspace-wide overview — total contract value, exposure, and a live medallion showing citation density across your portfolio.
 - **Use case**: The first tab any GC or CFO opens on Monday morning.
 - **Where**: `/dashboard`
-- **Powered by**: `GraphMedallion.tsx` + `supabase.from('contracts').select(..., clauses(*))`
+- **Powered by**: `GraphMedallion.tsx` + `getContractsFn()` (PostgreSQL `json_agg` clauses)
 
 ### 2. Contracts List & Detail
 - **What**: Glass-card list of every contract with name, counterparty, value (mono), and clause-count badge. Detail view shows every clause with brass-outlined pills linking to the regulations it cites.
@@ -169,22 +178,19 @@ database (`assert_within_quota`) — no client bypass is possible.
 
 ## 🧰 Tech at a Glance
 
-- **Frontend** — React 19, TanStack Start v1, TanStack Router (file-based), TanStack Query, Vite 7, TypeScript strict, Tailwind v4, shadcn/ui.
-- **Backend** — Lovable Cloud (Supabase Postgres + Auth + Storage + RLS), TanStack `createServerFn`, Cloudflare Workers.
-- **AI** — Lovable AI Gateway (Gemini 2.5 Flash + GPT-4o).
+- **Frontend** — React 19, TanStack Start v1, TanStack Router (file-based), TanStack Query, Vite, TypeScript strict, Tailwind v4, shadcn/ui.
+- **Backend** — Pure PostgreSQL 16+ (`pg` connection pool + native schema/RLS/functions), TanStack `createServerFn` RPC data layer, JWT sessions (JOSE + bcrypt).
+- **AI** — Direct Provider Integration (OpenAI GPT-4o / GPT-4o-mini & Google Gemini 2.5 Flash).
 - **Billing** — Paddle (Node SDK + Paddle.js).
 - **External** — Federal Register API.
 
-Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — including the complete database DDL, every RLS policy and every SQL function.
+Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — including the complete PostgreSQL DDL and every SQL function.
 
-Moving off Lovable to your own Supabase project and host: **[`MIGRATION.md`](./MIGRATION.md)**.
+### Self-hosted / Docker deployment notes
 
-### Self-hosted / Vercel deployment notes
+ClauseGraph runs with zero vendor lock-in via standard Docker containers (`docker-compose up -d`) or any PostgreSQL 16+ instance.
 
-ClauseGraph detects Vercel builds and emits Nitro's Vercel Build Output API bundle, so authenticated server-function routes such as **Supply Chain** and **Predictive Radar** run as Vercel functions instead of collapsing into static-only routing.
-
-Set **both** the client and the server variables on the host — server functions read `process.env` at call time, so client-only vars make pages render with every panel empty: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY` (or your own `OPENAI_API_KEY`), plus the Paddle variables only if billing is switched on. Private values stay in the host's encrypted environment UI — never commit them.
-
+Configure `DATABASE_URL`, `JWT_SECRET`, and `OPENAI_API_KEY` (or `GEMINI_API_KEY`) in `.env`.
 
 ---
 
@@ -195,8 +201,10 @@ src/
 ├── routes/                     File-based routes (public + _authenticated/)
 ├── components/clausegraph/     Product components (AppShell, Sidebar, GraphMedallion, ...)
 ├── components/ui/              shadcn primitives
-├── lib/*.functions.ts          Server functions (simulate, action-plan, upload, ...)
-├── integrations/supabase/      Auto-generated Supabase clients + middleware
+├── lib/db.server.ts            Native PostgreSQL pool (pg) & query helpers
+├── lib/auth.server.ts          Auth service, bcrypt hashing & JOSE JWT sessions
+├── lib/auth.functions.ts       Auth server functions (signIn, signUp, demoLogin)
+├── lib/*.functions.ts          Domain server functions (simulate, action-plan, upload, ...)
 ├── data/                       Query factories + types
 ├── hooks/                      Paddle, mobile
 └── styles.css                  Every design token

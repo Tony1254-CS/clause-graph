@@ -10,10 +10,9 @@ ClauseGraph is a legal-compliance intelligence platform. Users upload contracts,
 
 ```mermaid
 flowchart LR
-  U[Browser<br/>React 19 + TanStack Router] -->|SSR + RPC| SSR[TanStack Start<br/>Cloudflare Worker]
-  U -->|Publishable key<br/>+ user JWT| SB[(Supabase<br/>Postgres • Auth • Storage)]
-  SSR -->|createServerFn<br/>requireSupabaseAuth| SB
-  SSR -->|Lovable AI Gateway| AI[Gemini 2.5 Flash<br/>GPT-4o]
+  U[Browser<br/>React 19 + TanStack Router] -->|RPC + JWT Bearer| SSR[TanStack Start Server<br/>Node.js / Docker]
+  SSR -->|pg Pool<br/>connection 5432| PG[(PostgreSQL 16+<br/>Schema • Functions • Seed Data)]
+  SSR -->|Direct API| AI[OpenAI GPT-4o / GPT-4o-mini<br/>Google Gemini 2.5 Flash]
   SSR -->|Node SDK| PAD[Paddle Billing]
   PAD -->|HMAC webhook| SSR
   U -->|CORS| FR[Federal Register API]
@@ -30,7 +29,7 @@ flowchart LR
 | Meta-framework | **TanStack Start v1** | SSR, file-based routing, server functions |
 | Router | **TanStack Router** | Type-safe file-based routing (`src/routes/`) |
 | Data | **TanStack Query v5** | Client cache, loader integration |
-| Bundler | **Vite 7** + `@tailwindcss/vite` | Dev/build |
+| Bundler | **Vite** + `@tailwindcss/vite` | Dev/build |
 | Language | **TypeScript strict** | Type safety |
 | Styling | **Tailwind v4** (`@import` in `src/styles.css`) | Utility CSS |
 | UI kit | **shadcn/ui** on **Radix primitives** | Accessible components |
@@ -44,20 +43,20 @@ flowchart LR
 ### Backend / Platform
 | Layer | Choice | Role |
 |---|---|---|
-| Cloud | **Lovable Cloud** (managed Supabase) | Postgres + Auth + Storage + RLS |
-| RPC | **TanStack `createServerFn`** (`@tanstack/react-start`) | App-internal server logic |
+| Database | **PostgreSQL 16+** | Relational data, RLS, stored functions, seed data |
+| DB Client | **`pg` (node-postgres)** | Connection pool, parameterized queries, transactions |
+| Authentication | **Native JWT + bcrypt** (`jose` + `bcryptjs`) | Password hashing & signed JWT sessions |
+| RPC | **TanStack `createServerFn`** (`@tanstack/react-start`) | Type-safe server functions |
 | HTTP routes | **TanStack file routes** under `src/routes/api/public/*` | Webhooks, health |
-| Auth broker | **`@lovable.dev/cloud-auth-js`** | Google OAuth iframe-safe |
-| Auth-server middleware | `requireSupabaseAuth` | Bearer → user-scoped Supabase client |
-| Admin client | `supabaseAdmin` (service role) | Verified webhooks only |
-| Runtime | **Cloudflare Workers** (nodejs_compat) | SSR + server-fn host |
+| Auth Middleware | `requireAuth` (`src/lib/auth-middleware.server.ts`) | Bearer / Cookie JWT verification |
+| Container | **Docker & Docker Compose** | Self-contained multi-stage deployment |
 
 ### AI
 | Task | Model | Provider |
 |---|---|---|
-| Contract extraction (PDF → clauses + linked_regs) | **Gemini 2.5 Flash** | Lovable AI Gateway |
-| Simulate Impact | **GPT-4o** | Lovable AI Gateway |
-| Action Plan (policy + amendments + checklist) | **GPT-4o** | Lovable AI Gateway |
+| Contract extraction (text → clauses + linked_regs) | **GPT-4o-mini / Gemini** | Direct OpenAI / Gemini API |
+| Simulate Impact | **GPT-4o** | Direct OpenAI / Gemini API |
+| Action Plan (policy + amendments + checklist) | **GPT-4o** | Direct OpenAI / Gemini API |
 | Predictive amendment drafting | **GPT-4o** | Lovable AI Gateway |
 | Compliance-as-Code (Python audit + Terraform fix) | **GPT-4o** | Lovable AI Gateway |
 

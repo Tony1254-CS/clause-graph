@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "./auth-middleware";
 import type { SimulationResult, Severity, ImpactEntry } from "./simulate-types";
 
 type BacktestRow = {
@@ -13,28 +13,27 @@ type BacktestRow = {
 };
 
 export const simulateBacktest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { caseId: string }) => {
+  .middleware([requireAuth])
+  .validator((input: { caseId: string }) => {
     const id = String(input?.caseId ?? "");
     if (!id) throw new Error("caseId required");
     return { caseId: id };
   })
-  .handler(async ({ data, context }): Promise<SimulationResult> => {
-    const { data: row, error } = await context.supabase
-      .from("backtest_cases")
-      .select(
-        "id, company, regulation, summary, reconstructed_prompt, reconstructed_clauses, fallback",
-      )
-      .eq("id", data.caseId)
-      .maybeSingle();
-    if (error) throw error;
+  .handler(async ({ data }): Promise<SimulationResult> => {
+    const { queryOne } = await import("./db.server");
+    const { chatCompletion } = await import("./ai.server");
+
+    const row = await queryOne<BacktestRow>(
+      `SELECT id, company, regulation, summary, reconstructed_prompt, reconstructed_clauses, fallback 
+       FROM public.backtest_cases 
+       WHERE id = $1`,
+      [data.caseId]
+    );
+
     if (!row) throw new Error("Unknown case");
-    const bt = row as BacktestRow;
+    const bt = row;
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) return { ...bt.fallback };
-
-    const clauseCtx = bt.reconstructed_clauses.map((c) => ({ id: c.id, text: c.text }));
+    const clauseCtx = (bt.reconstructed_clauses ?? []).map((c) => ({ id: c.id, text: c.text }));
 
     const system = `You are a legal compliance analyst. Given a proposed regulation and a small set of RECONSTRUCTED contract clauses (synthetic, drafted to mirror a real enforcement case — NOT the company's actual contracts), identify which clauses are materially impacted. Return STRICT JSON:
 {"summary": string, "impacts": [{"contract_id": string, "severity": "low"|"medium"|"high", "suggested_amendment": string}]}
@@ -53,31 +52,18 @@ RECONSTRUCTED CLAUSES:
 ${JSON.stringify(clauseCtx)}`;
 
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45_000);
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-        }),
-      }).finally(() => clearTimeout(timeout));
+      const content = await chatCompletion({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
 
-      if (!res.ok) return { ...bt.fallback };
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const content = json.choices?.[0]?.message?.content ?? "";
+      if (!content) return { ...bt.fallback };
+
       let parsed: unknown;
       try {
         parsed = JSON.parse(content);
@@ -89,7 +75,7 @@ ${JSON.stringify(clauseCtx)}`;
       const rawArr = Array.isArray((parsed as { impacts?: unknown }).impacts)
         ? (parsed as { impacts: unknown[] }).impacts
         : [];
-      const validIds = new Set(bt.reconstructed_clauses.map((c) => c.id));
+      const validIds = new Set((bt.reconstructed_clauses ?? []).map((c) => c.id));
       const impacts: ImpactEntry[] = [];
       for (const item of rawArr) {
         if (!item || typeof item !== "object") continue;
