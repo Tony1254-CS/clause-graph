@@ -48,6 +48,7 @@ function TeamPage() {
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 
   const qc = useQueryClient();
   const invite = useServerFn(inviteTeammate);
@@ -55,15 +56,26 @@ function TeamPage() {
 
   const inviteMut = useMutation({
     mutationFn: () => invite({ data: { email, fullName } }),
-    onSuccess: () => {
+    onSuccess: (res) => {
       setEmail("");
       setFullName("");
       setError(null);
-      setNotice("Invitation sent.");
+      if (res?.alreadyMember) {
+        setNotice("User is already a member of this workspace.");
+        setInviteUrl(null);
+      } else if (res?.inviteLink) {
+        const fullLink = `${window.location.origin}${res.inviteLink}`;
+        setNotice("Invitation created successfully.");
+        setInviteUrl(fullLink);
+      } else {
+        setNotice("Invitation processed.");
+        setInviteUrl(null);
+      }
       qc.invalidateQueries({ queryKey: ["team-members"] });
     },
     onError: (err) => {
       setNotice(null);
+      setInviteUrl(null);
       if (handlePlanLimitError(err, "seats")) {
         setError(null);
         return;
@@ -134,6 +146,26 @@ function TeamPage() {
             </div>
             {error ? <p className="mt-3 text-sm text-[var(--risk)]">{error}</p> : null}
             {notice ? <p className="mt-3 text-sm text-brass">{notice}</p> : null}
+            {inviteUrl ? (
+              <div className="mt-3 p-3 rounded-[10px] bg-background/50 border border-brass/30 flex items-center justify-between gap-3">
+                <input
+                  type="text"
+                  readOnly
+                  value={inviteUrl}
+                  className="font-mono text-xs text-foreground bg-transparent w-full outline-none select-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(inviteUrl);
+                    setNotice("Invite link copied to clipboard!");
+                  }}
+                  className="shrink-0 text-xs text-brass font-medium hover:underline"
+                >
+                  Copy link
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

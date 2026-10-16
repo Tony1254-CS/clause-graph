@@ -22,10 +22,7 @@ CREATE TABLE IF NOT EXISTS auth.users (
 );
 
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
-  SELECT COALESCE(
-    nullif(current_setting('request.jwt.claim.sub', true), '')::uuid,
-    (SELECT id FROM auth.users ORDER BY created_at ASC LIMIT 1)
-  );
+  SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
 $$;
 
 -- ── 2. Enums ────────────────────────────────────────────────────────────────
@@ -324,7 +321,20 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   new_org_id uuid; local_part text; ws_name text;
   s_contract record; new_contract_id uuid;
+  invited_org text;
 BEGIN
+  invited_org := NEW.raw_user_meta_data->>'invited_org_id';
+  IF invited_org IS NOT NULL THEN
+    new_org_id := invited_org::uuid;
+    INSERT INTO public.profiles (id, org_id, full_name, email)
+      VALUES (NEW.id, new_org_id, NEW.raw_user_meta_data->>'full_name', NEW.email)
+      ON CONFLICT (id) DO NOTHING;
+    INSERT INTO public.user_roles (user_id, org_id, role)
+      VALUES (NEW.id, new_org_id, COALESCE((NEW.raw_user_meta_data->>'invited_role')::public.app_role, 'member'::public.app_role))
+      ON CONFLICT (user_id, org_id, role) DO NOTHING;
+    RETURN NEW;
+  END IF;
+
   local_part := split_part(COALESCE(NEW.email, 'user'), '@', 1);
   ws_name := local_part || '''s workspace';
 
@@ -407,11 +417,11 @@ INSERT INTO public.sample_contracts (id, name, counterparty, value, position) VA
 ('SC-008', 'Cloud Hosting Master Agreement — HealthStack',          'HealthStack Cloud, Inc.', 22000000, 7),
 ('SC-009', 'Broker-Dealer Recordkeeping SLA — Ridgefield Securities','Ridgefield Securities LLC', 3400000, 8),
 ('SC-010', 'Audit Committee Charter — Ridgefield Holdings',         'Ridgefield Holdings, Inc.', 950000, 9),
-('SC-011', 'Merchant Acquiring Agreement — bKash Payments',         'bKash Limited',       18300000, 10),
-('SC-012', 'Mobile Wallet Terms of Use — Nagad Consumers',          'Nagad Limited',       5900000, 11),
-('SC-013', 'ISP Data-Retention Compliance Policy — GrameenNet',     'GrameenNet Communications Ltd.', 2200000, 12),
-('SC-014', 'Fixed-Term Employment Contract — Padma Knitwear',       'Padma Knitwear Mills Ltd.', 420000, 13),
-('SC-015', 'Cross-Border Support Services Agreement — BD→EU flow',  'Delta Support Services Ltd. → Helix Analytics BV', 7800000, 14)
+('SC-011', 'Merchant Acquiring Agreement — BengalPay Network (Synthetic)', 'BengalPay Limited (Synthetic)', 18300000, 10),
+('SC-012', 'Mobile Wallet Terms of Use — Shurjomukhi Consumers (Synthetic)', 'Shurjomukhi Digital Services Ltd. (Synthetic)', 5900000, 11),
+('SC-013', 'ISP Data-Retention Compliance Policy — PadmaNet Fiber (Synthetic)', 'PadmaNet Telecom Ltd. (Synthetic)', 2200000, 12),
+('SC-014', 'Fixed-Term Employment Contract — Meghna Apparel (Synthetic)', 'Meghna Apparel Manufacturing Ltd. (Synthetic)', 420000, 13),
+('SC-015', 'Cross-Border Support Services Agreement — BD→EU Flow (Synthetic)', 'Apex Support Services Ltd. (Synthetic) → Helix Analytics BV', 7800000, 14)
 ON CONFLICT (id) DO NOTHING;
 
 -- Sample Clauses (54 Clauses mapped to Regulatory Ontology)
@@ -487,30 +497,22 @@ INSERT INTO public.sample_clauses (id, sample_contract_id, text, linked_regs, po
 ('SCL-015-3', 'SC-015', 'Service Provider shall implement the pseudonymization and access-logging measures in Annex III prior to any onward transfer, whether internal or external.', ARRAY['REG-GDPR-44'], 3)
 ON CONFLICT (id) DO NOTHING;
 
--- Backtest Cases (3 Landmark Enforcement Actions)
+-- Backtest Cases (2 Landmark Enforcement Actions - Ground Truth Sourced)
 INSERT INTO public.backtest_cases (id, company, fine_usd, case_date, regulation, summary, source, reconstructed_prompt, reconstructed_clauses, fallback, position) VALUES
 ('case-meta-gdpr', 'Meta Ireland', 1300000000, '2023-05-22', 'GDPR Article 46(1)', 
  'Irish DPC fined Meta €1.2B ($1.3B) and ordered suspension of transatlantic user data transfers under flawed Standard Contractual Clauses.',
- 'Irish Data Protection Commission (DPC) Decision',
+ 'Irish Data Protection Commission (DPC) Decision, 22 May 2023',
  'All transfers of personal data to US servers without binding supplementary technical protections preventing foreign surveillance access are void with immediate suspension mandated.',
  '[{"id":"cl-meta-1","text":"Company may transfer European user identifiers to parent servers in the United States for unified infrastructure redundancy and ad delivery."},
    {"id":"cl-meta-2","text":"Transfers rely upon EU Standard Contractual Clauses without additional localized cryptographic escrow barriers."}]'::jsonb,
  '{"summary":"Transatlantic data transfers invalidated under Schrems II doctrine.","impacts":[{"contract_id":"cl-meta-1","severity":"high","suggested_amendment":"Mandate EU-only data residency and cryptographic enclave isolation."}]}'::jsonb, 0),
 
-('case-equifax-ccpa', 'Equifax', 575000000, '2019-07-22', 'FTC Act / Pre-CCPA Safeguards',
- 'FTC, CFPB and 50 states settled with Equifax for up to $700M over failure to patch a known Apache Struts vulnerability exposing 147M consumer records.',
- 'FTC Enforcement Order Docket C-4687',
+('case-equifax-ccpa', 'Equifax', 700000000, '2019-07-22', 'FTC Act / Pre-CCPA Safeguards',
+ 'FTC, CFPB, and 50 states settled with Equifax for up to $700M over failure to patch a known Apache Struts vulnerability exposing 147M consumer records.',
+ 'CFPB / FTC / 50 States & Territories Settlement (2019) (FTC File No. 172 3203, CFPB Docket 2019-BCFP-0006)',
  'Covered consumer reporting entities must patch known security vulnerabilities within 30 days of discovery and maintain perimeter intrusion monitoring for all credit data stores.',
  '[{"id":"cl-eq-1","text":"Vendor provides portal hosting on Apache frameworks with quarterly maintenance and scheduled security patch review cycles."},
    {"id":"cl-eq-2","text":"Consumer credit records are stored in plaintext relational partitions accessible across internal test networks."}]'::jsonb,
- '{"summary":"Severe failure to patch known CVE vulnerability exposing sensitive consumer credit profiles.","impacts":[{"contract_id":"cl-eq-1","severity":"high","suggested_amendment":"Enforce automated critical CVE patching within 7 days and continuous penetration testing."}]}'::jsonb, 1),
-
-('case-grameenphone-btrc', 'Grameenphone', 23000000, '2022-06-29', 'BTRC Directives / BD-DSA §26',
- 'BTRC sanctioned Grameenphone $23M over telecommunication data localization, lawful intercept compliance, and unauthorized subscriber data handling.',
- 'Bangladesh Telecommunication Regulatory Commission (BTRC) Enforcement Notice',
- 'All telecommunications metadata, call detail records (CDRs), and subscriber location profiles must reside exclusively on onshore infrastructure with direct lawful intercept hooks.',
- '[{"id":"cl-gp-1","text":"Company routes subscriber call detail records (CDRs) and telemetry through regional overseas cloud clusters for algorithmic network optimization."},
-   {"id":"cl-gp-2","text":"Subscriber identity records and lawful intercept feeds are stored in cross-border partitions without localized hardware security module (HSM) barriers."}]'::jsonb,
- '{"summary":"Failure to enforce local data residency and lawful intercept safeguards under BTRC Directives and DSA §26.","impacts":[{"contract_id":"cl-gp-1","severity":"high","suggested_amendment":"Enforce strict physical in-country storage of all subscriber CDRs and local HSM lawful intercept processing."}]}'::jsonb, 2)
+ '{"summary":"Severe failure to patch known CVE vulnerability exposing sensitive consumer credit profiles.","impacts":[{"contract_id":"cl-eq-1","severity":"high","suggested_amendment":"Enforce automated critical CVE patching within 7 days and continuous penetration testing."}]}'::jsonb, 1)
 ON CONFLICT (id) DO NOTHING;
 

@@ -10,6 +10,7 @@ export type SimulationResult = {
   impacts: ImpactEntry[];
   summary?: string;
   fallback?: boolean;
+  mode?: "ai" | "deterministic";
 };
 
 export type RunType = "reactive" | "forecast" | "what_if";

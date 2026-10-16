@@ -201,9 +201,13 @@ function SimulatePage() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
                   Blast Radius
                 </p>
-                {result.fallback && (
+                {result.mode === "deterministic" || result.fallback ? (
+                  <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-brass border border-brass/30 bg-brass/10 rounded-full px-2.5 py-0.5">
+                    Deterministic baseline (no AI)
+                  </span>
+                ) : (
                   <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground border border-[var(--hairline)] rounded-full px-2 py-0.5">
-                    Demo fallback
+                    AI generated interpretation
                   </span>
                 )}
               </div>
@@ -227,39 +231,45 @@ function SimulatePage() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">
                   Affected contracts
                 </p>
-                <ul className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1 -mr-1">
-                  {sortedImpacts.map((i) => {
-                    const c = contractsById.get(i.contract_id);
-                    if (!c) return null;
-                    return (
-                      <li
-                        key={i.contract_id}
-                        className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] duration-150 ease-out transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <Link
-                            to="/contracts/$contractId"
-                            params={{ contractId: c.id }}
-                            className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass hover:underline"
-                          >
-                            {c.id}
-                          </Link>
-                          <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
-                            <span className={`h-1.5 w-1.5 rounded-full ${SEV_DOT[i.severity]}`} />
-                            {SEV_LABEL[i.severity]}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[13px] leading-tight text-foreground">{c.name}</p>
-                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground tabular-nums">
-                          {formatUSD(c.value)}
-                        </p>
-                        <p className="mt-2 text-[12px] leading-[1.55] text-muted-foreground">
-                          {i.suggested_amendment}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
+                {sortedImpacts.length === 0 ? (
+                  <p className="text-[12.5px] text-muted-foreground italic py-2">
+                    No contracts in your portfolio are impacted by this regulatory text.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1 -mr-1">
+                    {sortedImpacts.map((i) => {
+                      const c = contractsById.get(i.contract_id);
+                      if (!c) return null;
+                      return (
+                        <li
+                          key={i.contract_id}
+                          className="rounded-[12px] border border-[var(--hairline)] p-3 hover:border-[var(--hairline-strong)] duration-150 ease-out transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <Link
+                              to="/contracts/$contractId"
+                              params={{ contractId: c.id }}
+                              className="font-mono text-[10px] uppercase tracking-[0.14em] text-brass hover:underline"
+                            >
+                              {c.id}
+                            </Link>
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
+                              <span className={`h-1.5 w-1.5 rounded-full ${SEV_DOT[i.severity]}`} />
+                              {SEV_LABEL[i.severity]}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[13px] leading-tight text-foreground">{c.name}</p>
+                          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground tabular-nums">
+                            {formatUSD(c.value)}
+                          </p>
+                          <p className="mt-2 text-[12px] leading-[1.55] text-muted-foreground">
+                            {i.suggested_amendment}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             </>
           )}

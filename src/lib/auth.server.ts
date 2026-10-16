@@ -2,9 +2,42 @@ import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { query, queryOne } from "./db.server";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "clausegraph-super-production-jwt-secret-key-2026!",
-);
+let _devSecret: string | null = null;
+
+/**
+ * Get JWT secret with fail-closed security in production (>= 32 chars required)
+ * and an ephemeral random secret per-process in development if unset.
+ */
+export function getJwtSecret(
+  env: { NODE_ENV?: string; JWT_SECRET?: string } = process.env,
+): Uint8Array {
+  const isProd = env.NODE_ENV === "production";
+  const secret = env.JWT_SECRET;
+
+  if (isProd) {
+    if (!secret || secret.trim().length < 32) {
+      throw new Error(
+        "FATAL: JWT_SECRET must be set and at least 32 characters long in production environments.",
+      );
+    }
+    return new TextEncoder().encode(secret);
+  }
+
+  if (secret && secret.trim().length > 0) {
+    if (secret.length < 32) {
+      console.warn("[SECURITY WARNING] JWT_SECRET is shorter than 32 characters in development.");
+    }
+    return new TextEncoder().encode(secret);
+  }
+
+  if (!_devSecret) {
+    _devSecret = `dev-ephemeral-${crypto.randomUUID()}-${Date.now()}`;
+    console.warn(
+      "[SECURITY WARNING] JWT_SECRET is unset in development. Using an ephemeral per-process secret.",
+    );
+  }
+  return new TextEncoder().encode(_devSecret);
+}
 
 const TOKEN_EXPIRY = "7d";
 
@@ -25,6 +58,15 @@ export type JWTPayload = {
   role: "admin" | "member";
 };
 
+export type InvitePayload = {
+  purpose: "invite";
+  sub: string;
+  email: string;
+  orgId: string;
+  role: "admin" | "member";
+  invitedBy: string;
+};
+
 /**
  * Sign a JWT token for the authenticated user
  */
@@ -34,6 +76,7 @@ export async function signToken(user: {
   orgId: string;
   role: "admin" | "member";
 }): Promise<string> {
+  const secret = getJwtSecret();
   return await new SignJWT({
     sub: user.id,
     email: user.email,
@@ -43,15 +86,64 @@ export async function signToken(user: {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(TOKEN_EXPIRY)
-    .sign(JWT_SECRET);
+    .sign(secret);
 }
 
 /**
- * Verify and decode a JWT token
+ * Sign an invite token with 7-day expiration
+ */
+export async function signInviteToken(payload: {
+  userId: string;
+  email: string;
+  orgId: string;
+  role: "admin" | "member";
+  invitedBy: string;
+}): Promise<string> {
+  const secret = getJwtSecret();
+  return await new SignJWT({
+    purpose: "invite",
+    sub: payload.userId,
+    email: payload.email,
+    orgId: payload.orgId,
+    role: payload.role,
+    invitedBy: payload.invitedBy,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d")
+    .sign(secret);
+}
+
+/**
+ * Verify and decode an invite token
+ */
+export async function verifyInviteToken(token: string): Promise<InvitePayload | null> {
+  try {
+    const secret = getJwtSecret();
+    const { payload } = await jwtVerify(token, secret);
+    if (payload.purpose !== "invite" || !payload.sub || !payload.email || !payload.orgId) {
+      return null;
+    }
+    return {
+      purpose: "invite",
+      sub: payload.sub as string,
+      email: payload.email as string,
+      orgId: payload.orgId as string,
+      role: (payload.role as "admin" | "member") || "member",
+      invitedBy: (payload.invitedBy as string) || "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verify and decode a session JWT token
  */
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const secret = getJwtSecret();
+    const { payload } = await jwtVerify(token, secret);
     if (!payload.sub || !payload.email) return null;
     return {
       sub: payload.sub as string,
@@ -62,6 +154,21 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
   } catch (err) {
     return null;
   }
+}
+
+/**
+ * Check if a workspace is the pre-seeded public evaluation/demo workspace
+ */
+export async function isDemoWorkspace(orgId: string): Promise<boolean> {
+  const row = await queryOne<{ email: string }>(
+    `SELECT u.email 
+     FROM public.profiles p 
+     JOIN auth.users u ON u.id = p.id 
+     WHERE p.org_id = $1 AND LOWER(u.email) = 'judge@clausegraph.ai'
+     LIMIT 1`,
+    [orgId],
+  );
+  return Boolean(row);
 }
 
 /**

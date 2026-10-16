@@ -58,6 +58,13 @@ export async function signInDemo() {
   return result;
 }
 
+export async function acceptInvite(token: string, password: string, fullName?: string) {
+  const { acceptInviteFn } = await import("./auth.functions");
+  const result = await acceptInviteFn({ data: { token, password, fullName } });
+  saveSession(result.token, result.user);
+  return result;
+}
+
 export async function signOut() {
   clearSession();
 }

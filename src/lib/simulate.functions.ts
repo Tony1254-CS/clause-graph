@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "./auth-middleware";
-import { fallbackSimulation } from "./simulate-fallback";
+import { runDeterministicBaseline } from "./simulate-fallback";
 import type { SimulationResult, SimulateInput } from "./simulate-types";
 
 export const simulateImpact = createServerFn({ method: "POST" })
@@ -36,13 +36,13 @@ export const simulateImpact = createServerFn({ method: "POST" })
         name: string;
         counterparty: string;
         value: number | string;
-        clauses: Array<{ text: string; linked_regs: string[] | null }> | null;
+        clauses: Array<{ id: string; text: string; linked_regs: string[] | null }> | null;
       }>(
         `SELECT 
           c.id, c.name, c.counterparty, c.value,
           COALESCE(
             json_agg(
-              json_build_object('text', cl.text, 'linked_regs', cl.linked_regs)
+              json_build_object('id', cl.id, 'text', cl.text, 'linked_regs', cl.linked_regs)
             ) FILTER (WHERE cl.id IS NOT NULL),
             '[]'::json
           ) AS clauses
@@ -56,9 +56,17 @@ export const simulateImpact = createServerFn({ method: "POST" })
     ]);
 
     const contracts = contractRows ?? [];
+    const regulations = (regRows ?? []) as Array<{
+      id: string;
+      title: string;
+      summary: string;
+      obligations?: unknown;
+    }>;
     const validIds = new Set(contracts.map((c) => c.id));
 
-    if (contracts.length === 0) return { ...fallbackSimulation };
+    if (contracts.length === 0) {
+      return runDeterministicBaseline([], regulations, data.regulationText);
+    }
 
     const contractContext = contracts.map((c) => ({
       id: c.id,
@@ -66,6 +74,7 @@ export const simulateImpact = createServerFn({ method: "POST" })
       counterparty: c.counterparty,
       value: typeof c.value === "string" ? Number(c.value) : c.value,
       clauses: (c.clauses ?? []).map((cl) => ({
+        id: cl.id,
         text: cl.text,
         linked_regs: cl.linked_regs ?? [],
       })),
@@ -89,7 +98,22 @@ ${JSON.stringify(regRows ?? [])}
 CONTRACT PORTFOLIO:
 ${JSON.stringify(contractContext)}`;
 
-    let result: SimulationResult = { ...fallbackSimulation };
+    // Default to deterministic baseline if AI fails or is unavailable
+    let result: SimulationResult = runDeterministicBaseline(
+      contracts.map((c) => ({
+        id: c.id,
+        name: c.name,
+        counterparty: c.counterparty,
+        clauses: (c.clauses ?? []).map((cl) => ({
+          id: cl.id,
+          text: cl.text,
+          linked_regs: cl.linked_regs ?? [],
+        })),
+      })),
+      regulations,
+      data.regulationText,
+    );
+
     try {
       const content = await chatCompletion({
         model: "gpt-4o",
@@ -105,15 +129,18 @@ ${JSON.stringify(contractContext)}`;
         try {
           const parsed = JSON.parse(content);
           const impacts = coerceImpacts(parsed, validIds);
-          if (impacts && impacts.length > 0) {
+          // B-1 fix: empty impacts array from AI is valid and honest (not replaced by fallback!)
+          if (impacts !== null) {
             const summary =
               typeof (parsed as { summary?: unknown }).summary === "string"
                 ? (parsed as { summary: string }).summary
-                : undefined;
-            result = { impacts, summary, fallback: false };
+                : impacts.length > 0
+                  ? `AI analysis identified ${impacts.length} impacted contract(s).`
+                  : "AI analysis found no impacted contracts in the portfolio.";
+            result = { impacts, summary, fallback: false, mode: "ai" };
           }
         } catch {
-          /* fallback */
+          /* keep deterministic baseline */
         }
       }
     } catch (err) {

@@ -2,13 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "./auth-middleware";
 import type { PaddleEnv } from "./paddle.server";
 
-/** Schedule workspace deletion 30 days out. Admin-only (enforced in SQL). */
+/** Schedule workspace deletion 30 days out. Admin-only. */
 export const requestWorkspaceDeletion = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .handler(async ({ context }) => {
     const { userId, orgId } = context;
     if (!orgId) throw new Error("No workspace");
+
+    const { assertAdmin } = await import("./team.server");
+    const { isDemoWorkspace } = await import("./auth.server");
     const { queryOne } = await import("./db.server");
+
+    // S-6: Admin check must happen before any side effects like Paddle cancellation
+    await assertAdmin(userId, orgId);
+
+    // S-10: Demo workspace cannot be deleted
+    if (await isDemoWorkspace(orgId)) {
+      throw new Error("Evaluation workspace cannot be deleted.");
+    }
 
     // Best-effort: cancel any active Paddle subscription so we don't keep billing.
     try {
@@ -48,7 +59,18 @@ export const cancelWorkspaceDeletion = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { userId, orgId } = context;
     if (!orgId) throw new Error("No workspace");
+
+    const { assertAdmin } = await import("./team.server");
+    const { isDemoWorkspace } = await import("./auth.server");
     const { query } = await import("./db.server");
+
+    // S-6: Admin check before cancellation
+    await assertAdmin(userId, orgId);
+
+    // S-10: Demo workspace protection
+    if (await isDemoWorkspace(orgId)) {
+      throw new Error("Evaluation workspace cannot be modified.");
+    }
 
     await query(`SELECT cancel_workspace_deletion($1, $2)`, [orgId, userId]);
     return { ok: true };

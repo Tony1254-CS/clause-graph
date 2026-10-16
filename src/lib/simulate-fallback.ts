@@ -1,42 +1,125 @@
-import type { SimulationResult } from "./simulate-types";
+import type { ImpactEntry, Severity, SimulationResult } from "./simulate-types";
 
-// Pre-saved demo response used when the live model call fails or times out.
-// Modeled on a hypothetical "Basel IV capital adequacy tightening" regulation
-// impacting credit facilities and derivatives contracts in the seeded corpus.
-export const fallbackSimulation: SimulationResult = {
-  fallback: true,
-  summary:
-    "Fallback demo: heightened capital adequacy thresholds increase counterparty risk-weighting on unsecured credit facilities and long-dated derivatives.",
-  impacts: [
-    {
-      contract_id: "CTR-003",
-      severity: "high",
-      suggested_amendment:
-        "Add a capital-ratio trigger permitting unilateral renegotiation of pricing if counterparty CET1 falls below the new regulatory floor.",
-    },
-    {
-      contract_id: "CTR-007",
-      severity: "high",
-      suggested_amendment:
-        "Introduce a mandatory collateral top-up clause tied to updated risk-weight schedules under the new rule.",
-    },
-    {
-      contract_id: "CTR-001",
-      severity: "medium",
-      suggested_amendment:
-        "Amend representations to include ongoing compliance with the revised capital adequacy framework.",
-    },
-    {
-      contract_id: "CTR-011",
-      severity: "medium",
-      suggested_amendment:
-        "Insert a change-in-law provision allowing pass-through of incremental capital costs to the counterparty.",
-    },
-    {
-      contract_id: "CTR-005",
-      severity: "low",
-      suggested_amendment:
-        "Update regulatory citation schedule to reference the new capital adequacy standard.",
-    },
-  ],
+export type ContractWithClauses = {
+  id: string;
+  name: string;
+  counterparty: string;
+  clauses?: Array<{
+    id: string;
+    text: string;
+    linked_regs?: string[];
+  }>;
 };
+
+export type RegulationRecord = {
+  id: string;
+  title: string;
+  summary: string;
+  obligations?: unknown;
+};
+
+/**
+ * Deterministic baseline analysis for regulatory simulation (no AI required).
+ *
+ * Scans real workspace contracts and clauses against the regulation text and ontology
+ * using exact citation mapping and domain keyword matching.
+ */
+export function runDeterministicBaseline(
+  contracts: ContractWithClauses[],
+  regulations: RegulationRecord[],
+  regulationText: string,
+): SimulationResult {
+  if (!contracts || contracts.length === 0) {
+    return {
+      impacts: [],
+      summary: "No contracts found in workspace to evaluate.",
+      fallback: true,
+      mode: "deterministic",
+    };
+  }
+
+  const normInput = (regulationText || "").toLowerCase();
+
+  // Extract meaningful tokens (>= 4 chars, non-stopword)
+  const words = normInput
+    .replace(/[^\w\s-]/g, " ")
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length >= 4 &&
+        !["shall", "about", "their", "which", "there", "where", "under", "these"].includes(w),
+    );
+
+  // Match against known regulations in ontology
+  const matchedRegs = new Set<string>();
+  for (const reg of regulations) {
+    const regIdLower = reg.id.toLowerCase();
+    const titleLower = reg.title.toLowerCase();
+    if (
+      normInput.includes(regIdLower) ||
+      words.some((w) => w.length > 4 && titleLower.includes(w))
+    ) {
+      matchedRegs.add(reg.id);
+    }
+  }
+
+  const impacts: ImpactEntry[] = [];
+
+  for (const contract of contracts) {
+    const clauses = contract.clauses || [];
+    let bestSeverity: Severity | null = null;
+    let rationale = "";
+
+    for (const clause of clauses) {
+      const clauseTextLower = clause.text.toLowerCase();
+      const linked = clause.linked_regs || [];
+
+      // Check for direct regulation link matches
+      const directMatches = linked.filter((r) => matchedRegs.has(r));
+      if (directMatches.length > 0) {
+        bestSeverity = "high";
+        rationale = `Direct citation match: clause references ${directMatches.join(", ")} within regulatory scope.`;
+        break;
+      }
+
+      // Check for keyword overlaps
+      const matchedWords = words.filter(
+        (w) =>
+          clauseTextLower.includes(w) &&
+          !["party", "parties", "agreement", "contract", "section", "clause"].includes(w),
+      );
+
+      if (matchedWords.length >= 3) {
+        if (!bestSeverity) {
+          bestSeverity = "medium";
+          rationale = `Substantive keyword overlap detected: ${matchedWords.slice(0, 3).join(", ")}.`;
+        }
+      } else if (matchedWords.length >= 2 && !bestSeverity) {
+        bestSeverity = "low";
+        rationale = `Topical overlap on key terms: ${matchedWords.join(", ")}.`;
+      }
+    }
+
+    if (bestSeverity) {
+      impacts.push({
+        contract_id: contract.id,
+        severity: bestSeverity,
+        suggested_amendment:
+          rationale ||
+          "Review and update clause terms to confirm compliance with updated requirements.",
+      });
+    }
+  }
+
+  const summary =
+    impacts.length > 0
+      ? `Deterministic baseline identified ${impacts.length} impacted contract(s) via regulatory citation and keyword matching.`
+      : "Deterministic baseline found no contracts impacted by the specified regulatory text.";
+
+  return {
+    impacts,
+    summary,
+    fallback: true,
+    mode: "deterministic",
+  };
+}
