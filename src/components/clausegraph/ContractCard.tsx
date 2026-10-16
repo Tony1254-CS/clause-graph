@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Contract } from "@/data/types";
 import { formatUSD } from "@/data/queries";
+import { ProvenanceBadge } from "./ProvenanceBadge";
 
 export function ContractCard({ contract }: { contract: Contract }) {
   return (
@@ -10,9 +11,12 @@ export function ContractCard({ contract }: { contract: Contract }) {
       className="glass-panel group flex flex-col gap-5 p-6 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--hairline-strong)] hover:shadow-[var(--shadow-lift)]"
     >
       <div className="flex items-start justify-between gap-4">
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          {contract.id.slice(0, 8)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {contract.id.slice(0, 8)}
+          </span>
+          {contract.is_synthetic && <ProvenanceBadge kind="synthetic" customLabel="Synthetic" />}
+        </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] bg-[var(--surface-glass)] px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
           {contract.clauses.length} clauses
         </span>

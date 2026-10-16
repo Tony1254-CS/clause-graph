@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { query, queryOne } from "./db.server";
@@ -138,6 +139,76 @@ export async function verifyInviteToken(token: string): Promise<InvitePayload | 
 }
 
 /**
+ * Generate SHA-256 hash of JWT session token for database lookup and revocation
+ */
+export function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Record an active authenticated session in the database
+ */
+export async function recordSession(params: {
+  userId: string;
+  orgId: string;
+  token: string;
+  ip?: string;
+  userAgent?: string;
+}): Promise<void> {
+  try {
+    const tokenHash = hashToken(params.token);
+    await query(
+      `INSERT INTO public.sessions (user_id, org_id, token_hash, ip_address, user_agent, expires_at)
+       VALUES ($1, $2, $3, $4, $5, now() + interval '7 days')
+       ON CONFLICT (token_hash) DO NOTHING`,
+      [params.userId, params.orgId, tokenHash, params.ip ?? null, params.userAgent ?? null],
+    );
+  } catch (err) {
+    // Graceful fallback if database/table is unavailable or unmigrated in dev
+    console.warn(
+      "[auth] Session recording skipped/deferred:",
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
+/**
+ * Revoke an active session by token
+ */
+export async function revokeSession(token: string): Promise<void> {
+  try {
+    const tokenHash = hashToken(token);
+    await query(`UPDATE public.sessions SET revoked_at = now() WHERE token_hash = $1`, [tokenHash]);
+  } catch (err) {
+    console.warn("[auth] Session revocation error:", err instanceof Error ? err.message : err);
+  }
+}
+
+/**
+ * Check if a session has been revoked in the database
+ */
+export async function isSessionRevoked(token: string): Promise<boolean> {
+  try {
+    const tokenHash = hashToken(token);
+    const row = await queryOne<{ revoked_at: string | null; expires_at: string }>(
+      `SELECT revoked_at, expires_at FROM public.sessions WHERE token_hash = $1`,
+      [tokenHash],
+    );
+    if (!row) return false;
+    if (row.revoked_at !== null) return true;
+    if (new Date(row.expires_at).getTime() < Date.now()) return true;
+
+    // Non-blocking update of last_active_at
+    query(`UPDATE public.sessions SET last_active_at = now() WHERE token_hash = $1`, [
+      tokenHash,
+    ]).catch(() => {});
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Verify and decode a session JWT token
  */
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
@@ -145,6 +216,11 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
     const secret = getJwtSecret();
     const { payload } = await jwtVerify(token, secret);
     if (!payload.sub || !payload.email) return null;
+
+    // Check if session has been revoked
+    const revoked = await isSessionRevoked(token);
+    if (revoked) return null;
+
     return {
       sub: payload.sub as string,
       email: payload.email as string,
@@ -234,6 +310,8 @@ export async function registerUser(params: {
   email: string;
   password: string;
   fullName?: string;
+  ip?: string;
+  userAgent?: string;
 }): Promise<{ user: AuthUser; token: string }> {
   const normalizedEmail = params.email.trim().toLowerCase();
 
@@ -267,6 +345,13 @@ export async function registerUser(params: {
   }
 
   const token = await signToken(user);
+  await recordSession({
+    userId: user.id,
+    orgId: user.orgId,
+    token,
+    ip: params.ip,
+    userAgent: params.userAgent,
+  });
   return { user, token };
 }
 
@@ -276,6 +361,8 @@ export async function registerUser(params: {
 export async function loginWithPassword(params: {
   email: string;
   password: string;
+  ip?: string;
+  userAgent?: string;
 }): Promise<{ user: AuthUser; token: string }> {
   const normalizedEmail = params.email.trim().toLowerCase();
 
@@ -302,13 +389,23 @@ export async function loginWithPassword(params: {
   }
 
   const token = await signToken(user);
+  await recordSession({
+    userId: user.id,
+    orgId: user.orgId,
+    token,
+    ip: params.ip,
+    userAgent: params.userAgent,
+  });
   return { user, token };
 }
 
 /**
  * Pre-seeded enterprise evaluation workspace for judges & hackathon evaluation
  */
-export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token: string }> {
+export async function ensureAndLoginDemoJudge(params?: {
+  ip?: string;
+  userAgent?: string;
+}): Promise<{ user: AuthUser; token: string }> {
   const demoEmail = "judge@clausegraph.ai";
   const demoPassword = "DemoPassword2026!";
 
@@ -322,6 +419,13 @@ export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token
     const user = await getUserDetails(existing.id);
     if (user) {
       const token = await signToken(user);
+      await recordSession({
+        userId: user.id,
+        orgId: user.orgId,
+        token,
+        ip: params?.ip,
+        userAgent: params?.userAgent,
+      });
       return { user, token };
     }
   }
@@ -342,5 +446,12 @@ export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token
   if (!user) throw new Error("Could not load evaluation workspace profile");
 
   const token = await signToken(user);
+  await recordSession({
+    userId: user.id,
+    orgId: user.orgId,
+    token,
+    ip: params?.ip,
+    userAgent: params?.userAgent,
+  });
   return { user, token };
 }

@@ -15,6 +15,7 @@ import {
 } from "@/lib/supply-chain.functions";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 import { Button } from "@/components/ui/button";
+import { ProvenanceBadge } from "@/components/clausegraph/ProvenanceBadge";
 
 const chainQuery = queryOptions({
   queryKey: ["supply-chain"],
@@ -141,9 +142,12 @@ function SupplyChainPage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-              <Network className="h-3 w-3" strokeWidth={1.8} /> Supply Chain Blast Radius
-            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+                <Network className="h-3 w-3" strokeWidth={1.8} /> Supply Chain Blast Radius
+              </p>
+              <ProvenanceBadge kind="heuristic" customLabel="Deterministic BFS" />
+            </div>
             <h1 className="mt-2 font-display text-[34px] leading-[1.05] tracking-tight text-foreground">
               Cross-enterprise cascade
             </h1>
@@ -214,15 +218,17 @@ function SupplyChainPage() {
             {result ? (
               <>
                 <div className="glass-panel p-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-                    Indirect exposure
-                  </p>
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+                      Indirect exposure
+                    </p>
+                    <ProvenanceBadge kind="heuristic" customLabel="BFS Calculation" />
+                  </div>
                   <p className="mt-2 font-mono text-[30px] text-foreground">
                     {formatUSD(result.total_indirect_exposure)}
                   </p>
                   <p className="mt-1 text-[12.5px] leading-[1.55] text-muted-foreground">
                     {result.summary}
-                    {result.fallback && " · deterministic fallback"}
                   </p>
                 </div>
 

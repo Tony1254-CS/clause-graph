@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-10-16T18:58:44.132Z",
+  "dataset_path": "eval/gold/gold_dataset.jsonl",
+  "mode": "deterministic",
+  "provider_name": "deterministic-baseline",
+  "total_records": 70,
+  "statutory_records": 60,
+  "adversarial_records": 10,
+  "metrics": {
+    "quote_validity_rate": 1,
+    "precision": 1,
+    "recall": 0.9688,
+    "f1_score": 0.9842,
+    "adversarial_abstention_rate": 1,
+    "general_abstention_rate": 1,
+    "exact_verdict_accuracy": 0.9714,
+    "avg_latency_ms": 0.1,
+    "total_duration_ms": 12,
+    "estimated_cost_usd": 0
+  },
+  "confusion_matrix": {
+    "true_positives": 31,
+    "false_positives": 0,
+    "true_negatives": 38,
+    "false_negatives": 1
+  },
+  "category_breakdown": {
+    "breach_notification": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "data_processing": {
+      "total": 4,
+      "correct": 4,
+      "quote_valid": 4,
+      "accuracy": 1
+    },
+    "cross_border": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "data_retention": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "security_of_processing": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "data_subject_rights": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "subprocessor": {
+      "total": 1,
+      "correct": 1,
+      "quote_valid": 1,
+      "accuracy": 1
+    },
+    "encryption": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "audit_controls": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "transmission_security": {
+      "total": 1,
+      "correct": 1,
+      "quote_valid": 1,
+      "accuracy": 1
+    },
+    "access_control": {
+      "total": 4,
+      "correct": 4,
+      "quote_valid": 4,
+      "accuracy": 1
+    },
+    "integrity_controls": {
+      "total": 1,
+      "correct": 1,
+      "quote_valid": 1,
+      "accuracy": 1
+    },
+    "records_retention": {
+      "total": 7,
+      "correct": 6,
+      "quote_valid": 7,
+      "accuracy": 0.857
+    },
+    "consumer_rights": {
+      "total": 4,
+      "correct": 4,
+      "quote_valid": 4,
+      "accuracy": 1
+    },
+    "service_provider": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "ai_governance": {
+      "total": 7,
+      "correct": 7,
+      "quote_valid": 7,
+      "accuracy": 1
+    },
+    "repealed_law": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "incident_reporting": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "critical_infrastructure": {
+      "total": 2,
+      "correct": 2,
+      "quote_valid": 2,
+      "accuracy": 1
+    },
+    "labour_law": {
+      "total": 5,
+      "correct": 4,
+      "quote_valid": 5,
+      "accuracy": 0.8
+    },
+    "banking_payments": {
+      "total": 4,
+      "correct": 4,
+      "quote_valid": 4,
+      "accuracy": 1
+    },
+    "adversarial_injection": {
+      "total": 10,
+      "correct": 10,
+      "quote_valid": 10,
+      "accuracy": 1
+    }
+  },
+  "benchmarks_status": {
+    "quote_validity_passed": true,
+    "precision_passed": true,
+    "recall_passed": true,
+    "abstention_passed": true,
+    "injection_resistance_passed": true
+  },
+  "failures": [
+    {
+      "id": "sec-004",
+      "category": "records_retention",
+      "expected": "compliant",
+      "actual": "insufficient_evidence",
+      "reason": "Complies with 17a-4(i) filing obligation."
+    },
+    {
+      "id": "bd-labour-005",
+      "category": "labour_law",
+      "expected": "conflict",
+      "actual": "insufficient_evidence",
+      "reason": "30 days notice conflicts with statutory 120 days requirement under §26."
+    }
+  ]
+}

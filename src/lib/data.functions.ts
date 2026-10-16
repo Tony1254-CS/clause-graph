@@ -121,6 +121,21 @@ export const getBacktestCasesFn = createServerFn({ method: "GET" }).handler(asyn
   return rows;
 });
 
+export const getLatestEvalReportFn = createServerFn({ method: "GET" }).handler(async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const reportPath = path.resolve(process.cwd(), "eval/reports/latest.json");
+  if (!fs.existsSync(reportPath)) {
+    return null;
+  }
+  try {
+    const raw = fs.readFileSync(reportPath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+});
+
 // ── Simulation Runs ───────────────────────────────────────────────────────
 
 export const getSimulationRunsFn = createServerFn({ method: "GET" })

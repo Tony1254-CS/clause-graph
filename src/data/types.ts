@@ -25,6 +25,7 @@ export type Contract = {
   extraction_status: ExtractionStatus;
   extraction_error: string | null;
   is_sample: boolean;
+  is_synthetic?: boolean;
   source_file_url: string | null;
 };
 

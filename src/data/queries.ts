@@ -19,6 +19,7 @@ import {
   getComplianceArtifactsFn,
   getTeamMembersFn,
   getMyRoleFn,
+  getLatestEvalReportFn,
 } from "@/lib/data.functions";
 import { getRegulatoryEventsFn } from "@/lib/events.functions";
 
@@ -38,6 +39,7 @@ type ContractRow = {
   extraction_status: string | null;
   extraction_error: string | null;
   is_sample: boolean | null;
+  is_synthetic?: boolean | null;
   source_file_url: string | null;
 };
 
@@ -68,6 +70,7 @@ function mapContract(row: ContractRow): Contract {
     extraction_status: status,
     extraction_error: row.extraction_error,
     is_sample: row.is_sample ?? false,
+    is_synthetic: row.is_synthetic ?? row.is_sample ?? false,
     source_file_url: row.source_file_url,
   };
 }
@@ -392,3 +395,12 @@ export const regulatoryEventsQuery = (filters?: {
     },
     staleTime: 30_000,
   });
+
+export const evalReportQuery = queryOptions({
+  queryKey: ["eval-report"],
+  queryFn: async () => {
+    const report = await getLatestEvalReportFn();
+    return report;
+  },
+  staleTime: 60_000,
+});

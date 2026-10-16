@@ -5,6 +5,8 @@ import { type BacktestCaseRow } from "@/data/queries";
 import { simulateBacktest } from "@/lib/backtest.functions";
 import type { SimulationResult, Severity } from "@/lib/simulate-types";
 
+import { ProvenanceBadge } from "./ProvenanceBadge";
+
 function formatFine(usd: number): string {
   if (usd >= 1_000_000_000) return `$${(usd / 1_000_000_000).toFixed(1)}B`;
   if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(0)}M`;
@@ -53,10 +55,16 @@ export function BacktestCard({ bt }: { bt: BacktestCaseRow }) {
   return (
     <article className="glass-panel p-6 flex flex-col gap-5">
       <header>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-          Enforcement case · {dateLabel}
-        </p>
-        <h3 className="mt-2 font-display text-[22px] leading-[1.15] tracking-tight text-foreground">
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+            Enforcement case · {dateLabel}
+          </p>
+          <div className="flex items-center gap-1.5">
+            <ProvenanceBadge kind="synthetic" customLabel="Reconstructed" />
+            <ProvenanceBadge kind="source_text" customLabel="Official Fine" />
+          </div>
+        </div>
+        <h3 className="mt-1 font-display text-[22px] leading-[1.15] tracking-tight text-foreground">
           {bt.company}
         </h3>
         <p className="mt-2 font-display text-[36px] leading-[1] tracking-tight text-[var(--risk)] tabular-nums">

@@ -4,11 +4,11 @@ This is the complete runbook for moving ClauseGraph off Lovable Cloud onto
 **your own Supabase project** and **your own host**. Nothing in the app is
 Lovable-specific except three things, all replaceable:
 
-| Lovable dependency | What it does | Replacement |
-|---|---|---|
-| Lovable Cloud (Supabase) | Postgres, Auth, Storage | Your own Supabase project (or any Postgres + Supabase self-host) |
-| Lovable AI Gateway (`LOVABLE_API_KEY`) | LLM calls for every AI feature | Your own OpenAI / Google API key |
-| Lovable connector gateway | Injects Paddle API keys | Your own Paddle API keys, called directly |
+| Lovable dependency                     | What it does                   | Replacement                                                      |
+| -------------------------------------- | ------------------------------ | ---------------------------------------------------------------- |
+| Lovable Cloud (Supabase)               | Postgres, Auth, Storage        | Your own Supabase project (or any Postgres + Supabase self-host) |
+| Lovable AI Gateway (`LOVABLE_API_KEY`) | LLM calls for every AI feature | Your own OpenAI / Google API key                                 |
+| Lovable connector gateway              | Injects Paddle API keys        | Your own Paddle API keys, called directly                        |
 
 Estimated time: **60–90 minutes**, most of it waiting on DNS and provider
 dashboards.
@@ -115,11 +115,11 @@ END; $$;
 Four tables hold content, not user data, and must be copied for the app to be
 useful on day one:
 
-| Table | Rows | Why it matters |
-|---|---|---|
-| `regulations` (`org_id IS NULL`) | 10 | The ontology — every feature keys off these IDs |
-| `regulation_amendments` | ~30 | Predictive radar has no signal without history |
-| `backtest_cases` | 3 | Backtested Validation tab |
+| Table                                 | Rows    | Why it matters                                        |
+| ------------------------------------- | ------- | ----------------------------------------------------- |
+| `regulations` (`org_id IS NULL`)      | 10      | The ontology — every feature keys off these IDs       |
+| `regulation_amendments`               | ~30     | Predictive radar has no signal without history        |
+| `backtest_cases`                      | 3       | Backtested Validation tab                             |
 | `sample_contracts` + `sample_clauses` | 15 + 54 | Seeded into every new workspace by the signup trigger |
 
 Export from the old database and import into the new one:
@@ -165,7 +165,7 @@ Only needed if real customers already signed up.
 
 In the new project → **Authentication**:
 
-1. **Providers → Email**: enabled. Turn *Confirm email* **off** to match current
+1. **Providers → Email**: enabled. Turn _Confirm email_ **off** to match current
    behaviour (users are signed in immediately after sign-up).
 2. **Providers → Google**: enable, and paste a Google OAuth client ID/secret from
    Google Cloud Console. Authorized redirect URI:
@@ -182,8 +182,10 @@ In the new project → **Authentication**:
      options: { redirectTo: `${window.location.origin}/auth/callback` },
    });
    ```
+
    Then delete `src/integrations/lovable/` and its imports. Email/password
    sign-in needs no change.
+
 5. Optional but recommended: enable **leaked password protection** (HIBP) under
    Providers → Email.
 
@@ -232,7 +234,7 @@ Skip entirely while billing is parked.
 4. Put the Paddle **client** token in `VITE_PAYMENTS_CLIENT_TOKEN`
    (`test_...` in `.env.development`, `live_...` in `.env.production`).
 5. Turn billing on: `CREATE OR REPLACE FUNCTION public.billing_enabled() ...
-   SELECT true` **and** `BILLING_ENABLED = true` in `src/lib/plans.ts`.
+SELECT true` **and** `BILLING_ENABLED = true` in `src/lib/plans.ts`.
 
 ---
 
@@ -240,19 +242,19 @@ Skip entirely while billing is parked.
 
 Set these on your host. Server variables must **not** be prefixed `VITE_`.
 
-| Variable | Scope | Source |
-|---|---|---|
-| `VITE_SUPABASE_URL` | client | Supabase → API |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | client | Supabase → API (anon) |
-| `VITE_SUPABASE_PROJECT_ID` | client | Supabase project ref |
-| `SUPABASE_URL` | server | same as above |
-| `SUPABASE_PUBLISHABLE_KEY` | server | same as above |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | Supabase → API (service_role) |
-| `OPENAI_API_KEY` | server | OpenAI dashboard (replaces `LOVABLE_API_KEY`) |
-| `PADDLE_API_KEY` | server | Paddle → Authentication (only if billing on) |
-| `PAYMENTS_LIVE_WEBHOOK_SECRET` | server | Paddle notification settings |
-| `PAYMENTS_SANDBOX_WEBHOOK_SECRET` | server | Paddle sandbox notification settings |
-| `VITE_PAYMENTS_CLIENT_TOKEN` | client | Paddle → client-side token |
+| Variable                          | Scope  | Source                                        |
+| --------------------------------- | ------ | --------------------------------------------- |
+| `VITE_SUPABASE_URL`               | client | Supabase → API                                |
+| `VITE_SUPABASE_PUBLISHABLE_KEY`   | client | Supabase → API (anon)                         |
+| `VITE_SUPABASE_PROJECT_ID`        | client | Supabase project ref                          |
+| `SUPABASE_URL`                    | server | same as above                                 |
+| `SUPABASE_PUBLISHABLE_KEY`        | server | same as above                                 |
+| `SUPABASE_SERVICE_ROLE_KEY`       | server | Supabase → API (service_role)                 |
+| `OPENAI_API_KEY`                  | server | OpenAI dashboard (replaces `LOVABLE_API_KEY`) |
+| `PADDLE_API_KEY`                  | server | Paddle → Authentication (only if billing on)  |
+| `PAYMENTS_LIVE_WEBHOOK_SECRET`    | server | Paddle notification settings                  |
+| `PAYMENTS_SANDBOX_WEBHOOK_SECRET` | server | Paddle sandbox notification settings          |
+| `VITE_PAYMENTS_CLIENT_TOKEN`      | client | Paddle → client-side token                    |
 
 **The single most common self-host failure** is setting the client `VITE_*` vars
 but forgetting the server ones. Every `createServerFn` reads `process.env` at
@@ -268,7 +270,7 @@ The app is TanStack Start v1 on Vite 7 with a Nitro build. `vite.config.ts`
 already switches presets:
 
 - **Vercel** — `vercel.json` is committed; `bun run build` produces the Build
-  Output API bundle. Set all variables from §7 for *both* Production and Preview.
+  Output API bundle. Set all variables from §7 for _both_ Production and Preview.
 - **Cloudflare Workers** — default preset. `nodejs_compat` must be enabled.
 - **Netlify / Node / VPS** — set `NITRO_PRESET` accordingly (`netlify`,
   `node-server`) and run `bun run build`, then serve the output.
@@ -289,7 +291,7 @@ Then sign up a brand-new account and verify:
 
 ---
 
-## 9. Things that are *not* portable
+## 9. Things that are _not_ portable
 
 - **Lovable preview auth** — preview URLs and the share-preview flow are a
   Lovable feature; your own deployment is simply public.

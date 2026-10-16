@@ -30,6 +30,10 @@ export const simulateImpact = createServerFn({ method: "POST" })
       throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
     }
 
+    // Enforce in-memory sliding window rate limit
+    const { assertRateLimit, AI_RATE_LIMIT } = await import("./rate-limit.server");
+    assertRateLimit(`ai:simulate:${orgId}`, AI_RATE_LIMIT, "simulations");
+
     try {
       const { runImpactAnalysis } = await import("./impact/orchestrate.server");
       const analysis = await runImpactAnalysis(orgId, {

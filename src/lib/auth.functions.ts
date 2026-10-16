@@ -2,6 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import type { AuthUser } from "./auth.server";
 import { requireAuth } from "./auth-middleware";
 
+/**
+ * Helper to set secure, HttpOnly session cookie
+ */
+async function attachSessionCookie(token: string) {
+  try {
+    const { setCookie } = await import("@tanstack/react-start/server");
+    setCookie("clausegraph_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    });
+  } catch (err) {
+    console.warn("[auth] Error setting session cookie:", err instanceof Error ? err.message : err);
+  }
+}
+
 export const signInWithPasswordFn = createServerFn({ method: "POST" })
   .validator((input: { email: string; password: string }) => {
     const email = String(input?.email ?? "").trim();
@@ -10,8 +28,16 @@ export const signInWithPasswordFn = createServerFn({ method: "POST" })
     return { email, password };
   })
   .handler(async ({ data }): Promise<{ user: AuthUser; token: string }> => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { assertRateLimit, getClientIp, AUTH_RATE_LIMIT } = await import("./rate-limit.server");
+    const req = getRequest();
+    const ip = getClientIp(req?.headers);
+    assertRateLimit(`auth:login:${ip}`, AUTH_RATE_LIMIT, "login attempts");
+
     const { loginWithPassword } = await import("./auth.server");
-    return await loginWithPassword(data);
+    const result = await loginWithPassword({ ...data, ip });
+    await attachSessionCookie(result.token);
+    return result;
   });
 
 export const signUpWithPasswordFn = createServerFn({ method: "POST" })
@@ -24,14 +50,57 @@ export const signUpWithPasswordFn = createServerFn({ method: "POST" })
     return { email, password, fullName };
   })
   .handler(async ({ data }): Promise<{ user: AuthUser; token: string }> => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { assertRateLimit, getClientIp, AUTH_RATE_LIMIT } = await import("./rate-limit.server");
+    const req = getRequest();
+    const ip = getClientIp(req?.headers);
+    assertRateLimit(`auth:signup:${ip}`, AUTH_RATE_LIMIT, "account creation");
+
     const { registerUser } = await import("./auth.server");
-    return await registerUser(data);
+    const result = await registerUser({ ...data, ip });
+    await attachSessionCookie(result.token);
+    return result;
   });
 
 export const demoLoginFn = createServerFn({ method: "POST" }).handler(
   async (): Promise<{ user: AuthUser; token: string }> => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { assertRateLimit, getClientIp, AUTH_RATE_LIMIT } = await import("./rate-limit.server");
+    const req = getRequest();
+    const ip = getClientIp(req?.headers);
+    assertRateLimit(`auth:demo:${ip}`, AUTH_RATE_LIMIT, "demo login");
+
     const { ensureAndLoginDemoJudge } = await import("./auth.server");
-    return await ensureAndLoginDemoJudge();
+    const result = await ensureAndLoginDemoJudge({ ip });
+    await attachSessionCookie(result.token);
+    return result;
+  },
+);
+
+export const signOutFn = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ ok: boolean }> => {
+    try {
+      const { getRequest, deleteCookie } = await import("@tanstack/react-start/server");
+      const { revokeSession } = await import("./auth.server");
+      const req = getRequest();
+      let token: string | null = null;
+      const authHeader = req?.headers?.get("authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.replace("Bearer ", "").trim();
+      }
+      if (!token && req?.headers) {
+        const cookie = req.headers.get("cookie");
+        const m = cookie?.match(/clausegraph_token=([^;]+)/);
+        if (m) token = m[1];
+      }
+      if (token) {
+        await revokeSession(token);
+      }
+      deleteCookie("clausegraph_token", { path: "/" });
+    } catch (err) {
+      console.warn("[auth] Error in signOutFn:", err);
+    }
+    return { ok: true };
   },
 );
 
@@ -104,7 +173,7 @@ export const acceptInviteFn = createServerFn({ method: "POST" })
     return { token, password, fullName };
   })
   .handler(async ({ data }): Promise<{ user: AuthUser; token: string }> => {
-    const { verifyInviteToken, hashPassword, getUserDetails, signToken } =
+    const { verifyInviteToken, hashPassword, getUserDetails, signToken, recordSession } =
       await import("./auth.server");
     const { query, queryOne } = await import("./db.server");
 
@@ -147,5 +216,11 @@ export const acceptInviteFn = createServerFn({ method: "POST" })
     if (!user) throw new Error("Could not load user profile after accepting invitation.");
 
     const sessionToken = await signToken(user);
+    await recordSession({
+      userId: user.id,
+      orgId: user.orgId,
+      token: sessionToken,
+    });
+    await attachSessionCookie(sessionToken);
     return { user, token: sessionToken };
   });

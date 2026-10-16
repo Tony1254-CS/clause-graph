@@ -18,6 +18,7 @@ export type ChainEdge = {
   contract_value: number;
   key_clauses: string[];
   depends_on_regs: string[];
+  pass_through_factor?: number;
 };
 
 export type CascadeHit = {
@@ -96,6 +97,9 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
       } catch (quotaErr) {
         throw new Error(quotaErr instanceof Error ? quotaErr.message : "Quota exceeded");
       }
+
+      const { assertRateLimit, AI_RATE_LIMIT } = await import("./rate-limit.server");
+      assertRateLimit(`ai:supply-chain:${orgId}`, AI_RATE_LIMIT, "supply-chain cascades");
     }
 
     const [nodeRows, edgeRows] = await Promise.all([
@@ -128,92 +132,27 @@ export const simulateSupplyChainImpact = createServerFn({ method: "POST" })
     }));
     const valid = new Set(nodes.map((n) => n.id));
 
-    // Deterministic fallback: heuristic keyword match on depends_on_regs / description.
-    const heuristicHits = (): CascadeHit[] => {
-      const hits: CascadeHit[] = [];
-      const lower = data.regulationText.toLowerCase();
+    const { computeDeterministicBfsCascade } = await import("./supply-chain.server");
+    const deterministic = computeDeterministicBfsCascade(nodes, edges, data.regulationText);
 
-      for (const edge of edges) {
-        const matchesReg = edge.depends_on_regs.some((r) =>
-          lower.includes(r.toLowerCase().replace("reg-", "")),
-        );
-        const matchesKeyword =
-          lower.includes("transfer") ||
-          lower.includes("energy") ||
-          lower.includes("pci") ||
-          lower.includes("payment") ||
-          lower.includes("breach");
+    const hits: CascadeHit[] = deterministic.hits;
+    let summary = deterministic.summary;
+    let remediation: string[] = deterministic.remediation;
+    const fallback = deterministic.fallback;
 
-        if (matchesReg || matchesKeyword) {
-          const target = nodes.find((n) => n.id === edge.to_node_id);
-          const hop = target?.tier ?? 1;
-          hits.push({
-            node_id: edge.to_node_id,
-            hop,
-            reason: `Regulation matches dependency tag on edge "${edge.contract_name}".`,
-            broken_clause: edge.key_clauses[0] ?? "Adherence to applicable laws",
-            severity: hop === 1 ? "high" : hop === 2 ? "medium" : "low",
-            indirect_exposure_usd: Math.round(edge.contract_value * 0.4),
-          });
-        }
-      }
-
-      // Deduplicate by node_id keeping highest hop/severity
-      const byNode = new Map<string, CascadeHit>();
-      for (const h of hits) {
-        if (!byNode.has(h.node_id)) byNode.set(h.node_id, h);
-      }
-      return Array.from(byNode.values());
-    };
-
-    let hits: CascadeHit[] = [];
-    let summary = "";
-    let remediation: string[] = [];
-    let fallback = true;
-
-    if (nodes.length > 0 && edges.length > 0) {
-      const graphContext = {
-        nodes: nodes.map((n) => ({
-          id: n.id,
-          name: n.name,
-          role: n.role,
-          tier: n.tier,
-          jurisdiction: n.jurisdiction,
-          description: n.description,
-        })),
-        edges: edges.map((e) => ({
-          from: e.from_node_id,
-          to: e.to_node_id,
-          contract: e.contract_name,
-          value_usd: e.contract_value,
-          clauses: e.key_clauses,
-          depends_on: e.depends_on_regs,
-        })),
-      };
-
-      const system = `You are a supply-chain risk and legal-graph analyst. Given a multi-tier vendor graph (Tier 0 = self, Tier 1 = direct suppliers, Tier 2 = subprocessors, Tier 3 = critical utilities/networks) and a proposed regulation:
-1. Trace which upstream nodes are impacted.
-2. For each, determine the CASCADE HOP (how many edges away from self: Tier 1 = 1 hop, Tier 2 = 2 hops, etc.), the broken contract clause, severity, and indirect dollar exposure.
-3. Return 2-4 concrete remediation steps for the root organization.
-
+    // Optional AI enrichment for executive summary and customized remediation
+    if (nodes.length > 0 && edges.length > 0 && hits.length > 0) {
+      const system = `You are a supply-chain risk and legal-graph analyst. Given a multi-tier vendor dependency graph and the deterministic BFS impact cascade hits:
+1. Provide an executive summary of the supply chain exposure.
+2. Provide 2-4 concrete remediation steps for the root organization.
 Return STRICT JSON:
-{
-  "summary": string,
-  "hits": [{"node_id": string, "hop": number, "reason": string, "broken_clause": string, "severity": "low"|"medium"|"high", "indirect_exposure_usd": number}],
-  "remediation": [string]
-}
-Rules:
-- node_id MUST match an id from the provided nodes (never invent).
-- Do NOT include the self node in hits.
-- indirect_exposure_usd must be a positive number reflecting contractual exposure at risk.
-- remediation must be actionable contract/audit steps.
-- JSON only.`;
+{"summary": string, "remediation": [string]}`;
 
       const user = `PROPOSED REGULATION:
 ${data.regulationText}
 
-SUPPLY CHAIN GRAPH:
-${JSON.stringify(graphContext)}`;
+DETERMINISTIC BFS CASCADE HITS:
+${JSON.stringify(hits)}`;
 
       try {
         const content = await chatCompletion({
@@ -228,46 +167,23 @@ ${JSON.stringify(graphContext)}`;
 
         if (content) {
           try {
-            const parsed = JSON.parse(content);
-            const coerced = coerceHits(parsed, valid);
-            if (coerced && coerced.length > 0) {
-              hits = coerced;
-              summary =
-                typeof (parsed as { summary?: unknown }).summary === "string"
-                  ? (parsed as { summary: string }).summary
-                  : "";
-              const rem = (parsed as { remediation?: unknown }).remediation;
-              if (Array.isArray(rem)) remediation = rem.map(String).filter(Boolean).slice(0, 6);
-              fallback = false;
+            const parsed = JSON.parse(content) as { summary?: unknown; remediation?: unknown };
+            if (typeof parsed.summary === "string" && parsed.summary.trim()) {
+              summary = parsed.summary.trim();
+            }
+            if (Array.isArray(parsed.remediation) && parsed.remediation.length > 0) {
+              remediation = parsed.remediation.map(String).filter(Boolean).slice(0, 6);
             }
           } catch {
-            /* fall through */
+            /* fall back to deterministic summary */
           }
         }
       } catch (err) {
-        console.error("[supply-chain] exception", err);
+        console.error("[supply-chain] AI enrichment exception", err);
       }
     }
 
-    if (hits.length === 0) {
-      hits = heuristicHits();
-      summary =
-        summary ||
-        "Cascade traced from directly-impacted upstream provider back to your organization.";
-      remediation = remediation.length
-        ? remediation
-        : [
-            "Require your Tier-1 supplier to audit its own subprocessors for compliance with this rule.",
-            "Add a right-to-audit clause covering N-tier providers to your master services agreement.",
-            "Request written attestation from upstream vendors within 30 days of any regulatory change.",
-            "Model contract-value at risk quarterly for every hop in the dependency graph.",
-          ];
-    }
-
-    const total_indirect_exposure = hits
-      .filter((h) => h.hop > 0)
-      .reduce((s, h) => s + h.indirect_exposure_usd, 0);
-
+    const total_indirect_exposure = deterministic.total_indirect_exposure;
     const result: CascadeResult = { hits, summary, remediation, total_indirect_exposure, fallback };
 
     if (orgId) {

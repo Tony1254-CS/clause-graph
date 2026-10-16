@@ -23,52 +23,57 @@ flowchart LR
 ## 2. Tech Stack
 
 ### Frontend
-| Layer | Choice | Role |
-|---|---|---|
-| Framework | **React 19** | UI runtime |
-| Meta-framework | **TanStack Start v1** | SSR, file-based routing, server functions |
-| Router | **TanStack Router** | Type-safe file-based routing (`src/routes/`) |
-| Data | **TanStack Query v5** | Client cache, loader integration |
-| Bundler | **Vite** + `@tailwindcss/vite` | Dev/build |
-| Language | **TypeScript strict** | Type safety |
-| Styling | **Tailwind v4** (`@import` in `src/styles.css`) | Utility CSS |
-| UI kit | **shadcn/ui** on **Radix primitives** | Accessible components |
-| Icons | **lucide-react** | Line icons |
-| Fonts | **Sora** (display) / **Manrope** (body) / **JetBrains Mono** (data) | Typography |
-| Theme | Custom `theme-provider` | Light / Dark, `localStorage` persist |
-| PDF | **jspdf** | Action Plan export |
-| Validation | **zod** | Server-fn input validators |
-| Dates | **date-fns** | Formatting |
+
+| Layer          | Choice                                                              | Role                                         |
+| -------------- | ------------------------------------------------------------------- | -------------------------------------------- |
+| Framework      | **React 19**                                                        | UI runtime                                   |
+| Meta-framework | **TanStack Start v1**                                               | SSR, file-based routing, server functions    |
+| Router         | **TanStack Router**                                                 | Type-safe file-based routing (`src/routes/`) |
+| Data           | **TanStack Query v5**                                               | Client cache, loader integration             |
+| Bundler        | **Vite** + `@tailwindcss/vite`                                      | Dev/build                                    |
+| Language       | **TypeScript strict**                                               | Type safety                                  |
+| Styling        | **Tailwind v4** (`@import` in `src/styles.css`)                     | Utility CSS                                  |
+| UI kit         | **shadcn/ui** on **Radix primitives**                               | Accessible components                        |
+| Icons          | **lucide-react**                                                    | Line icons                                   |
+| Fonts          | **Sora** (display) / **Manrope** (body) / **JetBrains Mono** (data) | Typography                                   |
+| Theme          | Custom `theme-provider`                                             | Light / Dark, `localStorage` persist         |
+| PDF            | **jspdf**                                                           | Action Plan export                           |
+| Validation     | **zod**                                                             | Server-fn input validators                   |
+| Dates          | **date-fns**                                                        | Formatting                                   |
 
 ### Backend / Platform
-| Layer | Choice | Role |
-|---|---|---|
-| Database | **PostgreSQL 16+** | Relational data, RLS, stored functions, seed data |
-| DB Client | **`pg` (node-postgres)** | Connection pool, parameterized queries, transactions |
-| Authentication | **Native JWT + bcrypt** (`jose` + `bcryptjs`) | Password hashing & signed JWT sessions |
-| RPC | **TanStack `createServerFn`** (`@tanstack/react-start`) | Type-safe server functions |
-| HTTP routes | **TanStack file routes** under `src/routes/api/public/*` | Webhooks, health |
-| Auth Middleware | `requireAuth` (`src/lib/auth-middleware.server.ts`) | Bearer / Cookie JWT verification |
-| Container | **Docker & Docker Compose** | Self-contained multi-stage deployment |
+
+| Layer           | Choice                                                   | Role                                                 |
+| --------------- | -------------------------------------------------------- | ---------------------------------------------------- |
+| Database        | **PostgreSQL 16+**                                       | Relational data, RLS, stored functions, seed data    |
+| DB Client       | **`pg` (node-postgres)**                                 | Connection pool, parameterized queries, transactions |
+| Authentication  | **Native JWT + bcrypt** (`jose` + `bcryptjs`)            | Password hashing & signed JWT sessions               |
+| RPC             | **TanStack `createServerFn`** (`@tanstack/react-start`)  | Type-safe server functions                           |
+| HTTP routes     | **TanStack file routes** under `src/routes/api/public/*` | Webhooks, health                                     |
+| Auth Middleware | `requireAuth` (`src/lib/auth-middleware.server.ts`)      | Bearer / Cookie JWT verification                     |
+| Container       | **Docker & Docker Compose**                              | Self-contained multi-stage deployment                |
 
 ### AI
-| Task | Model | Provider |
-|---|---|---|
+
+| Task                                               | Model                    | Provider                   |
+| -------------------------------------------------- | ------------------------ | -------------------------- |
 | Contract extraction (text → clauses + linked_regs) | **GPT-4o-mini / Gemini** | Direct OpenAI / Gemini API |
-| Simulate Impact | **GPT-4o** | Direct OpenAI / Gemini API |
-| Action Plan (policy + amendments + checklist) | **GPT-4o** | Direct OpenAI / Gemini API |
-| Predictive amendment drafting | **GPT-4o** | Lovable AI Gateway |
-| Compliance-as-Code (Python audit + Terraform fix) | **GPT-4o** | Lovable AI Gateway |
+| Simulate Impact                                    | **GPT-4o**               | Direct OpenAI / Gemini API |
+| Action Plan (policy + amendments + checklist)      | **GPT-4o**               | Direct OpenAI / Gemini API |
+| Predictive amendment drafting                      | **GPT-4o**               | Lovable AI Gateway         |
+| Compliance-as-Code (Python audit + Terraform fix)  | **GPT-4o**               | Lovable AI Gateway         |
 
 All AI calls use `LOVABLE_API_KEY` — no per-model keys.
 
 ### Billing
+
 - **Paddle** Billing (Sandbox + Live)
 - **`@paddle/paddle-node-sdk`** on the server for pro-rated swaps, subscription reads
 - **Paddle.js** on the client for the checkout overlay
 - Webhook: `POST /api/public/payments/webhook` with HMAC signature verification
 
 ### External
+
 - **Federal Register API** (`api.federalregister.gov/api/v1/documents`) — live curated feed alongside the internal ontology.
 
 ---
@@ -202,6 +207,7 @@ flowchart TB
 ```
 
 **Three Supabase clients** — each has a distinct trust boundary:
+
 1. **Browser client** (`@/integrations/supabase/client`) — publishable key + user session. Used for auth flows and realtime.
 2. **`requireSupabaseAuth` middleware** — server-side, publishable key + bearer token. Default for user-scoped server functions. RLS applies as the caller.
 3. **`supabaseAdmin`** (`client.server.ts`) — service-role, bypasses RLS. Used only inside verified webhook handlers and privileged maintenance code, loaded via dynamic `import()` inside handlers.
@@ -271,6 +277,7 @@ sequenceDiagram
 ### 5.4 Quota + Trial Downgrade
 
 `assert_within_quota(_org, _action)` runs before every gated write:
+
 1. Read `organizations.plan` and `trial_ends_at`.
 2. If plan is `pro`, trial expired, and there is no active/trialing paid subscription → downgrade to `free` (lazy).
 3. Count usage vs. limit for `_action` in {`upload_contract`, `run_simulation`, `invite_teammate`}.
@@ -322,22 +329,22 @@ erDiagram
 
 ### 6.2 Table inventory
 
-| Table | Purpose | Tenanted by |
-|---|---|---|
-| `organizations` | Workspace tenant + plan state | — (is the tenant) |
-| `profiles` | 1:1 with `auth.users`, holds `org_id` | `org_id` |
-| `user_roles` | Roles, kept off `profiles` on purpose | `user_id` + `org_id` |
-| `contracts` | Uploaded + seeded contracts | `org_id` |
-| `clauses` | Extracted clauses, cite regulation IDs | via `contract_id` |
-| `regulations` | Ontology; `org_id IS NULL` = curated global | `org_id` nullable |
-| `regulation_amendments` | Amendment history feeding the radar | global |
-| `simulation_runs` | Persisted blast-radius runs | `org_id` |
-| `compliance_artifacts` | Compliance-as-Code outputs | `org_id` |
-| `supply_chain_nodes` / `_edges` | Cross-enterprise graph | `org_id` |
-| `backtest_cases` | Real enforcement cases (public read) | global |
-| `sample_contracts` / `sample_clauses` | Seed corpus copied into each new workspace | global |
-| `subscriptions` | Paddle subscriptions (dormant while billing is parked) | `org_id` / `user_id` |
-| `paddle_events` | Webhook idempotency ledger | global |
+| Table                                 | Purpose                                                | Tenanted by          |
+| ------------------------------------- | ------------------------------------------------------ | -------------------- |
+| `organizations`                       | Workspace tenant + plan state                          | — (is the tenant)    |
+| `profiles`                            | 1:1 with `auth.users`, holds `org_id`                  | `org_id`             |
+| `user_roles`                          | Roles, kept off `profiles` on purpose                  | `user_id` + `org_id` |
+| `contracts`                           | Uploaded + seeded contracts                            | `org_id`             |
+| `clauses`                             | Extracted clauses, cite regulation IDs                 | via `contract_id`    |
+| `regulations`                         | Ontology; `org_id IS NULL` = curated global            | `org_id` nullable    |
+| `regulation_amendments`               | Amendment history feeding the radar                    | global               |
+| `simulation_runs`                     | Persisted blast-radius runs                            | `org_id`             |
+| `compliance_artifacts`                | Compliance-as-Code outputs                             | `org_id`             |
+| `supply_chain_nodes` / `_edges`       | Cross-enterprise graph                                 | `org_id`             |
+| `backtest_cases`                      | Real enforcement cases (public read)                   | global               |
+| `sample_contracts` / `sample_clauses` | Seed corpus copied into each new workspace             | global               |
+| `subscriptions`                       | Paddle subscriptions (dormant while billing is parked) | `org_id` / `user_id` |
+| `paddle_events`                       | Webhook idempotency ledger                             | global               |
 
 ### 6.3 Enum + shared trigger helper
 
@@ -873,7 +880,6 @@ inside the `extractContract` server function. No public bucket exists.
 INSERT INTO storage.buckets (id, name, public) VALUES ('contract-files', 'contract-files', false);
 ```
 
-
 ---
 
 ## 7. Auth & Multi-Tenancy
@@ -896,10 +902,10 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('contract-files', 'contra
 
 ### The two switches
 
-| Switch | Location | Parked value |
-|---|---|---|
-| Database | `public.billing_enabled()` | `SELECT false` |
-| Frontend | `BILLING_ENABLED` in `src/lib/plans.ts` | `false` |
+| Switch   | Location                                | Parked value   |
+| -------- | --------------------------------------- | -------------- |
+| Database | `public.billing_enabled()`              | `SELECT false` |
+| Frontend | `BILLING_ENABLED` in `src/lib/plans.ts` | `false`        |
 
 Flip **both** to `true` to go commercial. Effects of the parked state:
 
@@ -920,11 +926,11 @@ Flip **both** to `true` to go commercial. Effects of the parked state:
 
 ### Plan matrix (applies only once billing is enabled)
 
-| Plan | Contracts | Simulations / month | Members | Price |
-|---|---|---|---|---|
-| Free | 3 | 5 | 1 | $0 |
-| Pro | 50 | 100 | 3 | $49 / mo |
-| Team | ∞ | ∞ | ∞ | $199 / mo |
+| Plan | Contracts | Simulations / month | Members | Price     |
+| ---- | --------- | ------------------- | ------- | --------- |
+| Free | 3         | 5                   | 1       | $0        |
+| Pro  | 50        | 100                 | 3       | $49 / mo  |
+| Team | ∞         | ∞                   | ∞       | $199 / mo |
 
 Enforced by `public.assert_within_quota` at the DB layer — bypassing the client cannot exceed the limit.
 
@@ -932,18 +938,17 @@ Dunning: `past_due` keeps read access but blocks quota-bumped actions; a banner 
 
 Soft-delete: `request_workspace_deletion` schedules deletion 30 days out and stays cancellable by admins — **active regardless of billing state**.
 
-
 ---
 
 ## 9. AI Pipelines
 
-| Function | Model | Input contract | Output contract |
-|---|---|---|---|
-| `extractContract` | Gemini 2.5 Flash | PDF bytes + ontology JSON | `{ name, counterparty, value, clauses: [{text, linked_regs[]}] }` |
-| `simulateImpact` | GPT-4o | Regulation text + org contracts + ontology | `{ impactedContracts: [{id, severity, reasoning, amendment}], totalExposureUsd }` |
-| `generateActionPlan` | GPT-4o | Simulation result + org context | `{ policyDraft, amendments[], techChecklist[], timelineWeeks }` |
-| `predictAmendment` | GPT-4o | Historical `regulation_amendments` + target regulation | `{ hypotheticalText, likelihood, monthsAhead }` |
-| `generateComplianceCode` | GPT-4o | Regulation gap + stack (e.g. "AWS + PostgreSQL") | `{ auditScript: {language, code}, remediation: {language, code}, runbook, testCases[] }` |
+| Function                 | Model            | Input contract                                         | Output contract                                                                          |
+| ------------------------ | ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `extractContract`        | Gemini 2.5 Flash | PDF bytes + ontology JSON                              | `{ name, counterparty, value, clauses: [{text, linked_regs[]}] }`                        |
+| `simulateImpact`         | GPT-4o           | Regulation text + org contracts + ontology             | `{ impactedContracts: [{id, severity, reasoning, amendment}], totalExposureUsd }`        |
+| `generateActionPlan`     | GPT-4o           | Simulation result + org context                        | `{ policyDraft, amendments[], techChecklist[], timelineWeeks }`                          |
+| `predictAmendment`       | GPT-4o           | Historical `regulation_amendments` + target regulation | `{ hypotheticalText, likelihood, monthsAhead }`                                          |
+| `generateComplianceCode` | GPT-4o           | Regulation gap + stack (e.g. "AWS + PostgreSQL")       | `{ auditScript: {language, code}, remediation: {language, code}, runbook, testCases[] }` |
 
 Every AI call has a **fallback**: deterministic JSON (`simulate-fallback.ts`, `action-plan-fallback.ts`, `backtest_cases.fallback`) is returned if the LLM errors or returns unparseable JSON. Users never see a raw failure.
 
@@ -953,16 +958,16 @@ Every AI call has a **fallback**: deterministic JSON (`simulate-fallback.ts`, `a
 
 **Palette** (from `src/styles.css`):
 
-| Token | Value | Use |
-|---|---|---|
-| `--bg-obsidian` | `#07090C` | Root background |
-| `--surface-glass` | `rgba(255,255,255,0.04)` + `backdrop-blur(20px)` | Panels |
-| `--surface-raised` | `#0F1216` | Solid backing under glass |
-| `--mint` | `#5EEAD4` | Single accent — active states, primary CTA, radar pulse |
-| `--risk-red` | `#E1524B` | Reserved for exposure/severity states |
-| `--text-primary` | `#F2F0EA` (warm off-white) | Body text |
-| `--text-muted` | `#9C978E` | Secondary/captions |
-| `--hairline` | `rgba(94,234,212,0.14)` | Dividers |
+| Token              | Value                                            | Use                                                     |
+| ------------------ | ------------------------------------------------ | ------------------------------------------------------- |
+| `--bg-obsidian`    | `#07090C`                                        | Root background                                         |
+| `--surface-glass`  | `rgba(255,255,255,0.04)` + `backdrop-blur(20px)` | Panels                                                  |
+| `--surface-raised` | `#0F1216`                                        | Solid backing under glass                               |
+| `--mint`           | `#5EEAD4`                                        | Single accent — active states, primary CTA, radar pulse |
+| `--risk-red`       | `#E1524B`                                        | Reserved for exposure/severity states                   |
+| `--text-primary`   | `#F2F0EA` (warm off-white)                       | Body text                                               |
+| `--text-muted`     | `#9C978E`                                        | Secondary/captions                                      |
+| `--hairline`       | `rgba(94,234,212,0.14)`                          | Dividers                                                |
 
 **Typography**: Sora (display) / Manrope (UI) / JetBrains Mono (IDs, dollars, timestamps — "the system's citation").
 
@@ -980,29 +985,29 @@ Every AI call has a **fallback**: deterministic JSON (`simulate-fallback.ts`, `a
 
 ## 11. Routing Map
 
-| URL | File | Auth | Purpose |
-|---|---|---|---|
-| `/` | `routes/index.tsx` | public | Landing |
-| `/auth` | `routes/auth.tsx` | public | Sign in / up |
-| `/reset-password` | `routes/reset-password.tsx` | public | Password reset |
-| `/privacy`, `/terms`, `/refund` | ... | public | Legal |
-| `/dashboard` | `_authenticated/dashboard.tsx` | user | Portfolio + medallion |
-| `/contracts` | `_authenticated/contracts.index.tsx` | user | List |
-| `/contracts/:contractId` | `contracts.$contractId.tsx` | user | Detail |
-| `/feed` | `feed.tsx` | user | Ontology + Federal Register |
-| `/regulations/:regId` | `regulations.$regId.tsx` | user | Regulation detail |
-| `/simulate` | `simulate.tsx` | user | Simulate Impact |
-| `/backtest` | `backtest.tsx` | user | Historical validation |
-| `/actions` | `actions.tsx` | user | Action Plan + PDF |
-| `/predictive` | `predictive.tsx` | user | Radar |
-| `/predictive/:regulationId` | `predictive.$regulationId.tsx` | user | Forecast detail |
-| `/what-if` | `what-if.tsx` | user | Hypothetical sandbox |
-| `/supply-chain` | `supply-chain.tsx` | user | Cross-enterprise + Compliance-as-Code |
-| `/settings/account` | `settings.account.tsx` | user | Profile + delete workspace |
-| `/settings/billing` | `settings.billing.tsx` | user | Plan + usage |
-| `/settings/team` | `settings.team.tsx` | user | Invites + roles |
-| `/api/public/health` | `api/public/health.ts` | public | Health |
-| `/api/public/payments/webhook` | `api/public/payments/webhook.ts` | public + HMAC | Paddle |
+| URL                             | File                                 | Auth          | Purpose                               |
+| ------------------------------- | ------------------------------------ | ------------- | ------------------------------------- |
+| `/`                             | `routes/index.tsx`                   | public        | Landing                               |
+| `/auth`                         | `routes/auth.tsx`                    | public        | Sign in / up                          |
+| `/reset-password`               | `routes/reset-password.tsx`          | public        | Password reset                        |
+| `/privacy`, `/terms`, `/refund` | ...                                  | public        | Legal                                 |
+| `/dashboard`                    | `_authenticated/dashboard.tsx`       | user          | Portfolio + medallion                 |
+| `/contracts`                    | `_authenticated/contracts.index.tsx` | user          | List                                  |
+| `/contracts/:contractId`        | `contracts.$contractId.tsx`          | user          | Detail                                |
+| `/feed`                         | `feed.tsx`                           | user          | Ontology + Federal Register           |
+| `/regulations/:regId`           | `regulations.$regId.tsx`             | user          | Regulation detail                     |
+| `/simulate`                     | `simulate.tsx`                       | user          | Simulate Impact                       |
+| `/backtest`                     | `backtest.tsx`                       | user          | Historical validation                 |
+| `/actions`                      | `actions.tsx`                        | user          | Action Plan + PDF                     |
+| `/predictive`                   | `predictive.tsx`                     | user          | Radar                                 |
+| `/predictive/:regulationId`     | `predictive.$regulationId.tsx`       | user          | Forecast detail                       |
+| `/what-if`                      | `what-if.tsx`                        | user          | Hypothetical sandbox                  |
+| `/supply-chain`                 | `supply-chain.tsx`                   | user          | Cross-enterprise + Compliance-as-Code |
+| `/settings/account`             | `settings.account.tsx`               | user          | Profile + delete workspace            |
+| `/settings/billing`             | `settings.billing.tsx`               | user          | Plan + usage                          |
+| `/settings/team`                | `settings.team.tsx`                  | user          | Invites + roles                       |
+| `/api/public/health`            | `api/public/health.ts`               | public        | Health                                |
+| `/api/public/payments/webhook`  | `api/public/payments/webhook.ts`     | public + HMAC | Paddle                                |
 
 ---
 
@@ -1010,14 +1015,14 @@ Every AI call has a **fallback**: deterministic JSON (`simulate-fallback.ts`, `a
 
 Server-only (never exposed to browser):
 
-| Secret | Purpose |
-|---|---|
-| `LOVABLE_API_KEY` | Lovable AI Gateway |
-| `PADDLE_SANDBOX_API_KEY`, `PADDLE_LIVE_API_KEY` | Paddle Node SDK |
-| `PAYMENTS_SANDBOX_WEBHOOK_SECRET`, `PAYMENTS_LIVE_WEBHOOK_SECRET` | Webhook HMAC |
-| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | Server publishable client |
-| `SUPABASE_SERVICE_ROLE_KEY` | Managed by Lovable Cloud — not user-fetchable |
-| `SUPABASE_DB_URL` | Managed by Lovable Cloud |
+| Secret                                                            | Purpose                                       |
+| ----------------------------------------------------------------- | --------------------------------------------- |
+| `LOVABLE_API_KEY`                                                 | Lovable AI Gateway                            |
+| `PADDLE_SANDBOX_API_KEY`, `PADDLE_LIVE_API_KEY`                   | Paddle Node SDK                               |
+| `PAYMENTS_SANDBOX_WEBHOOK_SECRET`, `PAYMENTS_LIVE_WEBHOOK_SECRET` | Webhook HMAC                                  |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`                        | Server publishable client                     |
+| `SUPABASE_SERVICE_ROLE_KEY`                                       | Managed by Lovable Cloud — not user-fetchable |
+| `SUPABASE_DB_URL`                                                 | Managed by Lovable Cloud                      |
 
 Client-visible (`import.meta.env`):
 
@@ -1054,4 +1059,3 @@ Lovable Cloud. To move this project to your own Supabase project and your own
 host, follow **[`MIGRATION.md`](./MIGRATION.md)**: it replays §6.3 → §6.9 as a
 single SQL script, lists every environment variable with its new source, and
 covers Auth providers, Storage, Paddle re-wiring and DNS.
-

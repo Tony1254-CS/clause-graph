@@ -66,7 +66,14 @@ export async function acceptInvite(token: string, password: string, fullName?: s
 }
 
 export async function signOut() {
-  clearSession();
+  try {
+    const { signOutFn } = await import("./auth.functions");
+    await signOutFn();
+  } catch (err) {
+    console.warn("[auth] signOut error", err);
+  } finally {
+    clearSession();
+  }
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {

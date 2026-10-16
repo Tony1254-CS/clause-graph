@@ -34,6 +34,7 @@ import type {
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 import { RouteError } from "@/components/clausegraph/RouteError";
+import { ProvenanceBadge } from "@/components/clausegraph/ProvenanceBadge";
 
 export const Route = createFileRoute("/_authenticated/simulate")({
   validateSearch: (search: Record<string, unknown>): { text?: string; eventId?: string } => ({
@@ -559,18 +560,16 @@ function SimulatePage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {Math.round(card.confidence * 100)}% confidence
                         </span>
-                        {card.origin === "ai" ? (
-                          <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            AI Interpretation
-                          </span>
+                        {card.review_status === "approved" ? (
+                          <ProvenanceBadge kind="human_approved" />
+                        ) : card.origin === "ai" ? (
+                          <ProvenanceBadge kind="ai_interpretation" />
                         ) : (
-                          <span className="font-mono text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                            Deterministic Rule
-                          </span>
+                          <ProvenanceBadge kind="heuristic" />
                         )}
                       </div>
                     </div>

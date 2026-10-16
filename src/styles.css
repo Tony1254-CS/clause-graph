@@ -82,7 +82,7 @@
   --surface-glass: rgba(255, 255, 255, 0.44);
   --surface-glass-strong: rgba(255, 255, 255, 0.66);
 
-  --hairline: rgba(11, 18, 32, 0.10);
+  --hairline: rgba(11, 18, 32, 0.1);
   --hairline-strong: rgba(14, 164, 143, 0.28);
   --shadow-soft: 0 24px 70px -34px rgba(10, 22, 28, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
   --shadow-lift: 0 36px 100px -42px rgba(6, 18, 26, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -202,7 +202,8 @@
 }
 
 @keyframes brass-rim-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
       0 0 0 1px var(--hairline-strong),
       0 0 36px -14px color-mix(in oklab, var(--brass) 56%, transparent);
@@ -215,44 +216,100 @@
 }
 
 @keyframes radar-breathe {
-  0%, 100% { opacity: 0.58; transform: scale(0.985); }
-  50% { opacity: 1; transform: scale(1.015); }
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.985);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
 }
 
 /* ── Premium motion primitives ─────────────────────────────── */
 @keyframes fade-up {
-  from { opacity: 0; transform: translate3d(0, 10px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 @keyframes fade-in-soft {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes scale-in-soft {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes blur-in {
-  from { opacity: 0; filter: blur(8px); transform: translate3d(0, 6px, 0); }
-  to   { opacity: 1; filter: blur(0);   transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 @keyframes shimmer-sweep {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 @keyframes ambient-drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  50%  { transform: translate3d(3%, -2%, 0) scale(1.06); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 @keyframes mint-glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brass) 0%, transparent), var(--glow-brass); }
-  50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--brass) 18%, transparent), var(--glow-brass); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in oklab, var(--brass) 0%, transparent),
+      var(--glow-brass);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px color-mix(in oklab, var(--brass) 18%, transparent),
+      var(--glow-brass);
+  }
 }
 @keyframes nav-progress {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(0%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @utility radar-breathe {
@@ -264,13 +321,14 @@
 }
 
 @utility transition-ui {
-  transition: color 180ms cubic-bezier(0.25, 1, 0.5, 1),
-              background-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
-              border-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
-              box-shadow 220ms cubic-bezier(0.25, 1, 0.5, 1),
-              transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
-              opacity 180ms cubic-bezier(0.25, 1, 0.5, 1),
-              filter 220ms cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    filter 220ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @utility animate-fade-up {
@@ -295,9 +353,10 @@
 
 /* Card lift / press primitives */
 @utility hover-lift {
-  transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
-              box-shadow 220ms cubic-bezier(0.25, 1, 0.5, 1),
-              border-color 220ms cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 220ms cubic-bezier(0.25, 1, 0.5, 1);
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lift);
@@ -305,7 +364,9 @@
   }
 }
 @utility press {
-  &:active { transform: scale(0.975); }
+  &:active {
+    transform: scale(0.975);
+  }
 }
 
 /* Shimmer skeleton */
@@ -340,8 +401,9 @@
   html {
     background-color: var(--page-bg);
     color-scheme: light;
-    transition: background-color 400ms cubic-bezier(0.25, 1, 0.5, 1),
-                color 400ms cubic-bezier(0.25, 1, 0.5, 1);
+    transition:
+      background-color 400ms cubic-bezier(0.25, 1, 0.5, 1),
+      color 400ms cubic-bezier(0.25, 1, 0.5, 1);
     scroll-behavior: smooth;
   }
 
@@ -362,8 +424,11 @@
   }
 
   body {
-    background-image:
-      radial-gradient(ellipse 60% 45% at 50% 0%, color-mix(in oklab, var(--hairline) 30%, transparent), transparent 70%);
+    background-image: radial-gradient(
+      ellipse 60% 45% at 50% 0%,
+      color-mix(in oklab, var(--hairline) 30%, transparent),
+      transparent 70%
+    );
     background-attachment: fixed;
     min-height: 100dvh;
   }
@@ -387,27 +452,37 @@
     outline: 2px solid color-mix(in oklab, var(--brass) 85%, transparent);
     outline-offset: 2px;
     border-radius: 12px;
-    transition: outline-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
-                outline-offset 180ms cubic-bezier(0.25, 1, 0.5, 1);
+    transition:
+      outline-color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+      outline-offset 180ms cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   /* Buttons and links get a buttery default UI transition */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
   }
 }
 
 /* Reduced motion — respect user preference everywhere */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .rim-pulse, .radar-breathe, .ambient-drift, .mint-glow-pulse, .shimmer { animation: none !important; }
+  .rim-pulse,
+  .radar-breathe,
+  .ambient-drift,
+  .mint-glow-pulse,
+  .shimmer {
+    animation: none !important;
+  }
 }
-
 
 @utility glass-input {
   background: var(--surface-glass-strong);
@@ -417,7 +492,10 @@
   color: var(--foreground);
   font-size: 14px;
   outline: none;
-  transition: border-color 180ms ease-out, background-color 180ms ease-out, box-shadow 180ms ease-out;
+  transition:
+    border-color 180ms ease-out,
+    background-color 180ms ease-out,
+    box-shadow 180ms ease-out;
   &:focus {
     border-color: var(--ink);
     background: var(--surface-raised);
@@ -425,9 +503,24 @@
   }
 }
 
-.premium-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-.premium-scrollbar::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--brass) 34%, transparent); border-radius: 9999px; }
-.premium-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.premium-scrollbar { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--brass) 34%, transparent) transparent; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { scrollbar-width: none; }
+.premium-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.premium-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--brass) 34%, transparent);
+  border-radius: 9999px;
+}
+.premium-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.premium-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--brass) 34%, transparent) transparent;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}

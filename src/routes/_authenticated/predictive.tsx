@@ -9,6 +9,7 @@ import {
   type ProbabilityBand,
 } from "@/lib/predict.functions";
 import { Button } from "@/components/ui/button";
+import { ProvenanceBadge } from "@/components/clausegraph/ProvenanceBadge";
 
 export const forecastsQuery = () =>
   queryOptions({
@@ -121,11 +122,12 @@ function RadarDashboard() {
       <div className="w-full max-w-[1280px] mx-auto">
         <header className="flex flex-wrap items-end justify-between gap-6 mb-8">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Radar className="h-4 w-4 text-brass" strokeWidth={1.6} />
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
                 Predictive Radar
               </p>
+              <ProvenanceBadge kind="heuristic" customLabel="Cadence Heuristic" />
             </div>
             <h1 className="mt-3 font-display text-[34px] leading-[1.1] tracking-tight text-foreground">
               Which regulations move next.

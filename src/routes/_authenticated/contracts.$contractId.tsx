@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { ClauseRow } from "@/components/clausegraph/ClauseRow";
 import { contractQuery, formatUSD } from "@/data/queries";
+import { ProvenanceBadge } from "@/components/clausegraph/ProvenanceBadge";
 
 export const Route = createFileRoute("/_authenticated/contracts/$contractId")({
   head: ({ loaderData }) => {
@@ -69,10 +70,15 @@ function ContractDetail() {
       </Link>
 
       <header className="glass-panel p-8 mb-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-brass">
-            {contract.id}
-          </span>
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-brass">
+              {contract.id}
+            </span>
+            {contract.is_synthetic && (
+              <ProvenanceBadge kind="synthetic" customLabel="Synthetic Demo" />
+            )}
+          </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
             {contract.clauses.length} clauses
           </span>
