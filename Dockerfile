@@ -24,8 +24,7 @@ ENV PORT=3000
 # Copy output build and package definitions
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.output ./.output 2>/dev/null || true
-COPY --from=builder /app/dist ./dist 2>/dev/null || true
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
 
 EXPOSE 3000
