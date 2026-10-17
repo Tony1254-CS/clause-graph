@@ -14,15 +14,22 @@ export default defineConfig({
     react(),
   ],
   server: {
+    host: "0.0.0.0",
     allowedHosts: [
       "clause-graph.onrender.com",
       ".onrender.com",
       "localhost",
       "127.0.0.1",
     ],
-    hmr: {
-      clientPort: 5173,
-    },
+  },
+  preview: {
+    host: "0.0.0.0",
+    allowedHosts: [
+      "clause-graph.onrender.com",
+      ".onrender.com",
+      "localhost",
+      "127.0.0.1",
+    ],
   },
 });
 
