@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { createFileRoute, Link, Outlet, useMatches, useRouter } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -105,41 +106,189 @@ const BAND_STYLE: Record<ProbabilityBand, { pill: string; label: string }> = {
 
 function PredictiveLayout() {
   const matches = useMatches();
-  const onDetail = matches.some((m) => m.routeId.includes("predictive.$regulationId"));
+  const onDetail = matches.some(
+    (m) =>
+      m.routeId.includes("$regulationId") ||
+      m.pathname.startsWith("/predictive/") ||
+      m.routeId === "/_authenticated/predictive/$regulationId"
+  );
   if (onDetail) return <Outlet />;
   return <RadarDashboard />;
 }
 
 function RadarDashboard() {
   const { data: forecasts } = useSuspenseQuery(forecastsQuery());
+  const [filterBand, setFilterBand] = useState<"all" | ProbabilityBand>("all");
+
+  const highRiskCount = useMemo(
+    () => forecasts.filter((f) => f.band === "high").length,
+    [forecasts]
+  );
+  const avgWindow = useMemo(() => {
+    if (!forecasts.length) return 0;
+    const sum = forecasts.reduce((acc, f) => acc + f.window_months, 0);
+    return Math.round(sum / forecasts.length);
+  }, [forecasts]);
+
+  const filteredForecasts = useMemo(() => {
+    if (filterBand === "all") return forecasts;
+    return forecasts.filter((f) => f.band === filterBand);
+  }, [forecasts, filterBand]);
+
   return (
     <AppShell>
-      <div className="w-full max-w-[1280px] mx-auto">
-        <header className="flex flex-wrap items-end justify-between gap-6 mb-8">
-          <div className="max-w-2xl">
+      <div className="w-full max-w-[1400px] mx-auto space-y-8">
+        {/* Top Header & Context Banner */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[var(--hairline)]">
+          <div>
             <div className="flex items-center gap-2">
-              <Radar className="h-4 w-4 text-brass" strokeWidth={1.6} />
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">
-                Predictive Radar
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
+                Predictive Intelligence &middot; Amendment Horizon
               </p>
             </div>
-            <h1 className="mt-3 font-display text-[34px] leading-[1.1] tracking-tight text-foreground">
-              Which regulations move next.
+            <h1 className="mt-2 text-2xl sm:text-3xl font-display font-semibold tracking-tight text-foreground">
+              Predictive Regulatory Radar
             </h1>
-            <p className="mt-3 text-[13.5px] leading-[1.65] text-muted-foreground">
-              A heuristic forecast built from each regulation's own public amendment history:
-              average interval between amendments, time since the last one, and a small editorial
-              signal from active regulatory chatter. Click any card to draft an adversarial
-              what-if amendment and run it through the live blast-radius pipeline.
-            </p>
-            <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground/80">
-              Heuristic forecast · Public record only · Not a leak, not a legal prediction
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground max-w-2xl">
+              Heuristic probability modeling built from statutory cadence, historical amendment intervals,
+              and active public consultation chatter.
             </p>
           </div>
-        </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {forecasts.map((f) => (
+          {/* Quick Metrics Bar */}
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl border border-[var(--hairline)] bg-[rgba(255,255,255,0.02)] px-4 py-2 backdrop-blur-md">
+              <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Monitored</span>
+              <span className="font-mono text-sm font-semibold text-foreground">{forecasts.length} Frameworks</span>
+            </div>
+            <div className="rounded-xl border border-[var(--risk)]/25 bg-[var(--risk)]/10 px-4 py-2 backdrop-blur-md">
+              <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--risk)]">High Horizon</span>
+              <span className="font-mono text-sm font-semibold text-[var(--risk)]">{highRiskCount} Imminent</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Executive Predictive KPI Summary Strip ──────────────────────── */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* KPI 1 */}
+          <div className="group relative overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 hover:border-[color-mix(in_oklab,var(--risk)_45%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(225,82,75,0.18)]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--risk)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Imminent Amendment Risk
+              </span>
+              <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/5 bg-white/[0.04] text-[var(--risk)]">
+                <Radar className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="mt-3 font-mono text-[28px] font-bold tracking-tight text-[var(--risk)]">
+              {highRiskCount}{" "}
+              <span className="text-[14px] font-normal text-muted-foreground">regulations</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--risk)] shadow-[0_0_8px_var(--risk)] animate-pulse" />
+              High probability of revisions within window
+            </div>
+          </div>
+
+          {/* KPI 2 */}
+          <div className="group relative overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 hover:border-[color-mix(in_oklab,var(--brass)_45%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(94,234,212,0.18)]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Average Forecast Horizon
+              </span>
+              <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/5 bg-white/[0.04] text-[var(--brass)]">
+                <span className="font-mono text-xs font-bold">&le; mo</span>
+              </div>
+            </div>
+            <div className="mt-3 font-mono text-[28px] font-bold tracking-tight text-foreground">
+              ~{avgWindow}{" "}
+              <span className="text-[14px] font-normal text-muted-foreground">months</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+              Statutory cycle between historical updates
+            </div>
+          </div>
+
+          {/* KPI 3 */}
+          <div className="group relative overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 hover:border-[color-mix(in_oklab,var(--brass)_45%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(94,234,212,0.18)]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Public Signal Feed
+              </span>
+              <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/5 bg-white/[0.04] text-[var(--brass)]">
+                <span className="flex h-2 w-2 rounded-full bg-[var(--brass)] animate-ping" />
+              </div>
+            </div>
+            <div className="mt-3 font-mono text-[28px] font-bold tracking-tight text-foreground">
+              Active{" "}
+              <span className="text-[14px] font-normal text-muted-foreground">indices</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+              Public record cadence &middot; Zero non-public leaks
+            </div>
+          </div>
+        </section>
+
+        {/* ── Filter Controls Bar ─────────────────────────────────────────── */}
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-[var(--hairline)] bg-[var(--surface-raised)]/40 p-3 backdrop-blur-xl">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-2">
+              Filter by Horizon:
+            </span>
+            <button
+              onClick={() => setFilterBand("all")}
+              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                filterBand === "all"
+                  ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
+                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+              }`}
+            >
+              All Frameworks ({forecasts.length})
+            </button>
+            <button
+              onClick={() => setFilterBand("high")}
+              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                filterBand === "high"
+                  ? "border border-[color-mix(in_oklab,var(--risk)_35%,transparent)] bg-[color-mix(in_oklab,var(--risk)_18%,transparent)] text-[var(--risk)] shadow-sm font-semibold"
+                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+              }`}
+            >
+              High Risk ({highRiskCount})
+            </button>
+            <button
+              onClick={() => setFilterBand("medium")}
+              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                filterBand === "medium"
+                  ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm font-semibold"
+                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+              }`}
+            >
+              Medium Risk
+            </button>
+            <button
+              onClick={() => setFilterBand("low")}
+              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                filterBand === "low"
+                  ? "border border-white/20 bg-white/10 text-foreground shadow-sm"
+                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+              }`}
+            >
+              Low / Stable
+            </button>
+          </div>
+
+          <span className="font-mono text-[10px] text-muted-foreground pr-2">
+            Click any card to simulate what-if impact &rarr;
+          </span>
+        </section>
+
+        {/* ── Forecast Cards Grid ─────────────────────────────────────────── */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredForecasts.map((f) => (
             <RadarCard key={f.regulation_id} entry={f} />
           ))}
         </div>
@@ -149,58 +298,118 @@ function RadarDashboard() {
 }
 
 function RadarCard({ entry }: { entry: ForecastEntry }) {
-  const style = BAND_STYLE[entry.band];
+  const isHigh = entry.band === "high";
+  const isMed = entry.band === "medium";
   const pct = Math.round(entry.probability * 100);
   const lastAmended = entry.last_amended_on
     ? new Date(entry.last_amended_on).toLocaleDateString(undefined, { year: "numeric", month: "short" })
     : "—";
+
   return (
     <Link
       to="/predictive/$regulationId"
       params={{ regulationId: entry.regulation_id }}
-      className="glass-panel group p-5 flex flex-col gap-4 outline-none focus-visible:ring-2 focus-visible:ring-brass/60 hover:border-[var(--hairline-strong)] duration-200 ease-out transition-colors"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[color-mix(in_oklab,var(--brass)_45%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(94,234,212,0.20)]"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {entry.jurisdiction}
-          </p>
-          <h2 className="mt-1 font-display text-[17px] leading-[1.25] tracking-tight text-foreground line-clamp-2">
-            {entry.title}
-          </h2>
+      {/* Top glowing hairline accent on hover */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[2px] transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+        style={{
+          background: isHigh
+            ? "linear-gradient(to right, transparent, var(--risk), transparent)"
+            : "linear-gradient(to right, transparent, var(--brass), transparent)",
+        }}
+      />
+
+      <div>
+        {/* Top Header metadata */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <span className="rounded-md border border-white/5 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+              {entry.jurisdiction}
+            </span>
+            <h2 className="mt-2 font-display text-[17px] font-semibold leading-[1.3] tracking-tight text-foreground line-clamp-2 transition-colors duration-200 group-hover:text-[var(--brass)]">
+              {entry.title}
+            </h2>
+          </div>
+
+          {/* Probability Pill Badge */}
+          <span
+            className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${
+              isHigh
+                ? "border-[color-mix(in_oklab,var(--risk)_40%,transparent)] bg-[color-mix(in_oklab,var(--risk)_15%,transparent)] text-[var(--risk)]"
+                : isMed
+                  ? "border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_10%,transparent)] text-[var(--brass)]"
+                  : "border-white/10 bg-white/[0.03] text-muted-foreground"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                isHigh ? "bg-[var(--risk)] animate-pulse" : isMed ? "bg-[var(--brass)]" : "bg-muted-foreground"
+              }`}
+            />
+            {pct}% Risk
+          </span>
         </div>
-        <span
-          className={`shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${style.pill}`}
-          title={`Base ${(entry.base_probability * 100).toFixed(0)}% + signal ${(entry.boost * 100).toFixed(0)}%`}
-        >
-          {style.label} · {pct}%
-        </span>
+
+        {/* Visual Probability Gauge Bar */}
+        <div className="mt-3.5 space-y-1">
+          <div className="h-1.5 w-full rounded-full bg-white/[0.05] overflow-hidden p-0.5">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                isHigh
+                  ? "bg-gradient-to-r from-[var(--risk)] to-rose-400"
+                  : isMed
+                    ? "bg-gradient-to-r from-[var(--brass)] to-emerald-400"
+                    : "bg-muted-foreground/40"
+              }`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground/70">
+            <span>Historical Cadence</span>
+            <span>Band: {entry.band.toUpperCase()}</span>
+          </div>
+        </div>
+
+        <p className="mt-3.5 text-[12.5px] leading-relaxed text-muted-foreground line-clamp-3">
+          {entry.summary}
+        </p>
       </div>
 
-      <p className="text-[12.5px] leading-[1.55] text-muted-foreground line-clamp-3">{entry.summary}</p>
+      <div className="mt-5 pt-3.5 border-t border-[var(--hairline)]">
+        {/* Metric Triplet */}
+        <dl className="grid grid-cols-3 gap-2 text-center pb-3">
+          <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2">
+            <dt className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Last Amended</dt>
+            <dd className="mt-0.5 font-mono text-[11px] font-semibold text-foreground tabular-nums truncate">
+              {lastAmended}
+            </dd>
+          </div>
+          <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2">
+            <dt className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Frequency</dt>
+            <dd className="mt-0.5 font-mono text-[11px] font-semibold text-foreground tabular-nums">
+              {entry.amendment_count}&times; Hist.
+            </dd>
+          </div>
+          <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2">
+            <dt className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Horizon</dt>
+            <dd className="mt-0.5 font-mono text-[11px] font-semibold text-[var(--brass)] tabular-nums">
+              &le; {entry.window_months} mo
+            </dd>
+          </div>
+        </dl>
 
-      <dl className="mt-auto grid grid-cols-3 gap-3 pt-3 border-t border-[var(--hairline)]">
-        <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">Last amended</dt>
-          <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">{lastAmended}</dd>
+        <div className="flex items-center justify-between pt-2 text-xs">
+          <span className="font-mono text-[10.5px] uppercase tracking-wider text-[var(--brass)] font-semibold inline-flex items-center gap-1 group-hover:underline">
+            Simulate What-If Amendment
+            <span className="group-hover:translate-x-1 transition-transform duration-150">&rarr;</span>
+          </span>
+          <span className="font-mono text-[9px] text-muted-foreground/60 uppercase">
+            Adversarial Test
+          </span>
         </div>
-        <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">History</dt>
-          <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">
-            {entry.amendment_count}×
-          </dd>
-        </div>
-        <div>
-          <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">Window</dt>
-          <dd className="mt-0.5 font-mono text-[12px] text-foreground tabular-nums">
-            ≤ {entry.window_months} mo
-          </dd>
-        </div>
-      </dl>
-
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass group-hover:translate-x-0.5 duration-150 ease-out transition-transform">
-        Simulate forecast →
-      </span>
+      </div>
     </Link>
   );
 }

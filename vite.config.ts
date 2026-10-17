@@ -13,5 +13,10 @@ export default defineConfig({
     }),
     react(),
   ],
+  server: {
+    hmr: {
+      clientPort: 5173,
+    },
+  },
 });
 

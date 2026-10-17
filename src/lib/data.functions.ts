@@ -35,7 +35,29 @@ export const getContractByIdFn = createServerFn({ method: "GET" })
     return { id };
   })
   .handler(async ({ data, context }) => {
-    const { queryOne } = await import("./db.server");
+    const { queryOne, query } = await import("./db.server");
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let targetContractId = data.id;
+
+    // If input is not a UUID (e.g. legacy demo IDs like CTR-003 or SC-003), resolve to matching sample contract
+    if (!uuidRegex.test(targetContractId)) {
+      const numMatch = targetContractId.match(/\d+/);
+      const position = numMatch ? Math.max(0, parseInt(numMatch[0], 10) - 1) : 0;
+      const matched = await queryOne<{ id: string }>(
+        `SELECT c.id 
+         FROM public.contracts c
+         WHERE c.org_id = $1
+         ORDER BY c.created_at ASC
+         OFFSET $2 LIMIT 1`,
+        [context.orgId, position]
+      );
+      if (matched?.id) {
+        targetContractId = matched.id;
+      } else {
+        return null;
+      }
+    }
+
     const row = await queryOne(
       `SELECT 
         c.id, c.name, c.counterparty, c.value, c.extraction_status, c.extraction_error, c.is_sample, c.source_file_url,
@@ -50,7 +72,7 @@ export const getContractByIdFn = createServerFn({ method: "GET" })
        LEFT JOIN public.clauses cl ON cl.contract_id = c.id
        WHERE c.id = $1 AND c.org_id = $2
        GROUP BY c.id`,
-      [data.id, context.orgId]
+      [targetContractId, context.orgId]
     );
     return row;
   });

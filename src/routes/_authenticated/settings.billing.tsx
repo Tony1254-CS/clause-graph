@@ -45,71 +45,171 @@ function ParkedBillingPage() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-[1100px] flex flex-col gap-8">
-        <header>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-brass">Plan</p>
-          <h1 className="mt-2 font-display text-[36px] leading-tight text-foreground">
-            Plan &amp; usage
-          </h1>
-          <p className="mt-2 text-[14px] text-muted-foreground max-w-[62ch]">
-            Every workspace is on <span className="text-foreground">Pro</span> with unlimited usage
-            during early access. There is nothing to pay and no limits to hit.
-          </p>
-        </header>
+      <div className="w-full max-w-[1200px] mx-auto space-y-8 pb-16">
+        {/* ── Top Header ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[var(--hairline)]">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
+                Subscription &amp; Capacity Ledger
+              </p>
+            </div>
+            <h1 className="mt-2 text-2xl sm:text-3xl font-display font-semibold tracking-tight text-foreground">
+              Enterprise Plan &amp; Quota
+            </h1>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground max-w-2xl">
+              Every workspace currently operates under unrestricted <strong className="text-foreground">Pro Early Access</strong>. 
+              Enjoy limitless neural simulations, unlimited contractual parsing, and automated compliance pipelines.
+            </p>
+          </div>
 
-        <section className="glass-panel p-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-brass/40 bg-brass/10 px-2.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brass">
-              Pro · Early access
-            </span>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              Subscriptions are not active yet
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 font-mono text-[11px] font-semibold text-emerald-400">
+              Active Tier: Pro (Complimentary)
             </span>
           </div>
-          <p className="mt-4 text-[13.5px] text-muted-foreground max-w-[70ch]">
-            Paid plans are built and ready — checkout, invoices and the subscription portal are
-            wired up but switched off. When ClauseGraph opens commercially, plans and pricing will
-            appear here and you&apos;ll be told well before anything is charged.
-          </p>
-        </section>
+        </div>
 
-        <section className="glass-panel p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            This month
-          </p>
-          <div className="mt-4 grid gap-6 sm:grid-cols-3">
-            <UsageStat label="Contracts" value={usage.data?.contracts ?? 0} limit={UNLIMITED} />
-            <UsageStat label="Simulations" value={usage.data?.simulations ?? 0} limit={UNLIMITED} />
-            <UsageStat label="Seats" value={usage.data?.members ?? 0} limit={UNLIMITED} />
+        {/* ── Early Access Showcase Banner ── */}
+        <div className="relative overflow-hidden rounded-2xl border border-[var(--brass)]/30 bg-gradient-to-br from-[var(--surface-raised)]/90 via-black/40 to-[var(--brass)]/[0.06] p-6 sm:p-8 backdrop-blur-2xl shadow-xl shadow-black/25">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="rounded-md border border-[var(--brass)]/40 bg-[var(--brass)]/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider font-semibold text-[var(--brass)]">
+                  Founder Tier · Early Access
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  Zero Financial Obligation
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-display font-semibold tracking-tight text-foreground">
+                All Systems Fully Unlocked For Your Team
+              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                Payment infrastructure (Stripe/Paddle Merchant of Record) is integrated into our architecture. 
+                Prior to general commercial launch, you will receive advance notification with complete transition details. 
+                No credit card or surprise charges will ever occur.
+              </p>
+            </div>
+
+            <div className="shrink-0 flex flex-col items-start md:items-end gap-1.5 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Billing Cadence
+              </span>
+              <span className="text-2xl font-bold font-mono text-[var(--brass)]">
+                $0.00 <span className="text-xs text-muted-foreground font-normal">/ month</span>
+              </span>
+              <span className="font-mono text-[10px] text-emerald-400">
+                Guaranteed through Early Access
+              </span>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <section className="glass-panel p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Included right now
-          </p>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+        {/* ── Monthly Quota Consumption Meters ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Live Workspace Metering (Current Cycle)
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              Limits: Uncapped (∞)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Indexed Contracts
+              </span>
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold font-mono text-foreground">
+                  {usage.data?.contracts ?? 0}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">/ Unlimited</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                <div className="h-full bg-[var(--brass)] rounded-full w-full" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Executed Simulations
+              </span>
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold font-mono text-foreground">
+                  {usage.data?.simulations ?? 0}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">/ Unlimited</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                <div className="h-full bg-emerald-400 rounded-full w-full" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Active Organization Seats
+              </span>
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold font-mono text-foreground">
+                  {usage.data?.members ?? 0}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">/ Unlimited</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                <div className="h-full bg-cyan-400 rounded-full w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Included Capabilities Feature Matrix ── */}
+        <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 sm:p-7 backdrop-blur-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">
+                Enterprise Feature Suite Included
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                All production-grade intelligence engines are currently available to your workspace.
+              </p>
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] bg-[var(--brass)]/10 border border-[var(--brass)]/20 px-2.5 py-1 rounded-full">
+              Full Suite Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {[
-              "Unlimited contracts & clause extraction",
-              "Unlimited blast-radius simulations",
-              "Unlimited teammates",
-              "Compliance action plans + PDF export",
-              "Compliance-as-code autopilot",
-              "Predictive regulatory radar & what-if sandbox",
-              "Cross-enterprise supply-chain risk",
-              "Federal Register live feed",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2 text-[13px] text-foreground">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brass" strokeWidth={2.2} />
-                {f}
-              </li>
+              "Unlimited contracts & multi-clause graph extraction",
+              "Unlimited blast-radius simulations & impact modeling",
+              "Unlimited collaborative team seats & role controls",
+              "Executive compliance action plans & audit-trail logs",
+              "Compliance-as-code autopilot & programmatic verification scripts",
+              "Predictive regulatory radar & what-if sandbox stress tests",
+              "Cross-enterprise supply-chain cascading contagion risk",
+              "Federal Register live feed & empirical backtested benchmarks",
+            ].map((feat, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 text-xs text-foreground/90 transition-colors hover:border-white/10"
+              >
+                <div className="h-5 w-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 grid place-items-center shrink-0">
+                  <Check className="h-3 w-3 text-emerald-400" strokeWidth={2.5} />
+                </div>
+                <span>{feat}</span>
+              </div>
             ))}
-          </ul>
-        </section>
+          </div>
+        </div>
       </div>
     </AppShell>
   );
 }
+
 
 function PaidBillingPage() {
   const qc = useQueryClient();
