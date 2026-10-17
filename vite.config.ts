@@ -14,6 +14,12 @@ export default defineConfig({
     react(),
   ],
   server: {
+    allowedHosts: [
+      "clause-graph.onrender.com",
+      ".onrender.com",
+      "localhost",
+      "127.0.0.1",
+    ],
     hmr: {
       clientPort: 5173,
     },
