@@ -11,11 +11,17 @@ let _pool: pg.Pool | null = null;
 
 export function getPool(): pg.Pool {
   if (!_pool) {
+    const isCloudDb =
+      connectionString.includes("neon.tech") ||
+      connectionString.includes("supabase.co") ||
+      connectionString.includes("sslmode=require");
+
     _pool = new Pool({
       connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
+      ...(isCloudDb ? { ssl: { rejectUnauthorized: false } } : {}),
     });
 
     _pool.on("error", (err) => {
