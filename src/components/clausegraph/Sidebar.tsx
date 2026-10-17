@@ -53,8 +53,15 @@ const NAV: NavItem[] = [
 
 function useIsActive(item: NavItem) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const base = item.match ?? item.to;
-  return pathname === base || pathname.startsWith(base + "/");
+  const cleanPath = pathname.replace(/\/+$/, "") || "/";
+  const base = (item.match ?? item.to).replace(/\/+$/, "");
+  if (
+    item.to === "/feed" &&
+    (cleanPath === "/feed" || cleanPath.startsWith("/feed/") || cleanPath.startsWith("/regulations"))
+  ) {
+    return true;
+  }
+  return cleanPath === base || cleanPath.startsWith(base + "/");
 }
 
 function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean; index: number }) {
@@ -65,24 +72,33 @@ function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean;
       to={item.to}
       aria-label={item.label}
       title={item.label}
-      className={`group relative grid h-9 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] transition-ui will-change-transform hover:translate-x-[1px] ${
+      className={`group relative grid h-10 min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center rounded-[10px] border transition-all duration-200 ease-out will-change-transform ${
         isActive
-          ? "text-[var(--ink)]"
-          : "text-[var(--text-muted)] hover:text-[var(--ink)]"
+          ? "border-[color-mix(in_oklab,var(--brass)_32%,transparent)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--ink)] shadow-[0_2px_14px_-4px_rgba(94,234,212,0.22)]"
+          : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-white/[0.05] hover:text-[var(--ink)] hover:translate-x-[2px]"
       }`}
     >
       <span
         aria-hidden
-        className={`absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--brass)] origin-center transition-all duration-300 ${
-          isActive ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"
+        className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[var(--brass)] shadow-[0_0_10px_var(--brass)] origin-left transition-all duration-300 ${
+          isActive ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
         }`}
         style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
       />
-      <span className="grid h-9 w-10 shrink-0 place-items-center">
-        <Icon className="h-[17px] w-[17px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
+      <span className="grid h-10 w-10 shrink-0 place-items-center">
+        <Icon
+          className={`h-[18px] w-[18px] transition-all duration-200 ${
+            isActive
+              ? "text-[var(--brass)] scale-110 drop-shadow-[0_0_8px_rgba(94,234,212,0.45)]"
+              : "text-[var(--text-muted)] group-hover:text-[var(--ink)] group-hover:scale-110"
+          }`}
+          strokeWidth={isActive ? 2 : 1.5}
+        />
       </span>
       <span
-        className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-300 ease-out ${
+        className={`min-w-0 truncate pr-4 text-[13px] transition-all duration-300 ease-out ${
+          isActive ? "font-semibold text-[var(--ink)]" : "font-medium"
+        } ${
           expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
         }`}
         style={{ transitionDelay: expanded ? `${index * 22}ms` : "0ms" }}
@@ -147,8 +163,15 @@ export function Sidebar() {
 export function MobileRail() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (item: NavItem) => {
-    const base = item.match ?? item.to;
-    return pathname === base || pathname.startsWith(base + "/");
+    const cleanPath = pathname.replace(/\/+$/, "") || "/";
+    const base = (item.match ?? item.to).replace(/\/+$/, "");
+    if (
+      item.to === "/feed" &&
+      (cleanPath === "/feed" || cleanPath.startsWith("/feed/") || cleanPath.startsWith("/regulations"))
+    ) {
+      return true;
+    }
+    return cleanPath === base || cleanPath.startsWith(base + "/");
   };
 
   return (
@@ -168,14 +191,14 @@ export function MobileRail() {
             <Link
               key={item.to}
               to={item.to}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border transition-all duration-200 ease-out ${
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] border transition-all duration-200 ease-out ${
                 active
-                  ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)]"
-                  : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
+                  ? "border-[color-mix(in_oklab,var(--brass)_32%,transparent)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--brass)] shadow-[0_2px_14px_-4px_rgba(94,234,212,0.22)]"
+                  : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-white/[0.05] hover:text-[var(--ink)]"
               }`}
               aria-label={item.label}
             >
-              <Icon className="h-4 w-4" strokeWidth={1.7} />
+              <Icon className="h-4 w-4" strokeWidth={active ? 2 : 1.7} />
             </Link>
           );
         })}

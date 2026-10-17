@@ -56,8 +56,12 @@ export const predictAmendmentRisk = createServerFn({ method: "GET" })
     const byReg = new Map<string, Amendment[]>();
     for (const a of amends ?? []) {
       const list = byReg.get(a.regulation_id) ?? [];
+      const dateStr =
+        a.amended_on instanceof Date
+          ? a.amended_on.toISOString().slice(0, 10)
+          : String(a.amended_on ?? "");
       list.push({
-        amended_on: a.amended_on,
+        amended_on: dateStr,
         summary: a.summary,
         direction: a.direction as Amendment["direction"],
       });
@@ -163,7 +167,10 @@ export const generateHypotheticalAmendment = createServerFn({ method: "POST" })
     if (!reg) throw new Error("Regulation not found");
 
     const history: Amendment[] = (amends ?? []).map((a) => ({
-      amended_on: a.amended_on,
+      amended_on:
+        a.amended_on instanceof Date
+          ? a.amended_on.toISOString().slice(0, 10)
+          : String(a.amended_on ?? ""),
       summary: a.summary,
       direction: a.direction as Amendment["direction"],
     }));

@@ -109,7 +109,7 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
           Blast Radius
         </p>
         <h1 className="mt-3 font-display text-[clamp(42px,7vw,76px)] leading-[0.98] tracking-tight text-foreground">
-          Portfolio topology
+          Portfolio Topology
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
           {contracts.length} contracts · {regulations.length} regulations ·{" "}
@@ -221,24 +221,85 @@ export function GraphMedallion({ contracts, regulations, impacts, pulsing }: Pro
 
                 <circle cx={CENTER} cy={CENTER} r={4} fill="var(--brass)" />
               </svg>
+            </div>
+          </div>
 
-              {hover && (
-                <div
-                  className="pointer-events-none absolute max-w-[220px] rounded-[12px] border border-[var(--hairline-strong)] bg-[var(--surface-raised)] px-3 py-2 shadow-[var(--glow-brass)] backdrop-blur-xl"
-                  style={{
-                    left: `${(hover.x / SIZE) * 100}%`,
-                    top: `${(hover.y / SIZE) * 100}%`,
-                    transform: "translate(-50%, calc(-100% - 12px))",
-                  }}
-                >
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--brass)]">
-                    {hover.id}
-                  </p>
-                  <p className="mt-0.5 text-[12px] text-foreground leading-tight">{hover.label}</p>
+          {/* Smart Tooltip outside overflow-hidden with high z-index and dynamic boundary detection */}
+          {hover && (
+            <div
+              className="pointer-events-none absolute z-50 min-w-[240px] max-w-[320px] rounded-[16px] border border-[color-mix(in_oklab,var(--brass)_45%,transparent)] bg-[var(--surface-raised)]/95 p-3.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.65),0_0_24px_-4px_rgba(94,234,212,0.3)] backdrop-blur-2xl transition-all duration-150 animate-in fade-in zoom-in-95"
+              style={{
+                left: `${(hover.x / SIZE) * 100}%`,
+                top: `${(hover.y / SIZE) * 100}%`,
+                transform: `translate(${
+                  hover.x > CENTER + 40 ? "calc(-100% - 14px)" : hover.x < CENTER - 40 ? "14px" : "-50%"
+                }, ${
+                  hover.y < 90 ? "18px" : "calc(-100% - 16px)"
+                })`,
+              }}
+            >
+              {/* Glowing Hairline Accent */}
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent rounded-t-[16px]" />
+
+              <div className="flex items-center justify-between gap-2 border-b border-[var(--hairline)] pb-2 mb-2">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--brass)]">
+                  {hover.kind === "contract" ? "Contract Instrument" : "Regulatory Framework"}
+                </span>
+                <span className="rounded-md border border-white/5 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                  {hover.id.length > 12 ? hover.id.slice(0, 8) + "…" : hover.id}
+                </span>
+              </div>
+
+              <p className="font-display text-[13px] font-semibold leading-snug text-foreground">
+                {hover.label}
+              </p>
+
+              {/* Extra Context details depending on kind */}
+              {hover.kind === "contract" && (
+                <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-[var(--hairline)]/60 text-[11px] font-mono">
+                  {(() => {
+                    const c = contracts.find((item) => item.id === hover.id);
+                    const sev = impacts?.get(hover.id);
+                    return (
+                      <>
+                        <span className="text-muted-foreground">
+                          {c?.counterparty || "Counterparty"}
+                        </span>
+                        {sev ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-[var(--risk)]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[var(--risk)] animate-pulse" />
+                            {sev.toUpperCase()} RISK
+                          </span>
+                        ) : (
+                          <span className="text-[var(--brass)] font-semibold">
+                            {c ? `$${(c.value / 1_000_000).toFixed(1)}M` : ""}
+                          </span>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {hover.kind === "regulation" && (
+                <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-[var(--hairline)]/60 text-[11px] font-mono">
+                  {(() => {
+                    const r = regulations.find((item) => item.id === hover.id);
+                    return (
+                      <>
+                        <span className="text-muted-foreground">
+                          {r?.jurisdiction || "Global"}
+                        </span>
+                        <span className="text-[var(--brass)]">
+                          {r?.obligations.length ? `${r.obligations.length} Obligations` : "Indexed"}
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 

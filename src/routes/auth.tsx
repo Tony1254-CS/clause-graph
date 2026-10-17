@@ -72,6 +72,7 @@ function AuthPage() {
       await signInDemo();
       navigate({ to: safeRedirect(search.redirect), replace: true });
     } catch (err) {
+      console.error("[Demo Auth Error]", err);
       setError(err instanceof Error ? err.message : "Demo access failed");
       setBusy(false);
     }
@@ -93,6 +94,7 @@ function AuthPage() {
         setNotice("If this workspace exists, an admin can update your password under settings.");
       }
     } catch (err) {
+      console.error("[Auth Error]", err);
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setBusy(false);
