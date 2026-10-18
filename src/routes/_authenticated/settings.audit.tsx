@@ -1,9 +1,9 @@
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  History,
   ShieldCheck,
   ShieldAlert,
   CheckCircle2,
@@ -21,6 +21,10 @@ import {
   Database,
   ArrowDownCircle,
   Filter,
+  Zap,
+  Lock,
+  AlertCircle,
+  Scale,
 } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { myRoleQuery, profileQuery } from "@/data/queries";
@@ -67,93 +71,136 @@ function formatTimestamp(value: unknown): string {
   return String(value);
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
-  alert,
-  icon: Icon,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  alert?: boolean;
-  icon?: any;
-}) {
+function Stat({ label, value, isRisk }: { label: string; value: string; isRisk?: boolean }) {
   return (
-    <div
-      className={`glass-panel p-4 flex flex-col justify-between ${
-        alert ? "border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)]" : ""
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground">
-          {label}
-        </p>
-        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />}
-      </div>
-      <div className="mt-3 flex items-baseline gap-2">
-        <span
-          className={`font-display text-[26px] font-semibold leading-none ${
-            alert ? "text-[var(--risk)]" : "text-foreground"
-          }`}
-        >
-          {value}
-        </span>
-        {sub && <span className="font-mono text-[10px] text-muted-foreground">{sub}</span>}
-      </div>
+    <div className="flex flex-col items-end">
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </span>
+      <span
+        className={`mt-0.5 font-mono text-[15px] ${
+          isRisk ? "text-[var(--risk)] font-semibold" : "text-[var(--brass)]"
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
 function ActionBadge({ action }: { action: string }) {
-  if (action.startsWith("auth.")) {
+  if (action.startsWith("audit.verified") || action.startsWith("audit.anchored")) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-blue-400">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brass)]/40 bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-[var(--brass)] shadow-[0_0_12px_rgba(94,234,212,0.1)]">
+        <ShieldCheck size={12} className="text-[var(--brass)]" />
         {action}
       </span>
     );
   }
+
+  if (action === "review.approved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-emerald-400">
+        <CheckCircle2 size={12} className="text-emerald-400" />
+        {action}
+      </span>
+    );
+  }
+
+  if (action === "review.rejected" || action.includes("deletion")) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(225,82,75,0.4)] bg-[color-mix(in_oklab,var(--risk)_14%,transparent)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-[var(--risk)] shadow-[0_0_12px_rgba(225,82,72,0.12)]">
+        <AlertCircle size={12} className="text-[var(--risk)]" />
+        {action}
+      </span>
+    );
+  }
+
   if (action.startsWith("simulation.")) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-purple-400">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/35 bg-purple-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-purple-300">
+        <Zap size={12} className="text-purple-400" />
         {action}
       </span>
     );
   }
+
   if (action.startsWith("review.")) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-amber-400">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/35 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-amber-400">
+        <Clock size={12} className="text-amber-400" />
         {action}
       </span>
     );
   }
-  if (action.startsWith("audit.")) {
+
+  if (action.startsWith("contract.") || action.startsWith("clause.")) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-400">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/35 bg-sky-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-sky-400">
+        <FileText size={12} className="text-sky-400" />
         {action}
       </span>
     );
   }
-  if (action.startsWith("contract.")) {
+
+  if (action.startsWith("auth.")) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-sky-400">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline-strong)] bg-[var(--surface-glass)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-muted-foreground">
+        <Lock size={12} className="text-muted-foreground" />
         {action}
       </span>
     );
   }
-  if (action.startsWith("workspace.")) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-400">
-        {action}
-      </span>
-    );
-  }
+
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--hairline)] bg-[var(--surface-glass)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] bg-[var(--surface-glass)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] font-semibold text-muted-foreground">
+      <Hash size={12} className="text-muted-foreground" />
       {action}
     </span>
   );
+}
+
+function formatActionTitle(action: string, entityType: string, entityId: string): string {
+  switch (action) {
+    case "audit.verified":
+      return "Cryptographic Chain Integrity Verification";
+    case "audit.anchored":
+      return "Point-in-Time Anchor Snapshot Created";
+    case "audit.exported":
+      return "Tamper-Evident Ledger Exported";
+    case "simulation.run":
+      return "Simulation Impact Blast-Radius Analysis";
+    case "simulation.fallback_activated":
+      return "Deterministic Fallback Activated";
+    case "code.generated":
+      return "Compliance-as-Code Artifact Generated";
+    case "action_plan.generated":
+      return "Executive Action Plan Compiled";
+    case "whatif.run":
+      return "What-If Regulatory Scenario Run";
+    case "review.created":
+      return "Item Submitted to Review Queue";
+    case "review.approved":
+      return "Human Sign-off Approved";
+    case "review.rejected":
+      return "Human Review Rejected";
+    case "review.edited":
+      return "Payload Amended by Reviewer";
+    case "review.comment_added":
+      return "Review Discussion Comment Added";
+    case "review.escalated":
+      return "SLA Breach Escalation Triggered";
+    case "contract.uploaded":
+      return "Contract Document Uploaded";
+    case "contract.parsed":
+      return "Contract Segmentation & Ontology Linking";
+    case "clause.edited":
+      return "Contract Clause Amended";
+    case "auth.login":
+      return "Workspace Authentication Session";
+    default:
+      return `${action.replace(/\./g, " · ")} — ${entityType} (${entityId})`;
+  }
 }
 
 function AuditPage() {
@@ -171,28 +218,19 @@ function AuditPage() {
   // Filter state
   const [filterAction, setFilterAction] = useState<string>("all");
   const [filterEntityType, setFilterEntityType] = useState<string>("all");
-  const [filterCorrelationId, setFilterCorrelationId] = useState<string>("");
-  const [filterEntityId, setFilterEntityId] = useState<string>("");
-  const [filterStartDate, setFilterStartDate] = useState<string>("");
-  const [filterEndDate, setFilterEndDate] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeCursor, setActiveCursor] = useState<number | undefined>(undefined);
 
   // UI state
   const [selectedEvent, setSelectedEvent] = useState<AuditEvent | null>(null);
   const [verifyStatus, setVerifyStatus] = useState<any | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [activeCursor, setActiveCursor] = useState<number | undefined>(undefined);
-  const [accumulatedEvents, setAccumulatedEvents] = useState<AuditEvent[]>([]);
-  const [isPending, startTransition] = useTransition();
 
   // Query audit logs
   const activeFilters: AuditFilterParams = {
     action: filterAction !== "all" ? (filterAction as AuditAction) : undefined,
     entityType: filterEntityType !== "all" ? filterEntityType : undefined,
-    correlationId: filterCorrelationId.trim() || undefined,
-    entityId: filterEntityId.trim() || undefined,
-    startDate: filterStartDate ? new Date(filterStartDate).toISOString() : undefined,
-    endDate: filterEndDate ? new Date(filterEndDate).toISOString() : undefined,
     cursor: activeCursor,
     limit: 50,
   };
@@ -206,10 +244,6 @@ function AuditPage() {
       "audit-logs",
       filterAction,
       filterEntityType,
-      filterCorrelationId,
-      filterEntityId,
-      filterStartDate,
-      filterEndDate,
       activeCursor,
     ],
     queryFn: async () => {
@@ -355,6 +389,25 @@ function AuditPage() {
     }
   };
 
+  const rawEvents = logsData?.events || [];
+
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return rawEvents;
+    const q = searchQuery.toLowerCase();
+    return rawEvents.filter((evt) => {
+      return (
+        evt.action.toLowerCase().includes(q) ||
+        evt.entity_type.toLowerCase().includes(q) ||
+        evt.entity_id.toLowerCase().includes(q) ||
+        (evt.actor_label && evt.actor_label.toLowerCase().includes(q)) ||
+        (evt.actor_id && evt.actor_id.toLowerCase().includes(q)) ||
+        (evt.correlation_id && evt.correlation_id.toLowerCase().includes(q)) ||
+        evt.row_hash.toLowerCase().includes(q) ||
+        String(evt.id).includes(q)
+      );
+    });
+  }, [rawEvents, searchQuery]);
+
   if (!isAdmin) {
     return (
       <AppShell>
@@ -372,80 +425,60 @@ function AuditPage() {
     );
   }
 
-  const events = logsData?.events || [];
-
   return (
     <AppShell>
-      <div className="w-full max-w-[1200px] space-y-6">
-        {/* Header: Clean luxury design system */}
-        <header className="flex flex-wrap items-end justify-between gap-6 pb-2">
+      <div className="w-full max-w-[1200px]">
+        {/* Header: Clean & minimal, identical to stale-citations.tsx & contracts.index.tsx */}
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-              Governance Trail · Cryptographic Chain v1
+              Governance Trail · {rawEvents.length} event{rawEvents.length === 1 ? "" : "s"}
             </p>
-            <h1 className="mt-2 font-display text-[34px] sm:text-[38px] leading-[1.05] tracking-tight text-foreground flex flex-wrap items-center gap-3">
+            <h1 className="mt-2 font-display text-[38px] leading-[1.05] tracking-tight text-foreground">
               Audit Ledger
-              <span className="rounded-full border border-[var(--hairline-strong)] bg-[rgba(94,234,212,0.08)] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)] font-normal">
-                SHA-256 Chained
-              </span>
             </h1>
-            <p className="mt-1 text-xs text-muted-foreground font-sans">
-              Append-only, cryptographically verified governance trail with external anchoring.
-            </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => verifyMutation.mutate()}
-              disabled={verifyMutation.isPending}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2 text-xs md:text-sm font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] disabled:opacity-50"
-              title="Verify cryptographic hash chain and compare against anchor"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${verifyMutation.isPending ? "animate-spin" : ""}`} />
-              <span>{verifyMutation.isPending ? "Verifying..." : "Verify Chain"}</span>
-            </button>
+          <div className="flex flex-wrap items-end gap-6 sm:gap-8">
+            <Stat label="Active Head" value={rawEvents[0] ? `#${rawEvents[0].id}` : "Genesis"} />
+            <Stat
+              label="Anchor"
+              value={latestAnchor ? `#${latestAnchor.head_id}` : "None"}
+            />
+            <Stat
+              label="Integrity"
+              value={verifyStatus?.valid === false ? "Breached" : "SHA-256 Chained"}
+              isRisk={verifyStatus?.valid === false}
+            />
 
             <button
               type="button"
               onClick={() => anchorMutation.mutate()}
               disabled={anchorMutation.isPending}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3.5 py-2 text-xs font-semibold text-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--brass)] hover:text-[var(--brass)] disabled:opacity-50"
-              title="Create point-in-time external anchor snapshot to prevent tail-deletion"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] px-3.5 py-1.5 text-xs font-semibold text-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--brass)] hover:text-[var(--brass)] disabled:opacity-50"
+              title="Create point-in-time external anchor snapshot"
             >
-              <Anchor className="h-3.5 w-3.5 text-sky-400" />
-              <span>Anchor Head</span>
+              <Anchor className={`h-3.5 w-3.5 ${anchorMutation.isPending ? "animate-spin text-sky-400" : "text-sky-400"}`} />
+              <span>{anchorMutation.isPending ? "Anchoring..." : "Anchor Head"}</span>
             </button>
 
             <button
               type="button"
-              onClick={handleExportCsv}
-              disabled={isExporting || events.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-2 text-xs font-mono text-muted-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50"
-              title="Export ledger as CSV"
+              onClick={() => verifyMutation.mutate()}
+              disabled={verifyMutation.isPending}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] disabled:opacity-50"
+              title="Verify cryptographic hash chain integrity"
             >
-              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
-              <span>CSV</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleExportPdf}
-              disabled={isExporting || events.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-2 text-xs font-mono text-muted-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50"
-              title="Export certificate as PDF"
-            >
-              <FileText className="h-3.5 w-3.5 text-rose-400" />
-              <span>PDF</span>
+              <RefreshCw className={`h-4 w-4 ${verifyMutation.isPending ? "animate-spin" : ""}`} />
+              <span>{verifyMutation.isPending ? "Verifying..." : "Verify Chain"}</span>
             </button>
           </div>
         </header>
 
-        {/* Verification Status Banner */}
+        {/* Dismissible Verification Results Banner */}
         {verifyStatus && (
           <div
-            className={`glass-panel p-4 flex items-center justify-between gap-4 border ${
+            className={`mb-6 glass-panel p-4 flex items-center justify-between gap-4 border ${
               verifyStatus.valid ? "border-emerald-500/30" : "border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)]"
             }`}
           >
@@ -457,11 +490,11 @@ function AuditPage() {
               )}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono">
                 <span className="font-semibold text-foreground">
-                  {verifyStatus.valid ? "Cryptographic Chain Verified Valid" : "Chain Integrity Failure Detected"}
+                  {verifyStatus.valid ? "Cryptographic Chain Verified:" : "Integrity Failure Detected:"}
                 </span>
                 <span className="text-[var(--brass)]">{verifyStatus.rows_checked} links checked</span>
                 <span className="text-muted-foreground">
-                  Head #{verifyStatus.head_id} ({verifyStatus.head_hash?.slice(0, 12)}...)
+                  Head #{verifyStatus.head_id} ({verifyStatus.head_hash?.slice(0, 10)}...)
                 </span>
                 {verifyStatus.anchored && (
                   <span className="text-emerald-400 flex items-center gap-1">
@@ -485,7 +518,7 @@ function AuditPage() {
         )}
 
         {verifyError && (
-          <div className="glass-panel p-4 flex items-center justify-between gap-4 border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)] text-xs font-mono text-[var(--risk)]">
+          <div className="mb-6 glass-panel p-4 flex items-center justify-between gap-4 border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)] text-xs font-mono text-[var(--risk)]">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{verifyError}</span>
@@ -499,425 +532,332 @@ function AuditPage() {
           </div>
         )}
 
-        {/* Telemetry Summary Cards: matching StatCard layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            label="Active Ledger Head"
-            value={`#${events[0]?.id || 0}`}
-            sub={events[0]?.row_hash ? `${events[0].row_hash.slice(0, 12)}...` : "Genesis"}
-            icon={Hash}
-          />
-          <StatCard
-            label="External Anchor Checkpoint"
-            value={latestAnchor ? `#${latestAnchor.head_id}` : "None"}
-            sub={latestAnchor ? `${latestAnchor.row_count} rows protected` : "Snapshot recommended"}
-            icon={Anchor}
-          />
-          <div className="glass-panel p-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground">
-                Tail Protection
-              </p>
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="font-display text-[26px] font-semibold leading-none text-emerald-400 flex items-center gap-2">
-                Active
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              </span>
-              <span className="font-mono text-[10px] text-muted-foreground">Truncation Guard</span>
-            </div>
+        {/* Streamlined Search & Export Toolbar */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search actions, entities, actors, IDs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2 rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] text-xs md:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] font-mono transition-colors"
+            />
           </div>
-          <StatCard
-            label="Loaded Log Records"
-            value={events.length}
-            sub="Cursor-paginated"
-            icon={Database}
-          />
-        </div>
 
-        {/* Streamlined Filter Toolbar */}
-        <div className="glass-panel p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-foreground">
-            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              <Filter className="h-3.5 w-3.5 text-[var(--brass)]" />
-              Ledger Filters
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={filterAction}
+              onChange={(e) => {
+                setFilterAction(e.target.value);
+                setActiveCursor(undefined);
+              }}
+              className="rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3.5 py-1.5 text-xs font-mono text-muted-foreground hover:text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
+            >
+              <option value="all">All Actions</option>
+              <optgroup label="AI Simulations & Pipelines">
+                <option value="simulation.run">simulation.run</option>
+                <option value="simulation.fallback_activated">simulation.fallback_activated</option>
+                <option value="code.generated">code.generated</option>
+                <option value="action_plan.generated">action_plan.generated</option>
+                <option value="whatif.run">whatif.run</option>
+              </optgroup>
+              <optgroup label="Review Queue Decisions">
+                <option value="review.created">review.created</option>
+                <option value="review.approved">review.approved</option>
+                <option value="review.rejected">review.rejected</option>
+                <option value="review.edited">review.edited</option>
+                <option value="review.comment_added">review.comment_added</option>
+                <option value="review.escalated">review.escalated</option>
+              </optgroup>
+              <optgroup label="Contracts & Clauses">
+                <option value="contract.uploaded">contract.uploaded</option>
+                <option value="contract.parsed">contract.parsed</option>
+                <option value="clause.edited">clause.edited</option>
+              </optgroup>
+              <optgroup label="Cryptographic Governance">
+                <option value="audit.verified">audit.verified</option>
+                <option value="audit.anchored">audit.anchored</option>
+                <option value="audit.exported">audit.exported</option>
+                <option value="auth.login">auth.login</option>
+              </optgroup>
+            </select>
+
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={isExporting || rawEvents.length === 0}
+              className="press inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50 transition-ui"
+              title="Export ledger as CSV"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
+              <span>CSV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={isExporting || rawEvents.length === 0}
+              className="press inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50 transition-ui"
+              title="Export certificate as PDF"
+            >
+              <FileText className="h-3.5 w-3.5 text-rose-400" />
+              <span>PDF</span>
+            </button>
+
+            <span className="font-mono text-[11px] text-muted-foreground shrink-0 uppercase tracking-wider">
+              {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
             </span>
-            {(filterAction !== "all" ||
-              filterEntityType !== "all" ||
-              filterCorrelationId ||
-              filterEntityId ||
-              filterStartDate ||
-              filterEndDate) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterAction("all");
-                  setFilterEntityType("all");
-                  setFilterCorrelationId("");
-                  setFilterEntityId("");
-                  setFilterStartDate("");
-                  setFilterEndDate("");
-                  setActiveCursor(undefined);
-                }}
-                className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] hover:underline"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-            {/* Action Filter */}
-            <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Action Type
-              </label>
-              <select
-                value={filterAction}
-                onChange={(e) => {
-                  setFilterAction(e.target.value);
-                  setActiveCursor(undefined);
-                }}
-                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
-              >
-                <option value="all">All Actions</option>
-                <optgroup label="AI Simulations & Pipelines">
-                  <option value="simulation.run">simulation.run</option>
-                  <option value="simulation.fallback_activated">simulation.fallback_activated</option>
-                  <option value="code.generated">code.generated</option>
-                  <option value="action_plan.generated">action_plan.generated</option>
-                  <option value="whatif.run">whatif.run</option>
-                </optgroup>
-                <optgroup label="Review Queue Decisions">
-                  <option value="review.created">review.created</option>
-                  <option value="review.approved">review.approved</option>
-                  <option value="review.rejected">review.rejected</option>
-                  <option value="review.edited">review.edited</option>
-                  <option value="review.comment_added">review.comment_added</option>
-                  <option value="review.escalated">review.escalated</option>
-                  <option value="review.marked_stale">review.marked_stale</option>
-                </optgroup>
-                <optgroup label="Contracts & Clauses">
-                  <option value="contract.uploaded">contract.uploaded</option>
-                  <option value="contract.parsed">contract.parsed</option>
-                  <option value="contract.deleted">contract.deleted</option>
-                  <option value="clause.edited">clause.edited</option>
-                </optgroup>
-                <optgroup label="Artifacts & Exports">
-                  <option value="action_plan.exported_pdf">action_plan.exported_pdf</option>
-                  <option value="artifact.exported">artifact.exported</option>
-                  <option value="audit.exported">audit.exported</option>
-                  <option value="audit.verified">audit.verified</option>
-                </optgroup>
-                <optgroup label="Governance & Workspace">
-                  <option value="workspace.deletion_requested">workspace.deletion_requested</option>
-                  <option value="workspace.deletion_cancelled">workspace.deletion_cancelled</option>
-                  <option value="policy.updated">policy.updated</option>
-                  <option value="auth.login">auth.login</option>
-                </optgroup>
-              </select>
-            </div>
-
-            {/* Entity Type Filter */}
-            <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Entity Type
-              </label>
-              <select
-                value={filterEntityType}
-                onChange={(e) => {
-                  setFilterEntityType(e.target.value);
-                  setActiveCursor(undefined);
-                }}
-                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
-              >
-                <option value="all">All Entities</option>
-                <option value="simulation">simulation</option>
-                <option value="review_item">review_item</option>
-                <option value="contract">contract</option>
-                <option value="action_plan">action_plan</option>
-                <option value="compliance_artifact">compliance_artifact</option>
-                <option value="organization">organization</option>
-                <option value="audit_log">audit_log</option>
-              </select>
-            </div>
-
-            {/* Entity ID Search */}
-            <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Entity ID
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Filter by entity ID..."
-                  value={filterEntityId}
-                  onChange={(e) => {
-                    setFilterEntityId(e.target.value);
-                    setActiveCursor(undefined);
-                  }}
-                  className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
-                />
-                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
-              </div>
-            </div>
-
-            {/* Correlation ID Search */}
-            <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Correlation ID
-              </label>
-              <input
-                type="text"
-                placeholder="UUID..."
-                value={filterCorrelationId}
-                onChange={(e) => {
-                  setFilterCorrelationId(e.target.value);
-                  setActiveCursor(undefined);
-                }}
-                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
-              >
-              </input>
-            </div>
           </div>
         </div>
 
-        {/* Ledger Table: matching clean liquid-glass styling */}
-        <div className="glass-panel overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[var(--surface-raised)] border-b border-[var(--hairline)] text-muted-foreground font-mono text-[9.5px] uppercase tracking-[0.18em]">
-                <tr>
-                  <th className="py-3 px-4 w-16">ID</th>
-                  <th className="py-3 px-4 w-44">Timestamp (UTC)</th>
-                  <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Entity</th>
-                  <th className="py-3 px-4">Actor</th>
-                  <th className="py-3 px-4 w-32">Correlation</th>
-                  <th className="py-3 px-4 text-right">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--hairline)] font-sans">
-                {logsLoading && events.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center text-muted-foreground font-mono text-xs">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--brass)]" />
-                      Loading tamper-evident ledger...
-                    </td>
-                  </tr>
-                ) : events.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center text-muted-foreground font-mono text-xs">
-                      No audit events match the specified filters.
-                    </td>
-                  </tr>
-                ) : (
-                  events.map((evt) => (
-                    <tr
-                      key={evt.id}
-                      onClick={() => setSelectedEvent(evt)}
-                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors group"
-                    >
-                      <td className="py-3 px-4 font-mono font-semibold text-[var(--brass)]">
-                        #{evt.id}
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-muted-foreground/60 shrink-0" />
-                          <span>{formatTimestamp(evt.created_at)}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <ActionBadge action={evt.action} />
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-foreground">{evt.entity_type}</span>
-                          <span className="text-[11px] text-muted-foreground font-mono truncate max-w-[140px]">
-                            {evt.entity_id}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-foreground whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <User className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <span className="truncate max-w-[140px]">
-                            {evt.actor_label || evt.actor_id || "System Engine"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
-                        {evt.correlation_id ? (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setFilterCorrelationId(evt.correlation_id || "");
-                            }}
-                            className="text-[var(--brass)] hover:underline cursor-pointer"
-                            title={`Filter by correlation ${evt.correlation_id}`}
-                          >
-                            {evt.correlation_id.slice(0, 8)}...
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/40">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-[var(--brass)] transition-colors">
-                          Inspect
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Findings List: Clean 3-Column Layout identical to stale-citations.tsx */}
+        {logsLoading && rawEvents.length === 0 ? (
+          <div className="glass-panel p-10 text-center text-muted-foreground font-mono text-xs animate-pulse">
+            Loading cryptographic audit ledger...
           </div>
-
-          {/* Cursor Pagination Footer */}
-          {logsData?.nextCursor && (
-            <div className="p-4 border-t border-[var(--hairline)] bg-[var(--surface-raised)] flex justify-center">
-              <button
-                type="button"
-                onClick={() => setActiveCursor(logsData.nextCursor || undefined)}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] px-4 py-2 text-xs font-mono text-foreground hover:border-[var(--brass)] hover:text-[var(--brass)] transition-all shadow-sm"
-              >
-                <ArrowDownCircle className="w-4 h-4 text-[var(--brass)]" />
-                Load Older Records (Before #{logsData.nextCursor})
-              </button>
+        ) : filteredEvents.length === 0 ? (
+          <div className="glass-panel mx-auto max-w-md p-10 text-center space-y-3">
+            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full border border-[var(--hairline-strong)]">
+              <CheckCircle2 className="h-5 w-5 text-[var(--brass)]" strokeWidth={1.75} />
             </div>
-          )}
-        </div>
-
-        {/* Detail Inspection Drawer: matching EvidenceDrawer / ReviewDetail layout */}
-        {selectedEvent && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
-            <div className="w-full max-w-2xl bg-[var(--shell-bg)] border-l border-[var(--hairline)] h-full overflow-y-auto shadow-2xl p-6 space-y-6 animate-in slide-in-from-right duration-200">
-              <div className="flex items-start justify-between border-b border-[var(--hairline)] pb-4">
+            <h3 className="font-display text-[20px] leading-[1.15] tracking-tight text-foreground">
+              No Audit Records Found
+            </h3>
+            <p className="text-[13px] text-muted-foreground">
+              No ledger events match the specified search query or action filter.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3.5">
+            {filteredEvents.map((evt) => (
+              <div
+                key={evt.id}
+                onClick={() => setSelectedEvent(evt)}
+                className="glass-panel group grid grid-cols-1 md:grid-cols-[160px_1fr_auto] items-center gap-4 md:gap-7 px-6 py-5 min-h-[88px] duration-150 ease-out transition-all hover:border-[var(--hairline-strong)] cursor-pointer"
+              >
+                {/* Col 1: Action Badge */}
                 <div>
+                  <ActionBadge action={evt.action} />
+                </div>
+
+                {/* Col 2: Action Title & Event Metadata */}
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-bold text-foreground font-mono">
-                      Event #{selectedEvent.id}
+                    <h3 className="font-display text-[17px] md:text-[18px] leading-snug tracking-tight text-foreground group-hover:text-[var(--brass)] duration-150 ease-out transition-colors truncate">
+                      {formatActionTitle(evt.action, evt.entity_type, evt.entity_id)}
+                    </h3>
+                    <span className="font-mono text-[11px] text-[var(--brass)] font-semibold shrink-0">
+                      #{evt.id}
                     </span>
-                    <ActionBadge action={selectedEvent.action} />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    Created: {formatTimestamp(selectedEvent.created_at)}
+                  <p className="mt-1 text-[13px] text-muted-foreground truncate flex items-center gap-2 font-mono">
+                    <span>{formatTimestamp(evt.created_at)}</span>
+                    <span className="text-muted-foreground/40">&middot;</span>
+                    <span className="text-foreground/85">{evt.actor_label || evt.actor_id || "System"}</span>
+                    <span className="text-muted-foreground/40">&middot;</span>
+                    <span className="text-muted-foreground">{evt.entity_type} ({evt.entity_id})</span>
+                    {evt.correlation_id && (
+                      <>
+                        <span className="text-muted-foreground/40">&middot;</span>
+                        <span className="text-[var(--brass)]/80">corr: {evt.correlation_id.slice(0, 8)}...</span>
+                      </>
+                    )}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedEvent(null)}
-                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              {/* Cryptographic Chain Box */}
-              <div className="glass-panel p-4 space-y-2 border border-emerald-500/20">
-                <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                  <ShieldCheck className="w-4 h-4" />
-                  Cryptographic Chaining Details
-                </div>
-                <div className="text-[11px] font-mono space-y-2 text-foreground/90 mt-2">
-                  <div className="flex justify-between py-1 border-b border-[var(--hairline)]">
-                    <span className="text-muted-foreground">Hash Version:</span>
-                    <span className="text-[var(--brass)] font-semibold">v{selectedEvent.hash_version}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 py-1 border-b border-[var(--hairline)]">
-                    <span className="text-muted-foreground">Previous Hash (prev_hash):</span>
-                    <span className="text-muted-foreground/80 break-all select-all text-[10px]">
-                      {selectedEvent.prev_hash}
+                {/* Col 3: Hash Preview + Pill Inspect Action Button */}
+                <div className="flex items-center gap-4 justify-between md:justify-end shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <span className="font-mono text-[11px] text-muted-foreground/80 block select-all">
+                      {evt.row_hash.slice(0, 10)}...
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--brass)]/70">
+                      SHA-256 v{evt.hash_version}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-0.5 py-1">
-                    <span className="text-muted-foreground">Row Hash (SHA-256 digest):</span>
-                    <span className="text-[var(--brass)] font-semibold break-all select-all text-[10px]">
-                      {selectedEvent.row_hash}
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEvent(evt);
+                    }}
+                    className="press inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground hover:border-[var(--brass)] hover:text-foreground transition-ui"
+                  >
+                    <span>Inspect</span>
+                    <ChevronRight size={13} className="text-[var(--brass)]" />
+                  </button>
                 </div>
               </div>
-
-              {/* Event Attributes */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="glass-panel p-3">
-                  <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
-                    Entity Type & ID
-                  </span>
-                  <span className="font-semibold text-foreground mt-0.5 block truncate">
-                    {selectedEvent.entity_type} : {selectedEvent.entity_id}
-                  </span>
-                </div>
-                <div className="glass-panel p-3">
-                  <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
-                    Actor & Role
-                  </span>
-                  <span className="font-semibold text-foreground mt-0.5 block truncate">
-                    {selectedEvent.actor_label || selectedEvent.actor_id || "System"} ({selectedEvent.actor_role})
-                  </span>
-                </div>
-                {selectedEvent.correlation_id && (
-                  <div className="col-span-2 glass-panel p-3 font-mono text-[11px]">
-                    <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider font-sans">
-                      Correlation ID
-                    </span>
-                    <span className="text-[var(--brass)] break-all">{selectedEvent.correlation_id}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Redacted Payloads */}
-              <div className="space-y-4 text-xs">
-                {selectedEvent.basis && (
-                  <div>
-                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center justify-between">
-                      <span>Decision Basis (Why)</span>
-                      <span className="text-[9px] text-[var(--brass)]">redacted at write-time</span>
-                    </h4>
-                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
-                      {JSON.stringify(selectedEvent.basis, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {selectedEvent.before && (
-                  <div>
-                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Before Snapshot
-                    </h4>
-                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
-                      {JSON.stringify(selectedEvent.before, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {selectedEvent.after && (
-                  <div>
-                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
-                      After Snapshot / Diff
-                    </h4>
-                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
-                      {JSON.stringify(selectedEvent.after, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                <div>
-                  <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Metadata & Attribution
-                  </h4>
-                  <pre className="glass-panel p-3 text-muted-foreground font-mono text-[11px] overflow-x-auto max-h-48">
-                    {JSON.stringify(selectedEvent.metadata || {}, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         )}
+
+        {/* Cursor Pagination Footer */}
+        {logsData?.nextCursor && (
+          <div className="pt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setActiveCursor(logsData.nextCursor || undefined)}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] px-4 py-2 text-xs font-mono text-foreground hover:border-[var(--brass)] hover:text-[var(--brass)] transition-all shadow-sm"
+            >
+              <ArrowDownCircle className="w-4 h-4 text-[var(--brass)]" />
+              Load Older Records (Before #{logsData.nextCursor})
+            </button>
+          </div>
+        )}
+
+        {/* Detail Inspection Drawer: matching EvidenceDrawer layout perfectly */}
+        {selectedEvent && typeof document !== "undefined" &&
+          createPortal(
+            <div className="fixed inset-0 z-[100] flex justify-end bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="flex-1" onClick={() => setSelectedEvent(null)} aria-label="Close backdrop" />
+
+              <div className="w-full max-w-[860px] h-full h-dvh bg-[var(--shell-bg)] border-l border-[var(--hairline-strong)] text-foreground shadow-[var(--shadow-lift)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+                {/* Header */}
+                <div className="px-7 py-5 border-b border-[var(--hairline)] bg-[var(--shell-secondary)] flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-[23px] md:text-[25px] leading-tight tracking-tight text-foreground truncate">
+                      Audit Event Dossier
+                    </h2>
+                    <p className="mt-1.5 text-[14px] text-muted-foreground truncate">
+                      Action:{" "}
+                      <span className="text-foreground font-mono font-medium">{selectedEvent.action}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[11px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-full bg-[rgba(255,255,255,0.04)] text-muted-foreground border border-[var(--hairline)]">
+                      Event #{selectedEvent.id}
+                    </span>
+                    <button
+                      onClick={() => setSelectedEvent(null)}
+                      className="press p-2.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.05)] transition-colors ml-1"
+                      title="Close Drawer (Esc)"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 premium-scrollbar">
+                  {/* Section 1: Cryptographic Chaining Details */}
+                  <div className="glass-panel p-6 space-y-4 border border-[rgba(94,234,212,0.28)] border-l-4 border-l-[var(--brass)] bg-gradient-to-br from-[rgba(94,234,212,0.03)] via-transparent to-transparent shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                    <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+                      <span className="flex items-center gap-2 text-[var(--brass)] font-semibold uppercase tracking-wider text-[11px]">
+                        <ShieldCheck size={15} /> Cryptographic Proof
+                      </span>
+                      <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.14)] text-foreground">
+                        Version: v{selectedEvent.hash_version}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 font-mono text-[11px] text-foreground">
+                      <div className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.3)] border border-[rgba(255,255,255,0.08)]">
+                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider block mb-1">
+                          Row Hash (SHA-256 Digest)
+                        </span>
+                        <span className="text-[var(--brass)] font-semibold break-all select-all">
+                          {selectedEvent.row_hash}
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.3)] border border-[rgba(255,255,255,0.08)]">
+                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider block mb-1">
+                          Previous Hash (prev_hash)
+                        </span>
+                        <span className="text-muted-foreground/80 break-all select-all">
+                          {selectedEvent.prev_hash}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Event Attributes */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="glass-panel p-4">
+                      <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
+                        Entity Target
+                      </span>
+                      <span className="font-semibold text-foreground mt-1 block truncate">
+                        {selectedEvent.entity_type} : {selectedEvent.entity_id}
+                      </span>
+                    </div>
+
+                    <div className="glass-panel p-4">
+                      <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
+                        Actor & Role
+                      </span>
+                      <span className="font-semibold text-foreground mt-1 block truncate">
+                        {selectedEvent.actor_label || selectedEvent.actor_id || "System Engine"} ({selectedEvent.actor_role})
+                      </span>
+                    </div>
+
+                    {selectedEvent.correlation_id && (
+                      <div className="sm:col-span-2 glass-panel p-4 font-mono text-[11px]">
+                        <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider font-sans">
+                          Correlation ID
+                        </span>
+                        <span className="text-[var(--brass)] break-all">{selectedEvent.correlation_id}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Section 3: Decision Basis / Redacted Rationale */}
+                  {selectedEvent.basis && (
+                    <div className="glass-panel p-5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] font-semibold flex items-center gap-1.5">
+                          <Scale size={13} /> Decision Basis (Why)
+                        </h4>
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                          Redacted at write-time
+                        </span>
+                      </div>
+                      <pre className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.35)] border border-[rgba(255,255,255,0.08)] text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48 premium-scrollbar">
+                        {JSON.stringify(selectedEvent.basis, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* Section 4: Before / After Snapshots */}
+                  {selectedEvent.before && (
+                    <div className="glass-panel p-5 space-y-2">
+                      <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        Before Snapshot
+                      </h4>
+                      <pre className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.35)] border border-[rgba(255,255,255,0.08)] text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48 premium-scrollbar">
+                        {JSON.stringify(selectedEvent.before, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+
+                  {selectedEvent.after && (
+                    <div className="glass-panel p-5 space-y-2">
+                      <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        After Snapshot / Diff
+                      </h4>
+                      <pre className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.35)] border border-[rgba(255,255,255,0.08)] text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48 premium-scrollbar">
+                        {JSON.stringify(selectedEvent.after, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* Section 5: Metadata & Attribution */}
+                  <div className="glass-panel p-5 space-y-2">
+                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                      Metadata & Attribution
+                    </h4>
+                    <pre className="p-3 rounded-[10px] bg-[rgba(0,0,0,0.35)] border border-[rgba(255,255,255,0.08)] text-muted-foreground font-mono text-[11px] overflow-x-auto max-h-48 premium-scrollbar">
+                      {JSON.stringify(selectedEvent.metadata || {}, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
       </div>
     </AppShell>
   );
