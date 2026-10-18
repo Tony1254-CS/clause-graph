@@ -10,6 +10,7 @@ export type SimulationResult = {
   impacts: ImpactEntry[];
   summary?: string;
   fallback?: boolean;
+  citation_verification?: import("./citation-verify.types").CitationVerificationSummary;
 };
 
 export type RunType = "reactive" | "forecast" | "what_if";

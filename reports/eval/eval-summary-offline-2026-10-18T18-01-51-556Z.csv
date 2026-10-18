@@ -1,0 +1,15 @@
+test_case_id,category,passed,latency_ms,citation_precision,citation_recall,citation_f1,stale_detection_correct,unsupported_claim,abstention_correct,human_review_correct
+TC-CIT-001,VERIFIED_LAW,true,0,0.5,1,0.6666666666666666,true,false,true,true
+TC-CIT-002,VERIFIED_LAW,false,0,0.5,1,0.6666666666666666,false,false,true,true
+TC-AMD-001,AMENDED_LAW,true,0,0.5,1,0.6666666666666666,true,false,true,true
+TC-AMD-002,AMENDED_LAW,true,0,1,1,1,true,false,true,true
+TC-REP-001,REPEALED_LAW,true,0,1,1,1,true,false,true,true
+TC-REP-002,REPEALED_LAW,false,0,0,0,0,true,false,true,true
+TC-SUP-001,SUPERSEDED_FRAMEWORK,false,0,0.5,1,0.6666666666666666,true,true,true,true
+TC-UNV-001,UNVERIFIED_CITATION,false,0,0,0,0,true,false,true,true
+TC-ABS-001,INSUFFICIENT_EVIDENCE,true,0,0,1,0,N/A,false,true,true
+TC-AMB-001,AMBIGUOUS_QUERY,false,0,N/A,N/A,N/A,N/A,false,true,true
+TC-CNF-001,CONFLICTING_DOCUMENTS,true,0,1,1,1,true,false,true,true
+TC-BN-001,MULTILINGUAL_BANGLA,true,0,1,1,1,true,false,true,true
+TC-BN-002,MULTILINGUAL_BANGLA,true,0,0.5,1,0.6666666666666666,true,false,true,true
+TC-OOS-001,OUT_OF_SCOPE,false,0,N/A,N/A,N/A,N/A,false,true,true

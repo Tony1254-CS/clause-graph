@@ -19,13 +19,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
 import { Route as AuthenticatedSupplyChainRouteImport } from './routes/_authenticated/supply-chain'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
+import { Route as AuthenticatedReviewQueueRouteImport } from './routes/_authenticated/review-queue'
 import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
+import { Route as AuthenticatedLegalSourcesRouteImport } from './routes/_authenticated/legal-sources'
+import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
 import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
 import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
+import { Route as ApiPublicVerifyCitationsRouteImport } from './routes/api/public/verify-citations'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
@@ -85,9 +89,26 @@ const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
   path: '/simulate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReviewQueueRoute =
+  AuthenticatedReviewQueueRouteImport.update({
+    id: '/review-queue',
+    path: '/review-queue',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPredictiveRoute = AuthenticatedPredictiveRouteImport.update({
   id: '/predictive',
   path: '/predictive',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLegalSourcesRoute =
+  AuthenticatedLegalSourcesRouteImport.update({
+    id: '/legal-sources',
+    path: '/legal-sources',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
@@ -120,6 +141,12 @@ const AuthenticatedContractsIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedContractsRoute,
+  } as any)
+const ApiPublicVerifyCitationsRoute =
+  ApiPublicVerifyCitationsRouteImport.update({
+    id: '/api/public/verify-citations',
+    path: '/api/public/verify-citations',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
@@ -181,7 +208,10 @@ export interface FileRoutesByFullPath {
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/jobs': typeof AuthenticatedJobsRoute
+  '/legal-sources': typeof AuthenticatedLegalSourcesRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/review-queue': typeof AuthenticatedReviewQueueRoute
   '/simulate': typeof AuthenticatedSimulateRoute
   '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
@@ -192,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
   '/contracts/': typeof AuthenticatedContractsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -206,7 +237,10 @@ export interface FileRoutesByTo {
   '/backtest': typeof AuthenticatedBacktestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/jobs': typeof AuthenticatedJobsRoute
+  '/legal-sources': typeof AuthenticatedLegalSourcesRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/review-queue': typeof AuthenticatedReviewQueueRoute
   '/simulate': typeof AuthenticatedSimulateRoute
   '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
@@ -217,6 +251,7 @@ export interface FileRoutesByTo {
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
   '/contracts': typeof AuthenticatedContractsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -234,7 +269,10 @@ export interface FileRoutesById {
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/jobs': typeof AuthenticatedJobsRoute
+  '/_authenticated/legal-sources': typeof AuthenticatedLegalSourcesRoute
   '/_authenticated/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/_authenticated/review-queue': typeof AuthenticatedReviewQueueRoute
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
   '/_authenticated/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/_authenticated/what-if': typeof AuthenticatedWhatIfRoute
@@ -245,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
   '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -262,7 +301,10 @@ export interface FileRouteTypes {
     | '/contracts'
     | '/dashboard'
     | '/feed'
+    | '/jobs'
+    | '/legal-sources'
     | '/predictive'
+    | '/review-queue'
     | '/simulate'
     | '/supply-chain'
     | '/what-if'
@@ -273,6 +315,7 @@ export interface FileRouteTypes {
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
+    | '/api/public/verify-citations'
     | '/contracts/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -287,7 +330,10 @@ export interface FileRouteTypes {
     | '/backtest'
     | '/dashboard'
     | '/feed'
+    | '/jobs'
+    | '/legal-sources'
     | '/predictive'
+    | '/review-queue'
     | '/simulate'
     | '/supply-chain'
     | '/what-if'
@@ -298,6 +344,7 @@ export interface FileRouteTypes {
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
+    | '/api/public/verify-citations'
     | '/contracts'
     | '/api/public/payments/webhook'
   id:
@@ -314,7 +361,10 @@ export interface FileRouteTypes {
     | '/_authenticated/contracts'
     | '/_authenticated/dashboard'
     | '/_authenticated/feed'
+    | '/_authenticated/jobs'
+    | '/_authenticated/legal-sources'
     | '/_authenticated/predictive'
+    | '/_authenticated/review-queue'
     | '/_authenticated/simulate'
     | '/_authenticated/supply-chain'
     | '/_authenticated/what-if'
@@ -325,6 +375,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/billing'
     | '/_authenticated/settings/team'
     | '/api/public/health'
+    | '/api/public/verify-citations'
     | '/_authenticated/contracts/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -338,6 +389,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicVerifyCitationsRoute: typeof ApiPublicVerifyCitationsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -413,11 +465,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSimulateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review-queue': {
+      id: '/_authenticated/review-queue'
+      path: '/review-queue'
+      fullPath: '/review-queue'
+      preLoaderRoute: typeof AuthenticatedReviewQueueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/predictive': {
       id: '/_authenticated/predictive'
       path: '/predictive'
       fullPath: '/predictive'
       preLoaderRoute: typeof AuthenticatedPredictiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/legal-sources': {
+      id: '/_authenticated/legal-sources'
+      path: '/legal-sources'
+      fullPath: '/legal-sources'
+      preLoaderRoute: typeof AuthenticatedLegalSourcesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs': {
+      id: '/_authenticated/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof AuthenticatedJobsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feed': {
@@ -461,6 +534,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contracts/'
       preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
       parentRoute: typeof AuthenticatedContractsRoute
+    }
+    '/api/public/verify-citations': {
+      id: '/api/public/verify-citations'
+      path: '/api/public/verify-citations'
+      fullPath: '/api/public/verify-citations'
+      preLoaderRoute: typeof ApiPublicVerifyCitationsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/health': {
       id: '/api/public/health'
@@ -559,7 +639,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
+  AuthenticatedLegalSourcesRoute: typeof AuthenticatedLegalSourcesRoute
   AuthenticatedPredictiveRoute: typeof AuthenticatedPredictiveRouteWithChildren
+  AuthenticatedReviewQueueRoute: typeof AuthenticatedReviewQueueRoute
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
   AuthenticatedSupplyChainRoute: typeof AuthenticatedSupplyChainRoute
   AuthenticatedWhatIfRoute: typeof AuthenticatedWhatIfRoute
@@ -575,7 +658,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedJobsRoute: AuthenticatedJobsRoute,
+  AuthenticatedLegalSourcesRoute: AuthenticatedLegalSourcesRoute,
   AuthenticatedPredictiveRoute: AuthenticatedPredictiveRouteWithChildren,
+  AuthenticatedReviewQueueRoute: AuthenticatedReviewQueueRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
   AuthenticatedSupplyChainRoute: AuthenticatedSupplyChainRoute,
   AuthenticatedWhatIfRoute: AuthenticatedWhatIfRoute,
@@ -597,6 +683,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicVerifyCitationsRoute: ApiPublicVerifyCitationsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

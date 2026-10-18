@@ -18,6 +18,7 @@ export type ActionPlan = {
   amendments: Amendment[];
   tech_fixes: TechFix[];
   fallback?: boolean;
+  citation_verification?: import("./citation-verify.types").CitationVerificationSummary;
 };
 
 export type ActionPlanInput = {

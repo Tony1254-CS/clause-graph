@@ -14,6 +14,8 @@ import {
   FlaskConical,
   Network,
   Settings,
+  UserCheck,
+  Activity,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -30,6 +32,9 @@ type NavItem = {
     | "/actions"
     | "/predictive"
     | "/what-if"
+    | "/review-queue"
+    | "/jobs"
+    | "/legal-sources"
     | "/settings/team"
     | "/settings/billing"
     | "/settings/account";
@@ -44,6 +49,9 @@ const NAV: NavItem[] = [
   { label: "Supply Chain", icon: Network, to: "/supply-chain" },
   { label: "Predictive Radar", icon: Radar, to: "/predictive", match: "/predictive" },
   { label: "What-If Sandbox", icon: FlaskConical, to: "/what-if" },
+  { label: "Review Queue", icon: UserCheck, to: "/review-queue", match: "/review-queue" },
+  { label: "Background Jobs", icon: Activity, to: "/jobs" as any, match: "/jobs" },
+  { label: "Sources & Backups", icon: ShieldCheck, to: "/legal-sources" as any, match: "/legal-sources" },
   { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
   { label: "Team", icon: Users, to: "/settings/team", match: "/settings/team" },
@@ -150,7 +158,7 @@ export function Sidebar() {
           </span>
         </Link>
 
-        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden py-1">
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar py-1">
           {NAV.map((item, i) => (
             <RailIcon key={item.to} item={item} expanded={expanded} index={i} />
           ))}
@@ -183,7 +191,7 @@ export function MobileRail() {
       >
         <div className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
       </Link>
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-hidden">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto no-scrollbar">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);

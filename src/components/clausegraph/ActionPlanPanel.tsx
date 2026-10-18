@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { generateActionPlan } from "@/lib/action-plan.functions";
 import type { ActionPlan, ActionPlanInput, TechPriority } from "@/lib/action-plan-types";
+import { StaleCitationVerificationPanel } from "./StaleCitationVerificationPanel";
 
 const PRIORITY_DOT: Record<TechPriority, string> = {
   P0: "bg-[var(--risk)]",
@@ -266,6 +267,11 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
 
         </div>
       </header>
+
+      {/* Stale-Citation Detection & Verification Audit Panel */}
+      {plan.citation_verification && (
+        <StaleCitationVerificationPanel verification={plan.citation_verification} />
+      )}
 
       <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)] p-3.5">
         <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-[var(--brass)]">

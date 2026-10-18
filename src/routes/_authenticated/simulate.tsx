@@ -10,6 +10,7 @@ import { contractsQuery, regulationsQuery, formatUSD } from "@/data/queries";
 import { simulateImpact } from "@/lib/simulate.functions";
 import type { ImpactEntry, Severity, SimulationResult } from "@/lib/simulate-types";
 import { ActionPlanPanel } from "@/components/clausegraph/ActionPlanPanel";
+import { StaleCitationVerificationPanel } from "@/components/clausegraph/StaleCitationVerificationPanel";
 import { handlePlanLimitError } from "@/components/PlanLimitDialog";
 import { RouteError } from "@/components/clausegraph/RouteError";
 
@@ -433,6 +434,11 @@ function SimulatePage() {
             Hover over rings and nodes to inspect entity ties and severity blast levels.
           </p>
         </div>
+
+        {/* Stale Citation Detection & Legal Verification Panel */}
+        {status === "done" && result?.citation_verification && (
+          <StaleCitationVerificationPanel verification={result.citation_verification} />
+        )}
 
         {/* Action Plan Panel (shown on completed run) */}
         {status === "done" && result && (

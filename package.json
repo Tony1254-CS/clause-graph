@@ -8,6 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "test": "tsx --test src/tests/*.test.ts",
+    "eval": "node --env-file=.env --import tsx src/scripts/run-eval.ts --mode=offline",
+    "eval:live": "node --env-file=.env --import tsx src/scripts/run-eval.ts --mode=live",
+    "worker": "node --env-file=.env --import tsx src/scripts/run-worker.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
