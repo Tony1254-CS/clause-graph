@@ -3,7 +3,6 @@ import {
   signInWithPasswordFn,
   signUpWithPasswordFn,
   demoLoginFn,
-  googleLoginFn,
   getCurrentUserFn,
 } from "./auth.functions";
 
@@ -55,12 +54,6 @@ export async function signUpWithPassword(email: string, password: string, fullNa
 
 export async function signInDemo() {
   const result = await demoLoginFn();
-  saveSession(result.token, result.user);
-  return result;
-}
-
-export async function signInWithGoogle(email?: string, name?: string) {
-  const result = await googleLoginFn({ data: { email, name } });
   saveSession(result.token, result.user);
   return result;
 }
