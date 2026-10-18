@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -16,7 +16,17 @@ import {
   Activity,
   Globe,
   Sparkles,
+  UserCheck,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Table as TableIcon,
+  LayoutList,
+  X,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import {
   PieChart,
   Pie,
@@ -39,6 +49,7 @@ import {
   federalRegisterQuery,
   formatUSD,
 } from "@/data/queries";
+import { getReviewStatsFn } from "@/lib/review.functions";
 import { RouteError } from "@/components/clausegraph/RouteError";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -60,13 +71,27 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: ({ context }) =>
-    Promise.all([
+  loader: async ({ context }) => {
+    const [contracts, regulations, runs, fedData, reviewStats] = await Promise.all([
       context.queryClient.ensureQueryData(contractsQuery),
       context.queryClient.ensureQueryData(regulationsQuery),
       context.queryClient.ensureQueryData(simulationRunsQuery),
       context.queryClient.ensureQueryData(federalRegisterQuery),
-    ]),
+      getReviewStatsFn().catch(() => ({
+        pending: 0,
+        inReview: 0,
+        needsCorrection: 0,
+        approved: 0,
+        rejected: 0,
+        critical: 0,
+        high: 0,
+        medium: 0,
+        low: 0,
+        total: 0,
+      })),
+    ]);
+    return { reviewStats };
+  },
   component: Dashboard,
   errorComponent: ({ error, reset }) => (
     <RouteError title="Dashboard unavailable" error={error} reset={reset} />
@@ -74,6 +99,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const { reviewStats } = Route.useLoaderData();
   const { data: contracts } = useSuspenseQuery(contractsQuery);
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
   const { data: runs } = useSuspenseQuery(simulationRunsQuery);
@@ -109,14 +135,43 @@ function Dashboard() {
     return sum;
   }, [runs, contractsById]);
 
+  // Overall Portfolio Health Score (Normalized based on exposure / value)
+  const healthScore = useMemo(() => {
+    if (totalPortfolioValue <= 0) return 92;
+    const ratio = totalExposureSurfaced / totalPortfolioValue;
+    const score = Math.max(68, Math.min(98, Math.round(100 - ratio * 40)));
+    return score;
+  }, [totalPortfolioValue, totalExposureSurfaced]);
+
   // Sort contracts by valuation for high-priority watchlist
   const topValuedContracts = useMemo(
     () => [...contracts].sort((a, b) => b.value - a.value).slice(0, 5),
     [contracts]
   );
 
-  // Recent 3 forensic runs
-  const recentRuns = useMemo(() => runs.slice(0, 3), [runs]);
+  // Left: Federal Register feed state
+  const [fedViewMode, setFedViewMode] = useState<"table" | "feed">("table");
+
+  // Recent forensic runs state
+  const [runsViewMode, setRunsViewMode] = useState<"table" | "feed">("table");
+  const [selectedRunForModal, setSelectedRunForModal] = useState<
+    (typeof runs)[number] | null
+  >(null);
+
+  // Close modal on Escape
+  useEffect(() => {
+    if (!selectedRunForModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedRunForModal(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedRunForModal]);
+
+  // Recent 5 forensic runs for table
+  const recentRuns = useMemo(() => runs.slice(0, 5), [runs]);
 
   const frameworkSegments = [
     {
@@ -171,25 +226,38 @@ function Dashboard() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-[1440px] mx-auto space-y-8 pb-16">
+      <div className="w-full max-w-[1440px] mx-auto space-y-6 pb-16">
         {/* ── Top Executive Header ── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[var(--hairline)]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
               <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
-                Enterprise Command Center · Live Governance
+                Enterprise Command Center &middot; Live Governance
               </p>
             </div>
             <h1 className="mt-2 text-2xl sm:text-3xl font-display font-semibold tracking-tight text-foreground">
               Portfolio Intelligence &amp; Exposure Radar
             </h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground max-w-2xl">
+            <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted-foreground max-w-2xl">
               Cross-jurisdictional contract topology, predictive compliance telemetry, and automated remediation pipelines.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/review-queue"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/80 hover:bg-white/[0.06] hover:border-white/20 px-3.5 py-2 text-xs font-mono font-medium text-foreground transition-all shadow-sm"
+            >
+              <UserCheck className="h-3.5 w-3.5 text-amber-400" />
+              Review Queue
+              {reviewStats.pending > 0 && (
+                <span className="ml-1 rounded-full bg-amber-500/20 text-amber-400 px-1.5 py-0.2 text-[10px] font-bold border border-amber-500/30">
+                  {reviewStats.pending}
+                </span>
+              )}
+            </Link>
+
             <Link
               to="/simulate"
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--brass)] to-[#c59a3f] px-4 py-2 text-xs font-semibold text-[var(--ink-base)] shadow-lg shadow-[var(--brass)]/15 transition-all hover:brightness-110 active:scale-[0.98]"
@@ -200,8 +268,49 @@ function Dashboard() {
           </div>
         </div>
 
+        {/* ── Real-Time Intelligence & Attention Banner ── */}
+        <div className="rounded-2xl border border-[var(--hairline)] bg-gradient-to-r from-[var(--surface-raised)]/90 via-black/40 to-[var(--surface-raised)]/70 p-4 sm:p-5 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-xs text-foreground">
+                  Governance Surveillance Status:
+                </span>
+                <span className="inline-flex items-center gap-1 font-mono text-[10.5px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Health Score: {healthScore}% Optimal
+                </span>
+                {reviewStats.pending > 0 && (
+                  <span className="inline-flex items-center gap-1 font-mono text-[10.5px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                    <Clock className="h-3 w-3" />
+                    {reviewStats.pending} Pending Human Reviews
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                {reviewStats.pending > 0
+                  ? `There are ${reviewStats.pending} flagged clauses requiring human verification before legal audit closure.`
+                  : "All statutory cross-references verified. Continuous neural monitoring active across SEC, EU GDPR, and DORA."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/review-queue"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 text-xs font-mono text-amber-300 font-semibold transition-all"
+            >
+              Resolve Items <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+
         {/* ── Executive KPI Ribbon ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Total Portfolio Value */}
           <div className="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--brass)]/50 hover:shadow-[0_20px_40px_-15px_rgba(201,166,107,0.18)]">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-center justify-between text-muted-foreground">
@@ -222,6 +331,7 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Card 2: Exposure at Risk */}
           <div className="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--risk)]/50 hover:shadow-[0_20px_40px_-15px_rgba(225,82,75,0.22)]">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--risk)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-center justify-between text-muted-foreground">
@@ -242,6 +352,7 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Card 3: Monitored Regulations */}
           <div className="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_20px_40px_-15px_rgba(6,182,212,0.2)]">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-center justify-between text-muted-foreground">
@@ -257,27 +368,28 @@ function Dashboard() {
                 {regulations.length} Frameworks
               </span>
               <span className="text-[10px] font-mono text-cyan-400 border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 rounded-full">
-                US · EU · UK
+                US &middot; EU &middot; UK
               </span>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.2)]">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          {/* Card 4: Human Review & Compliance Health */}
+          <div className="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-amber-500/50 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.2)]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="font-mono text-[10px] uppercase tracking-wider">
-                Audited Executions
+                Review &amp; Audit Queue
               </span>
-              <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/5 bg-white/[0.04] text-purple-400 transition-colors group-hover:border-purple-500/30 group-hover:bg-purple-500/10">
-                <ListChecks className="h-4 w-4" />
+              <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/5 bg-white/[0.04] text-amber-400 transition-colors group-hover:border-amber-500/30 group-hover:bg-amber-500/10">
+                <UserCheck className="h-4 w-4" />
               </div>
             </div>
             <div className="mt-3 flex items-baseline justify-between">
               <span className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {runs.length} Runs Logged
+                {reviewStats.pending} Pending
               </span>
-              <span className="text-[10px] font-mono text-purple-400 border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 rounded-full">
-                Immutable Ledger
+              <span className="text-[10px] font-mono text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                {runs.length} Audits Run
               </span>
             </div>
           </div>
@@ -700,7 +812,8 @@ function Dashboard() {
             </Link>
 
             <Link
-              to="/what-if"
+              to="/simulate"
+              search={{ tab: "what-if" }}
               className="group rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-5 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/40 hover:shadow-[0_12px_30px_-10px_rgba(245,158,11,0.15)] flex flex-col justify-between space-y-4"
             >
               <div className="flex items-center justify-between">
@@ -743,85 +856,291 @@ function Dashboard() {
 
         {/* ── Twin Columns: Federal Register Live Radar (Left) & Audit Trail Ledger (Right) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Left: Federal Register Live Feed */}
+          {/* Left: Federal Register Live Feed (Compact Table & Card Switcher) */}
           <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-emerald-400" />
                 <h3 className="text-sm font-semibold text-foreground">
                   Federal Register Live Regulatory Feed
                 </h3>
               </div>
-              <Link
-                to="/feed"
-                className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
-              >
-                View Full Feed <ChevronRight className="h-3 w-3" />
-              </Link>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-white/[0.03] p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setFedViewMode("table")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      fedViewMode === "table"
+                        ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Compact Table View"
+                  >
+                    <TableIcon className="h-3 w-3" />
+                    Table
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFedViewMode("feed")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      fedViewMode === "feed"
+                        ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Feed Card View"
+                  >
+                    <LayoutList className="h-3 w-3" />
+                    Cards
+                  </button>
+                </div>
+
+                <Link
+                  to="/feed"
+                  className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
+                >
+                  Full Feed <ChevronRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {fedData.results.slice(0, 4).map((doc) => (
-                <div
-                  key={doc.document_number}
-                  className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[9.5px] uppercase tracking-wider text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      {doc.type ?? "RULE"}
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {doc.publication_date}
-                    </span>
+            {fedData.results.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                No active federal register items detected at this moment.
+              </div>
+            ) : fedViewMode === "table" ? (
+              /* Compact Mini Table View for Federal Register */
+              <div className="overflow-x-auto rounded-xl border border-white/5">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/[0.02] font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3.5 py-2.5">Document Title &amp; Agency</th>
+                      <th className="px-3 py-2.5">Type</th>
+                      <th className="px-3 py-2.5">Published</th>
+                      <th className="px-3.5 py-2.5 text-right">Stress Test</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                    {fedData.results.slice(0, 5).map((doc) => (
+                      <tr
+                        key={doc.document_number}
+                        className="group hover:bg-white/[0.03] transition-colors"
+                      >
+                        <td className="px-3.5 py-2.5 max-w-[200px]">
+                          <span className="font-medium text-foreground group-hover:text-emerald-400 truncate block transition-colors">
+                            {doc.title}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground block truncate">
+                            {doc.agencies?.[0]?.name ?? "Federal Agency"} &middot; {doc.document_number}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded text-[9.5px] border uppercase font-bold border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                            {doc.type ?? "RULE"}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground text-[10px]">
+                          {doc.publication_date}
+                        </td>
+
+                        <td className="px-3.5 py-2.5 whitespace-nowrap text-right">
+                          <Link
+                            to="/simulate"
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10.5px] font-mono text-muted-foreground hover:text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all cursor-pointer"
+                          >
+                            Test
+                            <ArrowUpRight className="h-2.5 w-2.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* Feed Cards View */
+              <div className="space-y-3">
+                {fedData.results.slice(0, 4).map((doc) => (
+                  <div
+                    key={doc.document_number}
+                    className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 hover:bg-white/[0.03] transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[9.5px] uppercase tracking-wider text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        {doc.type ?? "RULE"}
+                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {doc.publication_date}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-medium text-foreground line-clamp-2 leading-relaxed">
+                      {doc.title}
+                    </h4>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-muted-foreground truncate max-w-[200px]">
+                        {doc.agencies?.[0]?.name ?? "Federal Agency"}
+                      </span>
+                      <Link
+                        to="/simulate"
+                        className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400 hover:underline"
+                      >
+                        Test On Portfolio <ArrowUpRight className="h-3 w-3" />
+                      </Link>
+                    </div>
                   </div>
-                  <h4 className="text-xs font-medium text-foreground line-clamp-2 leading-relaxed">
-                    {doc.title}
-                  </h4>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-muted-foreground truncate max-w-[200px]">
-                      {doc.agencies?.[0]?.name ?? "Federal Agency"}
-                    </span>
-                    <Link
-                      to="/simulate"
-                      className="inline-flex items-center gap-1 text-[11px] font-mono text-[var(--brass)] hover:underline"
-                    >
-                      Test On Portfolio <ArrowUpRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Right: Recent Forensic Audit Runs */}
+          {/* Right: Recent Forensic Audit Runs (Compact Table & Card Switcher) */}
           <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-[var(--brass)]" />
                 <h3 className="text-sm font-semibold text-foreground">
                   Recent Forensic Action Plans &amp; Audits
                 </h3>
               </div>
-              <Link
-                to="/actions"
-                className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
-              >
-                Full Audit Trail <ChevronRight className="h-3 w-3" />
-              </Link>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-white/[0.03] p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setRunsViewMode("table")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      runsViewMode === "table"
+                        ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Compact Table View"
+                  >
+                    <TableIcon className="h-3 w-3" />
+                    Table
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRunsViewMode("feed")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                      runsViewMode === "feed"
+                        ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Feed Card View"
+                  >
+                    <LayoutList className="h-3 w-3" />
+                    Cards
+                  </button>
+                </div>
+
+                <Link
+                  to="/actions"
+                  className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
+                >
+                  All ({runs.length}) <ChevronRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {recentRuns.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">
-                  No simulations executed yet. Run your first simulation to generate an immutable forensic record.
-                </div>
-              ) : (
-                recentRuns.map((r) => {
+            {recentRuns.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                No simulations executed yet. Run your first simulation to generate an immutable forensic record.
+              </div>
+            ) : runsViewMode === "table" ? (
+              /* Compact Mini Table View */
+              <div className="overflow-x-auto rounded-xl border border-white/5">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/[0.02] font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3.5 py-2.5">Execution &amp; Trigger</th>
+                      <th className="px-3 py-2.5">Mode</th>
+                      <th className="px-3 py-2.5">Impacted</th>
+                      <th className="px-3 py-2.5">Exposure</th>
+                      <th className="px-3.5 py-2.5 text-right">Inspect</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                    {recentRuns.map((r) => {
+                      const impactCount = (r.result.impacts ?? []).length;
+                      let exposure = 0;
+                      if (r.run_type === "supply_chain") {
+                        exposure = r.result.total_indirect_exposure ?? 0;
+                      } else {
+                        (r.result.impacts ?? []).forEach((i) => {
+                          exposure += contractsById.get(i.contract_id)?.value ?? 0;
+                        });
+                      }
+
+                      return (
+                        <tr
+                          key={r.id}
+                          onClick={() => setSelectedRunForModal(r)}
+                          className="group hover:bg-white/[0.03] transition-colors cursor-pointer"
+                        >
+                          <td className="px-3.5 py-2.5 max-w-[180px]">
+                            <span className="font-medium text-foreground group-hover:text-[var(--brass)] truncate block transition-colors">
+                              {r.result.summary || r.input_regulation_text || "Simulation Run"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground block truncate">
+                              ID: {r.id.slice(0, 8)} &middot; {new Date(r.created_at).toLocaleDateString()}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded text-[9.5px] border uppercase font-bold bg-white/5 text-muted-foreground border-white/10">
+                              {r.run_type}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-2.5 whitespace-nowrap text-foreground/90">
+                            {impactCount} inst.
+                          </td>
+
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[var(--risk)] font-bold">
+                            {formatUSD(exposure)}
+                          </td>
+
+                          <td className="px-3.5 py-2.5 whitespace-nowrap text-right">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRunForModal(r);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10.5px] font-mono text-muted-foreground hover:text-[var(--brass)] hover:border-[var(--brass)] hover:bg-[var(--brass)]/10 transition-all cursor-pointer"
+                            >
+                              Inspect
+                              <ArrowRight className="h-2.5 w-2.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* Feed Cards View */
+              <div className="space-y-3">
+                {recentRuns.map((r) => {
                   const impactCount = (r.result.impacts ?? []).length;
+                  let exposure = 0;
+                  if (r.run_type === "supply_chain") {
+                    exposure = r.result.total_indirect_exposure ?? 0;
+                  } else {
+                    (r.result.impacts ?? []).forEach((i) => {
+                      exposure += contractsById.get(i.contract_id)?.value ?? 0;
+                    });
+                  }
+
                   return (
                     <div
                       key={r.id}
-                      className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 transition-colors"
+                      onClick={() => setSelectedRunForModal(r)}
+                      className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 hover:bg-white/[0.03] transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-[9.5px] uppercase tracking-wider text-[var(--brass)] border border-[var(--brass)]/30 bg-[var(--brass)]/10 px-2 py-0.5 rounded-full">
@@ -836,22 +1155,107 @@ function Dashboard() {
                       </p>
                       <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-muted-foreground">
                         <span className="text-[var(--risk)] font-semibold">
-                          {impactCount} Contracts Impacted
+                          {impactCount} Contracts &middot; {formatUSD(exposure)}
                         </span>
-                        <Link
-                          to="/actions"
-                          className="text-[var(--brass)] hover:underline"
-                        >
-                          Inspect Artifacts →
-                        </Link>
+                        <span className="text-[var(--brass)] flex items-center gap-1 hover:underline">
+                          Inspect Run <ArrowRight className="h-3 w-3" />
+                        </span>
                       </div>
                     </div>
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* ── Inspection Modal (via React Portal) ── */}
+        {selectedRunForModal && typeof document !== "undefined" && createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setSelectedRunForModal(null)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div
+              className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-[var(--hairline)] bg-[var(--shell-bg)] p-6 sm:p-8 shadow-[var(--shadow-lift)] space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button with Esc hint */}
+              <button
+                type="button"
+                onClick={() => setSelectedRunForModal(null)}
+                className="absolute top-5 right-5 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] hover:bg-white/[0.12] hover:border-white/25 px-3 py-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-all duration-150 shadow-md cursor-pointer group active:scale-95"
+                aria-label="Close run inspection"
+                title="Close (or press Esc)"
+              >
+                <span className="hidden sm:inline text-[11px] font-medium text-muted-foreground/80 group-hover:text-foreground">Close</span>
+                <X className="h-4 w-4 transition-transform group-hover:rotate-90" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="border-b border-[var(--hairline)] pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md border px-2 py-0.5 font-mono text-[10px] uppercase font-bold tracking-wider bg-[var(--brass)]/15 border-[var(--brass)]/30 text-[var(--brass)]">
+                    {selectedRunForModal.run_type.toUpperCase()}
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    Logged: {new Date(selectedRunForModal.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <h2 className="mt-2 text-xl font-display font-semibold text-foreground">
+                  {selectedRunForModal.result.summary || "Simulation Impact Report"}
+                </h2>
+                <div className="mt-1 font-mono text-xs text-muted-foreground">
+                  ID: {selectedRunForModal.id}
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="space-y-4 text-xs font-mono">
+                {selectedRunForModal.input_regulation_text && (
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Trigger Mandate
+                    </span>
+                    <div className="rounded-xl border border-white/10 bg-black/40 p-3 leading-relaxed text-foreground/90 whitespace-pre-wrap max-h-36 overflow-y-auto">
+                      {selectedRunForModal.input_regulation_text}
+                    </div>
+                  </div>
+                )}
+
+                {(selectedRunForModal.result.remediation ?? []).length > 0 && (
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[var(--brass)] font-semibold block mb-1.5">
+                      Sequential Action Plan
+                    </span>
+                    <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs font-sans">
+                      {(selectedRunForModal.result.remediation ?? []).map((step, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 text-foreground/90">
+                          <span className="font-mono text-[10.5px] font-bold text-[var(--brass)] bg-[var(--brass)]/10 px-1.5 py-0.5 rounded border border-[var(--brass)]/20 shrink-0">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <span className="leading-relaxed">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-2">
+                  <Link
+                    to="/actions"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[var(--brass)] px-4 py-2 font-mono text-xs font-semibold text-[var(--ink-base)] hover:brightness-110 transition-all shadow-sm"
+                  >
+                    View in Full Audit Trail
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
     </AppShell>
   );

@@ -222,14 +222,14 @@ function BacktestPage() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center rounded-xl bg-black/40 p-1 border border-white/5">
+            <div className="flex items-center gap-1.5 rounded-xl bg-[rgba(0,0,0,0.35)] p-1.5 border border-[var(--hairline)]">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
-                    ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
                 title="Table View (Dense & Proportional)"
               >
@@ -239,10 +239,10 @@ function BacktestPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "grid"
-                    ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
                 title="Cards View"
               >

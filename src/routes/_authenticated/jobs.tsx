@@ -24,6 +24,13 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   listJobsFn,
   getJobMetricsFn,
   retryJobFn,
@@ -250,30 +257,36 @@ function BackgroundJobsPage() {
               />
             </div>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors cursor-pointer font-mono"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="QUEUED">Queued</option>
-              <option value="RUNNING">Running</option>
-              <option value="RETRYING">Retrying</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="FAILED">Failed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val)}>
+                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
+                  <SelectItem value="ALL" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">All Statuses</SelectItem>
+                  <SelectItem value="QUEUED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Queued</SelectItem>
+                  <SelectItem value="RUNNING" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Running</SelectItem>
+                  <SelectItem value="RETRYING" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Retrying</SelectItem>
+                  <SelectItem value="COMPLETED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Completed</SelectItem>
+                  <SelectItem value="FAILED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Failed</SelectItem>
+                  <SelectItem value="CANCELLED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors cursor-pointer font-mono"
-            >
-              <option value="ALL">All Job Types</option>
-              <option value="CONTRACT_EXTRACTION">Contract Extraction</option>
-              <option value="CITATION_REVERIFY">Citation Re-verify</option>
-              <option value="BATCH_EVAL_RUN">Batch Evaluation</option>
-            </select>
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val)}>
+                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                  <SelectValue placeholder="All Job Types" />
+                </SelectTrigger>
+                <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
+                  <SelectItem value="ALL" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">All Job Types</SelectItem>
+                  <SelectItem value="CONTRACT_EXTRACTION" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Contract Extraction</SelectItem>
+                  <SelectItem value="CITATION_REVERIFY" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Citation Re-verify</SelectItem>
+                  <SelectItem value="BATCH_EVAL_RUN" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Batch Evaluation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="text-xs font-mono text-muted-foreground">

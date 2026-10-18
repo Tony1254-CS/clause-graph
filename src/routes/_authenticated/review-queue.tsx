@@ -35,6 +35,13 @@ import {
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { RouteError } from "@/components/clausegraph/RouteError";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   listReviewTasksFn,
   getReviewStatsFn,
   assignReviewTaskFn,
@@ -312,14 +319,14 @@ function ReviewQueuePage() {
 
           <div className="flex items-center gap-3">
             {/* View Switcher: Table vs Split-Screen */}
-            <div className="flex items-center rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 p-1 shadow-sm font-mono text-xs">
+            <div className="flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[rgba(0,0,0,0.35)] p-1.5 shadow-sm font-mono text-xs">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
-                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
               >
                 <TableIcon className="h-3.5 w-3.5" />
@@ -328,10 +335,10 @@ function ReviewQueuePage() {
               <button
                 type="button"
                 onClick={() => setViewMode("split")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
                   viewMode === "split"
-                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
               >
                 <Columns2 className="h-3.5 w-3.5" />
@@ -424,32 +431,34 @@ function ReviewQueuePage() {
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
-              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors cursor-pointer"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="PENDING_REVIEW">Pending Review</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="NEEDS_CORRECTION">Needs Correction</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
+              <Filter className="h-3.5 w-3.5 text-muted-foreground mr-1" />
+              <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as any)}>
+                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
+                  <SelectItem value="ALL" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">All Statuses</SelectItem>
+                  <SelectItem value="PENDING_REVIEW" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Pending Review</SelectItem>
+                  <SelectItem value="IN_REVIEW" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">In Review</SelectItem>
+                  <SelectItem value="NEEDS_CORRECTION" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Needs Correction</SelectItem>
+                  <SelectItem value="APPROVED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Approved</SelectItem>
+                  <SelectItem value="REJECTED" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
-              <select
-                value={riskFilter}
-                onChange={(e) => setRiskFilter(e.target.value as any)}
-                className="bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors cursor-pointer"
-              >
-                <option value="ALL">All Risk Levels</option>
-                <option value="high">High Risk</option>
-                <option value="medium">Medium Risk</option>
-                <option value="low">Low Risk</option>
-              </select>
+              <Select value={riskFilter} onValueChange={(val) => setRiskFilter(val as any)}>
+                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                  <SelectValue placeholder="All Risk Levels" />
+                </SelectTrigger>
+                <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
+                  <SelectItem value="ALL" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">All Risk Levels</SelectItem>
+                  <SelectItem value="high" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">High Risk</SelectItem>
+                  <SelectItem value="medium" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Medium Risk</SelectItem>
+                  <SelectItem value="low" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">Low Risk</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
