@@ -1,8 +1,8 @@
-# ClauseGraph AI Evaluation Report — Run eval-1792314477744
+# ClauseGraph AI Evaluation Report — Run eval-1792319224099
 
 **Evaluation Status:** ✅ **PASS** (All quality gates passed)  
-**Date/Time:** `2026-10-18T09:07:57.804Z`  
-**Mode:** `replay` | **Git SHA:** `6127cd2`  
+**Date/Time:** `2026-10-18T10:27:04.157Z`  
+**Mode:** `replay` | **Git SHA:** `284eb34`  
 
 ### 1. Attribution & Model Configuration
 
