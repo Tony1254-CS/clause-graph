@@ -3,6 +3,7 @@ import {
   signInWithPasswordFn,
   signUpWithPasswordFn,
   demoLoginFn,
+  signInWithOAuthFn,
   getCurrentUserFn,
 } from "./auth.functions";
 
@@ -48,6 +49,16 @@ export async function signInWithPassword(email: string, password: string) {
 
 export async function signUpWithPassword(email: string, password: string, fullName?: string) {
   const result = await signUpWithPasswordFn({ data: { email, password, fullName } });
+  saveSession(result.token, result.user);
+  return result;
+}
+
+export async function signInWithOAuth(
+  provider: "google" | "github",
+  email?: string,
+  fullName?: string
+) {
+  const result = await signInWithOAuthFn({ data: { provider, email, fullName } });
   saveSession(result.token, result.user);
   return result;
 }

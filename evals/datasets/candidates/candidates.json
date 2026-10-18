@@ -1,0 +1,80 @@
+{
+  "dataset": "candidates",
+  "version": "1.0.0",
+  "description": "Production-derived review queue candidates awaiting human approval before joining golden sets",
+  "candidates": [
+    {
+      "id": "cand-rev-rejected-001",
+      "source_review_id": "rev-prod-8812",
+      "staged_at": "2026-10-18T12:00:00Z",
+      "approved": true,
+      "approved_by": "admin-user-01",
+      "approved_at": "2026-10-18T09:24:32.223Z",
+      "case": {
+        "id": "cand-dpa-ambiguity",
+        "regulation_family": "GDPR",
+        "jurisdiction": "EU",
+        "regulation_text": "GDPR Article 32: Implementing appropriate technical and organizational measures to ensure a level of security appropriate to the risk.",
+        "contracts": [
+          {
+            "id": "c-sanitized-vendor-dpa",
+            "name": "Sanitized Vendor Data Processing Addendum",
+            "value": 350000,
+            "clauses": [
+              "Vendor shall maintain industry standard security protocols."
+            ]
+          }
+        ],
+        "expected": {
+          "impacted_contract_ids": [
+            "c-sanitized-vendor-dpa"
+          ],
+          "severity": {
+            "c-sanitized-vendor-dpa": "medium"
+          },
+          "total_exposure_usd": 350000,
+          "requires_human_review": true
+        }
+      },
+      "promoted_to_dataset": "synthetic.v1.json"
+    },
+    {
+      "id": "cand-revtestaudit",
+      "source_review_id": "rev-test-audit-stage-1",
+      "staged_at": "2026-10-18T09:24:32.216Z",
+      "staged_by": "admin-user-01",
+      "decision": "rejected",
+      "label_correctness": "incorrect",
+      "reason": "Model misidentified non-personal infrastructure as personal data",
+      "approved": false,
+      "approved_by": null,
+      "approved_at": null,
+      "case": {
+        "id": "cand-revtestaudit",
+        "regulation_family": "GDPR Article 32",
+        "jurisdiction": "EU",
+        "regulation_text": "Contact jane.doe@acme-corp.com regarding AWS token sk-live-99923847293",
+        "contracts": [
+          {
+            "id": "c-sanitized-cand-revtestaudit",
+            "name": "Sanitized Enterprise Contract",
+            "value": 500000,
+            "clauses": [
+              "Contract terms sanitized for evaluation golden dataset candidate."
+            ]
+          }
+        ],
+        "expected": {
+          "impacted_contract_ids": [
+            "c-sanitized-cand-revtestaudit"
+          ],
+          "severity": {
+            "c-sanitized-cand-revtestaudit": "high"
+          },
+          "total_exposure_usd": 500000,
+          "requires_human_review": true
+        }
+      }
+    }
+  ]
+}

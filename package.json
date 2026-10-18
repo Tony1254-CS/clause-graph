@@ -9,7 +9,13 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "eval": "tsx evals/run.ts",
+    "eval:quick": "tsx evals/run.ts --subset quick --mode replay",
+    "eval:live": "tsx evals/run.ts --mode live",
+    "eval:record": "tsx evals/run.ts --mode live --record",
+    "eval:update-baseline": "tsx evals/run.ts --update-baseline"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -85,9 +91,12 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
+    "pg-mem": "^3.0.14",
     "prettier": "^3.7.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^5.0.5"
   }
 }

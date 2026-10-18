@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "git_sha": "baseline-initial",
+  "timestamp": "2026-10-18T12:00:00.000Z",
+  "metrics": {
+    "high_severity_recall": 1.0,
+    "precision": 0.95,
+    "recall": 0.95,
+    "severity_accuracy": 0.95,
+    "exposure_median_error": 0.0,
+    "evidence_validity": 1.0,
+    "routing_recall": 1.0,
+    "routing_precision": 0.95
+  }
+}

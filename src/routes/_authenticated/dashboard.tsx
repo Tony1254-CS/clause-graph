@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Zap,
   Radar,
@@ -30,6 +30,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { GraphMedallion } from "@/components/clausegraph/GraphMedallion";
 import {
@@ -40,6 +41,9 @@ import {
   formatUSD,
 } from "@/data/queries";
 import { RouteError } from "@/components/clausegraph/RouteError";
+import { StaleCitationWidget } from "@/components/clausegraph/stale/StaleCitationWidget";
+import { fetchStaleFindings } from "@/lib/stale/fetch.functions";
+import { runStaleScan } from "@/lib/stale/scan.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -78,6 +82,18 @@ function Dashboard() {
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
   const { data: runs } = useSuspenseQuery(simulationRunsQuery);
   const { data: fedData } = useSuspenseQuery(federalRegisterQuery);
+
+  const queryClient = useQueryClient();
+
+  const { data: staleData, isLoading: isStaleLoading } = useQuery({
+    queryKey: ["stale-findings-stats"],
+    queryFn: () => fetchStaleFindings({ data: {} }),
+  });
+
+  const handleRunScan = async () => {
+    await runStaleScan({ data: { triggerSource: "manual" } });
+    await queryClient.invalidateQueries({ queryKey: ["stale-findings-stats"] });
+  };
 
   // Interactive Hover States for Analytics
   const [activeDonutIdx, setActiveDonutIdx] = useState<number | null>(null);
@@ -413,6 +429,13 @@ function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* ── Stale Citation Surveillance Engine Widget ── */}
+        <StaleCitationWidget
+          stats={staleData?.stats ?? null}
+          isLoading={isStaleLoading}
+          onRunScan={handleRunScan}
+        />
 
         {/* ── Interactive Risk Analytics & Exposure Charts (shadcn / recharts) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">

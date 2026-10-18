@@ -1,0 +1,94 @@
+{
+  "dataset": "simulation",
+  "version": "1.0.0",
+  "class": "landmark",
+  "cases": [
+    {
+      "id": "landmark-meta-gdpr-2023",
+      "class": "landmark",
+      "tags": ["gdpr", "transfer", "cross-border", "eu", "quick"],
+      "regulation_family": "GDPR",
+      "jurisdiction": "EU",
+      "clause_type": "data-transfer",
+      "regulation_text": "Article 46(1) GDPR: In the absence of an adequacy decision pursuant to Article 45(3), a controller or processor may transfer personal data to a third country only if the controller or processor has provided appropriate safeguards, and on condition that enforceable data subject rights and effective legal remedies for data subjects are available.",
+      "contracts": [
+        {
+          "id": "c-meta-eu-us-dataflow",
+          "name": "Transatlantic User Telemetry & Data Processing Agreement",
+          "value": 1200000000,
+          "clauses": [
+            "Section 8.2 (Data Flow): Customer agrees that European user behavioral telemetry, hashed identifiers, and ad interaction records shall be continuously streamed and stored in US-based central processing facilities without supplementary standard contractual clauses or secondary cryptographic transfer mechanisms."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": ["c-meta-eu-us-dataflow"],
+        "severity": { "c-meta-eu-us-dataflow": "high" },
+        "total_exposure_usd": 1200000000,
+        "requires_human_review": true
+      },
+      "source_url": "https://edpb.europa.eu/news/news/2023/12-billion-euro-fine-meta-dpc-ireland_en",
+      "labeled_by": "legal_eng_team",
+      "labeled_at": "2026-10-18",
+      "reviewed_by": "general_counsel_lead"
+    },
+    {
+      "id": "landmark-equifax-ftc-2019",
+      "class": "landmark",
+      "tags": ["ftc", "security-incident", "us", "patch-sla", "quick"],
+      "regulation_family": "FTC Act Section 5",
+      "jurisdiction": "US",
+      "clause_type": "security-incident-notification",
+      "regulation_text": "FTC Enforcement Standards & Safeguards Rule: Entities storing non-public consumer credit data must deploy reasonable patch management protocols within 48 hours for critical CVEs and notify affected parties without unreasonable delay.",
+      "contracts": [
+        {
+          "id": "c-equifax-credit-api",
+          "name": "Consumer Credit Bureau Scoring & Vendor API Contract",
+          "value": 700000000,
+          "clauses": [
+            "Section 14.1 (Vulnerability Management): Critical server framework patches shall be scheduled during quarterly routine maintenance windows. Vendor disclaims liability for unpatched legacy Apache Struts components during the quarterly cycle."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": ["c-equifax-credit-api"],
+        "severity": { "c-equifax-credit-api": "high" },
+        "total_exposure_usd": 700000000,
+        "requires_human_review": true
+      },
+      "source_url": "https://www.ftc.gov/enforcement/refunds/equifax-data-breach-settlement",
+      "labeled_by": "legal_eng_team",
+      "labeled_at": "2026-10-18",
+      "reviewed_by": "general_counsel_lead"
+    },
+    {
+      "id": "landmark-grameenphone-btrc-2022",
+      "class": "landmark",
+      "tags": ["btrc", "telecom", "bd", "qoe", "quick"],
+      "regulation_family": "BTRC Telecom Quality of Service",
+      "jurisdiction": "BD",
+      "clause_type": "telecom-quality-of-service",
+      "regulation_text": "BTRC Telecom Directives: Mobile Network Operators must maintain a minimum call drop rate below 1.5% and 4G throughput of 7 Mbps across all upazilas; failure to maintain minimum QoS warrants regulatory suspension of SIM card sales.",
+      "contracts": [
+        {
+          "id": "c-gp-tower-sla",
+          "name": "Tower Infrastructure & Core RAN Maintenance Agreement",
+          "value": 35000000,
+          "clauses": [
+            "Clause 6.3 (SLA Tolerance): Tower provider shall guarantee uptime with allowable call drop peaks up to 4.5% during peak congestive hours in rural district clusters."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": ["c-gp-tower-sla"],
+        "severity": { "c-gp-tower-sla": "high" },
+        "total_exposure_usd": 35000000,
+        "requires_human_review": true
+      },
+      "source_url": "https://www.btrc.gov.bd",
+      "labeled_by": "bd_regulatory_counsel",
+      "labeled_at": "2026-10-18",
+      "reviewed_by": "general_counsel_lead"
+    }
+  ]
+}

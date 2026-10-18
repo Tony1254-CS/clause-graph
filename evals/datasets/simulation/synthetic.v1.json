@@ -1,0 +1,185 @@
+{
+  "dataset": "simulation",
+  "version": "1.0.0",
+  "class": "synthetic",
+  "cases": [
+    {
+      "id": "synthetic-dpa-missing-scc",
+      "class": "synthetic",
+      "tags": [
+        "gdpr",
+        "dpa",
+        "eu",
+        "quick"
+      ],
+      "regulation_family": "GDPR",
+      "jurisdiction": "EU",
+      "clause_type": "standard-contractual-clauses",
+      "regulation_text": "GDPR Chapter V: Transfers of personal data to third countries without an adequacy decision require implementation of Standard Contractual Clauses (SCCs) approved by the European Commission, with explicit transfer risk assessments.",
+      "contracts": [
+        {
+          "id": "c-cloud-crm-eu",
+          "name": "Global Enterprise CRM License Agreement",
+          "value": 1500000,
+          "clauses": [
+            "Section 11 (Third Party Hosting): Vendor may route EU customer contacts to support engineers in third-party jurisdictions at its sole discretion without Standard Contractual Clauses or transfer impact assessments."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [
+          "c-cloud-crm-eu"
+        ],
+        "severity": {
+          "c-cloud-crm-eu": "high"
+        },
+        "total_exposure_usd": 1500000,
+        "requires_human_review": true
+      },
+      "labeled_by": "qa_synthetic_generator",
+      "labeled_at": "2026-10-18"
+    },
+    {
+      "id": "synthetic-breach-notice-delay",
+      "class": "synthetic",
+      "tags": [
+        "dora",
+        "breach-notice",
+        "eu",
+        "financial",
+        "quick"
+      ],
+      "regulation_family": "DORA Regulation (EU) 2022/2554",
+      "jurisdiction": "EU",
+      "clause_type": "incident-reporting",
+      "regulation_text": "DORA Article 19: Financial entities and designated critical ICT third-party service providers must submit an initial major ICT incident notification within 4 hours of classification.",
+      "contracts": [
+        {
+          "id": "c-core-banking-ict",
+          "name": "Core Banking Cloud Ledger Operations Master Agreement",
+          "value": 8500000,
+          "clauses": [
+            "Clause 9.4 (Incident Escalation): In the event of a suspected or confirmed security breach, Vendor will notify Customer within 72 business hours after comprehensive forensic root-cause verification."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [
+          "c-core-banking-ict"
+        ],
+        "severity": {
+          "c-core-banking-ict": "high"
+        },
+        "total_exposure_usd": 8500000,
+        "requires_human_review": true
+      },
+      "labeled_by": "qa_synthetic_generator",
+      "labeled_at": "2026-10-18"
+    },
+    {
+      "id": "synthetic-ai-act-transparency",
+      "class": "synthetic",
+      "tags": [
+        "ai-act",
+        "transparency",
+        "eu",
+        "quick"
+      ],
+      "regulation_family": "EU AI Act",
+      "jurisdiction": "EU",
+      "clause_type": "ai-transparency",
+      "regulation_text": "EU AI Act Article 50: Providers of AI systems intended to interact directly with natural persons shall design and develop the system in such a way that the natural persons are informed that they are interacting with an AI system.",
+      "contracts": [
+        {
+          "id": "c-virtual-assistant-vendor",
+          "name": "Customer Support Voice & Chat Agent Procurement",
+          "value": 450000,
+          "clauses": [
+            "Section 3.1: The AI synthetic assistant will emulate human conversational nuances without disclaiming synthetic origin or disclosing bot status to callers."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [
+          "c-virtual-assistant-vendor"
+        ],
+        "severity": {
+          "c-virtual-assistant-vendor": "medium"
+        },
+        "total_exposure_usd": 450000,
+        "requires_human_review": false
+      },
+      "labeled_by": "qa_synthetic_generator",
+      "labeled_at": "2026-10-18"
+    },
+    {
+      "id": "synthetic-bd-data-localization",
+      "class": "synthetic",
+      "tags": [
+        "bd",
+        "data-protection",
+        "cross-border"
+      ],
+      "regulation_family": "Bangladesh Data Protection Act",
+      "jurisdiction": "BD",
+      "clause_type": "data-localization",
+      "regulation_text": "Bangladesh Critical Information Infrastructure (CII) Guidelines: All critical citizen identity, biometric, and payment transactions must reside primarily within servers physically situated inside Bangladesh sovereign territory.",
+      "contracts": [
+        {
+          "id": "c-fintech-dhaka-gateway",
+          "name": "Dhaka Mobile Financial Services Cloud Gateway",
+          "value": 2400000,
+          "clauses": [
+            "Section 5.3: Core biometric authentication databases and transaction ledger snapshots shall be mirrored exclusively to AWS Singapore and US-East data centers without local backup in Bangladesh."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [
+          "c-fintech-dhaka-gateway"
+        ],
+        "severity": {
+          "c-fintech-dhaka-gateway": "high"
+        },
+        "total_exposure_usd": 2400000,
+        "requires_human_review": true
+      },
+      "labeled_by": "bd_regulatory_counsel",
+      "labeled_at": "2026-10-18"
+    },
+    {
+      "id": "cand-dpa-ambiguity",
+      "regulation_family": "GDPR",
+      "jurisdiction": "EU",
+      "regulation_text": "GDPR Article 32: Implementing appropriate technical and organizational measures to ensure a level of security appropriate to the risk.",
+      "contracts": [
+        {
+          "id": "c-sanitized-vendor-dpa",
+          "name": "Sanitized Vendor Data Processing Addendum",
+          "value": 350000,
+          "clauses": [
+            "Vendor shall maintain industry standard security protocols."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [
+          "c-sanitized-vendor-dpa"
+        ],
+        "severity": {
+          "c-sanitized-vendor-dpa": "medium"
+        },
+        "total_exposure_usd": 350000,
+        "requires_human_review": true
+      },
+      "class": "synthetic",
+      "tags": [
+        "synthetic",
+        "promoted-candidate",
+        "human-approved"
+      ],
+      "labeled_by": "admin:admin-user-01",
+      "labeled_at": "2026-10-18T09:24:32.223Z"
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Terminal, Copy, Check, Download, FileCode, PlayCircle } from "lucide-react";
-import { generateComplianceCode, type ComplianceCode, type Stack } from "@/lib/compliance-code.functions";
+import { Link } from "@tanstack/react-router";
+import { Loader2, Terminal, Copy, Check, Download, FileCode, PlayCircle, ShieldAlert, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { generateComplianceCode, requestVerifiedCode, type ComplianceCode, type Stack } from "@/lib/compliance-code.functions";
 
 type Props = {
   regulationText: string;
@@ -67,7 +69,7 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
   const [tab, setTab] = useState<"audit" | "remediation">("audit");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [artifact, setArtifact] = useState<ComplianceCode | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);  const verifyGate = useServerFn(requestVerifiedCode);
   const [copied, setCopied] = useState(false);
 
   async function onGenerate() {
@@ -92,13 +94,38 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
 
   async function onCopy() {
     if (!active) return;
+    if (artifact?.artifact_id && artifact.review_status !== "approved") {
+      try {
+        const check = await verifyGate({ data: { artifactId: artifact.artifact_id, payload: active } });
+        if (!check.approved) {
+          toast.error("Gate Enforced: Compliance code is pending human review. Approve in Review Queue before copying.");
+          return;
+        }
+      } catch {
+        toast.error("Gate Enforced: Server verification failed. Unapproved code cannot be copied.");
+        return;
+      }
+    }
     await navigator.clipboard.writeText(active.code);
     setCopied(true);
+    toast.success("Code copied to clipboard");
     setTimeout(() => setCopied(false), 1600);
   }
 
-  function onDownload() {
+  async function onDownload() {
     if (!active) return;
+    if (artifact?.artifact_id && artifact.review_status !== "approved") {
+      try {
+        const check = await verifyGate({ data: { artifactId: artifact.artifact_id, payload: active } });
+        if (!check.approved) {
+          toast.error("Gate Enforced: Compliance code must be approved in the Review Queue before export.");
+          return;
+        }
+      } catch {
+        toast.error("Gate Enforced: Server verification failed. Export blocked.");
+        return;
+      }
+    }
     const ext = EXT[active.language] ?? "txt";
     const blob = new Blob([active.code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -174,13 +201,52 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
 
   if (!artifact) return null;
 
+  const isPendingReview = artifact.review_status !== "approved";
+
   return (
     <div className={`glass-panel p-6 flex flex-col gap-5 ${className ?? ""}`}>
+      {/* Governance Gate Banner */}
+      {isPendingReview ? (
+        <div className="flex items-center justify-between gap-3 rounded-[12px] border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.08)] p-3 text-[12px]">
+          <div className="flex items-center gap-2 text-[var(--risk)]">
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            <span>
+              <strong>Enforced Approval Gate:</strong> Unreviewed AI draft held behind human review queue. Admin approval required before executing or copying IaC.
+            </span>
+          </div>
+          <Link
+            to="/reviews"
+            className="shrink-0 font-mono text-[11px] font-medium text-[var(--risk)] underline hover:text-foreground"
+          >
+            Open Queue →
+          </Link>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 rounded-[12px] border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.08)] p-3 text-[12px] text-emerald-400">
+          <ShieldCheck className="h-4 w-4 shrink-0" />
+          <span>
+            <strong>Approved by Human Administrator:</strong> Tamper-evident cryptographic signature verified.
+          </span>
+        </div>
+      )}
+
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
-            <FileCode className="h-3 w-3" strokeWidth={1.8} /> Compliance-as-Code · {stack.toUpperCase()}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+              <FileCode className="h-3 w-3" strokeWidth={1.8} /> Compliance-as-Code · {stack.toUpperCase()}
+            </p>
+            {isPendingReview && (
+              <span className="rounded-full border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--risk)]">
+                Unreviewed AI draft
+              </span>
+            )}
+            {artifact.fallback && (
+              <span className="rounded-full border border-[rgba(234,179,8,0.4)] bg-[rgba(234,179,8,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-yellow-400">
+                Fallback engine
+              </span>
+            )}
+          </div>
           <h3 className="mt-2 font-display text-[22px] leading-[1.15] tracking-tight text-foreground">
             Executable remediation
           </h3>
@@ -192,6 +258,7 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
         <div className="flex items-center gap-2">
           <button
             onClick={onCopy}
+            title={isPendingReview ? "Requires admin approval before copying" : "Copy to clipboard"}
             className="inline-flex items-center gap-1.5 rounded-[12px] border border-[var(--hairline-strong)] px-3 py-2 text-[12px] text-foreground transition-colors duration-200 hover:bg-[var(--surface-glass)]"
           >
             {copied ? (
@@ -206,6 +273,7 @@ export function ComplianceCodePanel({ regulationText, gap, regulationId, simulat
           </button>
           <button
             onClick={onDownload}
+            title={isPendingReview ? "Requires admin approval before download" : "Download code"}
             className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brass)] px-3 py-2 text-[12px] font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 hover:-translate-y-px hover:bg-[var(--brass-strong)] active:scale-[0.98]"
           >
             <Download className="h-3.5 w-3.5" strokeWidth={2} /> Download
