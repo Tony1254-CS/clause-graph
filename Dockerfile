@@ -12,6 +12,7 @@ COPY . .
 
 # Build application bundle
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # Stage 2: Production Runner
@@ -32,4 +33,5 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 EXPOSE 3000 10000
 
-CMD ["sh", "-c", "npm run dev -- --host 0.0.0.0 --port ${PORT:-3000}"]
+CMD ["sh", "-c", "npm run preview -- --host 0.0.0.0 --port ${PORT:-3000}"]
+
