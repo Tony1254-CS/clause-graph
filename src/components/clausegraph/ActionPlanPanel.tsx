@@ -9,7 +9,7 @@ import {
   ShieldAlert,
   ClipboardList,
 } from "lucide-react";
-import { generateActionPlan } from "@/lib/action-plan.functions";
+import { generateActionPlan, recordActionPlanPdfExport } from "@/lib/action-plan.functions";
 import type { ActionPlan, ActionPlanInput, TechPriority } from "@/lib/action-plan-types";
 
 const PRIORITY_DOT: Record<TechPriority, string> = {
@@ -20,6 +20,12 @@ const PRIORITY_DOT: Record<TechPriority, string> = {
 
 function planToMarkdown(plan: ActionPlan, regulationText: string): string {
   const lines: string[] = [];
+  const isUnreviewed = plan.review_status !== "approved";
+  if (isUnreviewed) {
+    lines.push("# ⚠️ UNREVIEWED AI DRAFT — PENDING HUMAN REVIEW");
+    lines.push("> This compliance action plan contains AI-generated proposals that have NOT yet received human review or administrative approval. Do NOT distribute, copy into executed contracts, or rely upon as finalized legal positions.");
+    lines.push("");
+  }
   lines.push("# ClauseGraph Compliance Action Plan");
   lines.push("");
   lines.push(`_Generated ${new Date().toISOString()}_`);
@@ -39,7 +45,8 @@ function planToMarkdown(plan: ActionPlan, regulationText: string): string {
   lines.push("## Contract amendments (for legal review)");
   lines.push("");
   plan.amendments.forEach((a) => {
-    lines.push(`- **${a.contract_id} — ${a.contract_name}**`);
+    const unapprovedPill = a.review_status && a.review_status !== "approved" ? " [PENDING REVIEW]" : "";
+    lines.push(`- **${a.contract_id} — ${a.contract_name}**${unapprovedPill}`);
     lines.push(`  - Suggestion: ${a.suggestion}`);
     if (a.rationale) lines.push(`  - Rationale: ${a.rationale}`);
   });
@@ -54,6 +61,20 @@ function planToMarkdown(plan: ActionPlan, regulationText: string): string {
 }
 
 async function exportPdf(plan: ActionPlan, regulationText: string) {
+  // Server-side audit write before releasing PDF file (§8.3, §12)
+  if (plan.plan_id) {
+    try {
+      await recordActionPlanPdfExport({
+        data: {
+          planId: plan.plan_id,
+          summary: plan.policy_draft ? plan.policy_draft.slice(0, 100) : "Action Plan export",
+        },
+      });
+    } catch (auditErr) {
+      console.warn("[ActionPlanPanel] audit log write for PDF export error:", auditErr);
+    }
+  }
+
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const margin = 56;
@@ -83,6 +104,23 @@ async function exportPdf(plan: ActionPlan, regulationText: string) {
       y += size + gap;
     }
   };
+
+  const isUnreviewed = plan.review_status !== "approved";
+  if (isUnreviewed) {
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(239, 68, 68);
+    doc.roundedRect(margin, y, width, 36, 4, 4, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(185, 28, 28);
+    doc.text("UNREVIEWED AI DRAFT — PENDING HUMAN REVIEW", margin + 12, y + 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(153, 27, 27);
+    doc.text("Requires administrative human review before contract amendment adoption or external distribution.", margin + 12, y + 27);
+    doc.setTextColor(0, 0, 0);
+    y += 46;
+  }
 
   writeWrapped("ClauseGraph Compliance Action Plan", 18, "bold", 6);
   writeWrapped(`Generated ${new Date().toLocaleString()}`, 9, "normal", 8);
@@ -234,10 +272,26 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
           <h3 className="mt-2 font-display text-[26px] leading-[1.1] tracking-tight text-foreground">
             Draft remediation
           </h3>
-          <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-            {new Date().toLocaleString()}
-            {plan.fallback && " · demo fallback"}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {new Date().toLocaleString()}
+              {plan.fallback && " · demo fallback"}
+            </span>
+            {plan.review_status && plan.review_status !== "approved" ? (
+              <span className="rounded-full border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--risk)]">
+                Unreviewed AI draft
+              </span>
+            ) : plan.review_status === "approved" ? (
+              <span className="rounded-full border border-[rgba(61,194,142,0.4)] bg-[rgba(61,194,142,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-400">
+                Approved
+              </span>
+            ) : null}
+            {plan.fallback && (
+              <span className="rounded-full border border-[rgba(234,179,8,0.4)] bg-[rgba(234,179,8,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-yellow-400">
+                Fallback engine
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -266,6 +320,21 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
 
         </div>
       </header>
+
+      {plan.review_status && plan.review_status !== "approved" && (
+        <div className="rounded-[12px] border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.08)] p-3 text-[12px] text-foreground flex items-center justify-between">
+          <div>
+            <span className="font-semibold text-[var(--risk)]">Pending Human Review:</span>{" "}
+            This plan contains proposed amendments that require administrative human review before execution.
+          </div>
+          <a
+            href={plan.review_id ? `/reviews?item=${plan.review_id}` : "/reviews"}
+            className="font-mono text-[11px] text-[var(--brass)] hover:underline ml-4 whitespace-nowrap"
+          >
+            Open in Review Queue →
+          </a>
+        </div>
+      )}
 
       <div className="rounded-[12px] border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_6%,transparent)] p-3.5">
         <p className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-[var(--brass)]">
@@ -302,9 +371,20 @@ export function ActionPlanPanel({ regulationText, summary, impacts, variant = "r
                   </span>
                   <span className="ml-2 text-[13px] text-foreground">{a.contract_name}</span>
                 </div>
-                <span className="rounded-full border border-[var(--hairline-strong)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--brass)]">
-                  For legal review
-                </span>
+                <div className="flex items-center gap-2">
+                  {a.review_status && a.review_status !== "approved" ? (
+                    <span className="rounded-full border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--risk)]">
+                      Pending review
+                    </span>
+                  ) : a.review_status === "approved" ? (
+                    <span className="rounded-full border border-[rgba(61,194,142,0.4)] bg-[rgba(61,194,142,0.1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-400">
+                      Approved
+                    </span>
+                  ) : null}
+                  <span className="rounded-full border border-[var(--hairline-strong)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--brass)]">
+                    For legal review
+                  </span>
+                </div>
               </div>
               <p className="mt-2 text-[13px] leading-[1.6] text-foreground/90">
                 {a.suggestion}

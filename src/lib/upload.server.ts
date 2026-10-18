@@ -52,7 +52,12 @@ export async function runContractExtraction(contractId: string, rawText: string)
 
     if (clauses.length === 0) throw new Error("No clauses extracted");
 
-    // Insert extracted clauses in a transaction
+    const contract = await queryOne<{ org_id: string; uploaded_by: string | null }>(
+      `SELECT org_id, uploaded_by FROM public.contracts WHERE id = $1`,
+      [contractId]
+    );
+
+    // Insert extracted clauses in a transaction and atomically record audit event (§8.3)
     await transaction(async (client) => {
       for (let idx = 0; idx < clauses.length; idx++) {
         const c = clauses[idx];
@@ -69,6 +74,23 @@ export async function runContractExtraction(contractId: string, rawText: string)
          WHERE id = $1`,
         [contractId]
       );
+
+      if (contract?.org_id) {
+        await client.query(
+          `SELECT public.write_audit_event(
+            $1, 'contract.parsed', 'contract', $2, $3, 'member', NULL,
+            NULL, $4::jsonb, $5::jsonb, $6::jsonb
+          )`,
+          [
+            contract.org_id,
+            contractId,
+            contract.uploaded_by || null,
+            JSON.stringify({ clause_count: clauses.length }),
+            JSON.stringify({ model: "gpt-4o-mini", prompt_version: "v1.0" }),
+            JSON.stringify({ valid_regs_matched: clauses.reduce((acc, c) => acc + c.linked_regs.length, 0) }),
+          ]
+        );
+      }
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

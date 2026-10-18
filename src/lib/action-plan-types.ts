@@ -5,6 +5,8 @@ export type Amendment = {
   contract_name: string;
   suggestion: string;
   rationale: string;
+  review_status?: "pending_review" | "approved" | "rejected" | "not_required";
+  review_id?: string;
 };
 
 export type TechFix = {
@@ -18,6 +20,9 @@ export type ActionPlan = {
   amendments: Amendment[];
   tech_fixes: TechFix[];
   fallback?: boolean;
+  review_status?: "pending_review" | "approved" | "not_required";
+  review_id?: string;
+  plan_id?: string;
 };
 
 export type ActionPlanInput = {

@@ -119,26 +119,39 @@ Each feature below lists **what it does**, **when to use it**, **where to find i
 - **Where**: Sidebar footer toggle
 - **Powered by**: `theme-provider.tsx`
 
+### 16. Stale-Citation Detector & Temporal Legal Graph ⏳
+- **What**: Automatically audits contract citations against a temporal legal ontology to detect references to **repealed**, **substantively amended**, **procedurally changed**, or **renumbered** laws (e.g. Digital Security Act 2018 repealed by Cyber Security Act 2023). Provides evidence-backed dossiers with official gazette references, primary source links, version diffs, estimated exposure proxies, and reviewable redline recommendations.
+- **Use case**: Portfolio hygiene, M&A due diligence, annual compliance audits, and post-repeal contract remediation.
+- **Where**: `/stale-citations` and Dashboard widget at `/dashboard`
+- **Powered by**: `citation-extraction.functions.ts` (hybrid regex + LLM), `detector.ts` (deterministic temporal evaluation), `scan.functions.ts`, `EvidenceDrawer.tsx`, and PostgreSQL temporal tables (`regulation_versions`, `citation_instances`, `stale_citation_findings`, `stale_citation_scans`, `regulation_update_queue`)
+
+### 17. Human Review Queue (HITL) & Tamper-Evident Audit Trail ⚖️
+- **What**: Enterprise human-in-the-loop approval gate. *AI proposes; human decides.* Gating criteria enforce that high-risk simulations, executable Compliance-as-Code artifacts (Python/Terraform), deterministic fallback outputs, and action plan amendments cannot be exported, copied, or enacted without an explicit administrative decision bound to a cryptographic content hash. Includes edit-and-approve capabilities, optimistic locking against 409 review collisions, SHA-256 hash-chained event ledgers, and compliance audit exports.
+- **Use case**: Corporate governance, legal defense against unchecked hallucinated code execution, and tamper-evident SOC2 / ISO 27001 auditability.
+- **Where**: `/reviews` and live sidebar badge with mint (zero items), amber (pending items), and pulsing crimson (escalated items) indicators.
+- **Powered by**: `gate.server.ts` (fail-closed server gating & prompt injection defense), `review.functions.ts`, `/reviews` route, hash-chained ledger table `review_events`, and stored SQL functions (`enqueue_review`, `decide_review`, `is_output_approved`, `verify_review_chain`).
+
 ---
 
 ## 🌍 Regulatory Coverage
 
-Ten regulations across three jurisdictions ship in the ontology out of the box:
+Curated regulations across multiple jurisdictions ship in the ontology with full temporal versioning and gazette provenance:
 
-| Jurisdiction | Regulation | ID |
-|---|---|---|
-| 🇪🇺 EU | GDPR — Lawful Basis (Art. 6) | `GDPR-ART6` |
-| 🇪🇺 EU | GDPR — International Transfers (Art. 44) | `GDPR-ART44` |
-| 🇪🇺 EU | GDPR — Breach Notification (Art. 33) | `GDPR-ART33` |
-| 🇺🇸 US | SEC Cybersecurity Disclosure Rule | `SEC-CYBER` |
-| 🇺🇸 US | CCPA / CPRA | `CCPA` |
-| 🇺🇸 US | HIPAA — Security Rule | `HIPAA-SEC` |
-| 🇺🇸 US | Sarbanes-Oxley §404 | `SOX-404` |
-| 🇧🇩 BD | Digital Security Act 2018 | `BD-DSA` |
-| 🇧🇩 BD | BTRC Data Localization Directive | `BD-BTRC-LOC` |
-| 🇧🇩 BD | Bangladesh Bank ICT Security Guideline | `BB-ICT-SEC` |
+| Jurisdiction | Regulation | ID | Status | Effective Period |
+|---|---|---|---|---|
+| 🇪🇺 EU | GDPR — Lawful Basis (Art. 6) | `GDPR-ART6` | Active | 2018-05-25 → Present |
+| 🇪🇺 EU | GDPR — International Transfers (Art. 44) | `GDPR-ART44` | Amended (v2 SCCs) | 2018-05-25 → Present |
+| 🇪🇺 EU | GDPR — Breach Notification (Art. 33) | `GDPR-ART33` | Active | 2018-05-25 → Present |
+| 🇺🇸 US | SEC Cybersecurity Disclosure Rule | `SEC-CYBER` | Active | 2023-12-18 → Present |
+| 🇺🇸 US | CCPA / CPRA | `CCPA` | Active | 2020-01-01 → Present |
+| 🇺🇸 US | HIPAA — Security Rule | `HIPAA-SEC` | Active | 2003-04-21 → Present |
+| 🇺🇸 US | Sarbanes-Oxley §404 | `SOX-404` | Active | 2002-07-30 → Present |
+| 🇧🇩 BD | Digital Security Act 2018 | `BD-DSA` | **Repealed** | 2018-10-08 → 2023-10-01 |
+| 🇧🇩 BD | Cyber Security Act 2023 | `BD-CSA` | **Active** | 2023-10-01 → Present |
+| 🇧🇩 BD | BTRC Data Localization Directive | `BD-BTRC-LOC` | Amended (v2) | 2021-03-01 → Present |
+| 🇧🇩 BD | Bangladesh Bank ICT Security Guideline | `BB-ICT-SEC` | Active | 2015-05-01 → Present |
 
-Add more by inserting into `public.regulations` — the whole app auto-picks them up.
+Add more by inserting into `public.regulations` and `public.regulation_versions` — the whole app auto-picks them up with automated scan triggers via `regulation_update_queue`.
 
 ---
 

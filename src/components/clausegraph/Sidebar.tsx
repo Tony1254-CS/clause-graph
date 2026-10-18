@@ -1,4 +1,4 @@
-import { useRef, useState, type FocusEvent } from "react";
+import { useRef, useState, useEffect, type FocusEvent } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -14,8 +14,13 @@ import {
   FlaskConical,
   Network,
   Settings,
+  ShieldAlert,
+  UserCheck,
+  History,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { getReviewBadgeStats } from "@/lib/review/review.functions";
 
 type NavItem = {
   label: string;
@@ -25,15 +30,19 @@ type NavItem = {
     | "/contracts"
     | "/feed"
     | "/simulate"
+    | "/reviews"
+    | "/stale-citations"
     | "/supply-chain"
     | "/backtest"
     | "/actions"
     | "/predictive"
     | "/what-if"
+    | "/settings/audit"
     | "/settings/team"
     | "/settings/billing"
     | "/settings/account";
   match?: string;
+  badge?: "review";
 };
 
 const NAV: NavItem[] = [
@@ -41,15 +50,48 @@ const NAV: NavItem[] = [
   { label: "Contracts", icon: FileText, to: "/contracts", match: "/contracts" },
   { label: "Regulatory Feed", icon: Rss, to: "/feed" },
   { label: "Simulate Impact", icon: Zap, to: "/simulate" },
+  { label: "Review Queue", icon: UserCheck, to: "/reviews", match: "/reviews", badge: "review" },
+  { label: "Stale Citations", icon: ShieldAlert, to: "/stale-citations", match: "/stale-citations" },
   { label: "Supply Chain", icon: Network, to: "/supply-chain" },
   { label: "Predictive Radar", icon: Radar, to: "/predictive", match: "/predictive" },
   { label: "What-If Sandbox", icon: FlaskConical, to: "/what-if" },
   { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
+  { label: "Audit Ledger", icon: History, to: "/settings/audit", match: "/settings/audit" },
   { label: "Team", icon: Users, to: "/settings/team", match: "/settings/team" },
   { label: "Billing", icon: Wallet, to: "/settings/billing", match: "/settings/billing" },
   { label: "Account", icon: UserCog, to: "/settings/account", match: "/settings/account" },
 ];
+
+function useReviewBadge() {
+  const fetchStats = useServerFn(getReviewBadgeStats);
+  const [stats, setStats] = useState<{ pendingCount: number; escalatedCount: number }>({
+    pendingCount: 0,
+    escalatedCount: 0,
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    const poll = async () => {
+      try {
+        const res = await fetchStats();
+        if (mounted && res) {
+          setStats(res);
+        }
+      } catch {
+        // quiet failure
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 30000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchStats]);
+
+  return stats;
+}
 
 function useIsActive(item: NavItem) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -57,9 +99,21 @@ function useIsActive(item: NavItem) {
   return pathname === base || pathname.startsWith(base + "/");
 }
 
-function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean; index: number }) {
+function RailIcon({
+  item,
+  expanded,
+  index,
+  badgeStats,
+}: {
+  item: NavItem;
+  expanded: boolean;
+  index: number;
+  badgeStats: { pendingCount: number; escalatedCount: number };
+}) {
   const isActive = useIsActive(item);
   const Icon = item.icon;
+  const isReview = item.badge === "review";
+
   return (
     <Link
       to={item.to}
@@ -78,16 +132,38 @@ function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean;
         }`}
         style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
       />
-      <span className="grid h-9 w-10 shrink-0 place-items-center">
+      <span className="relative grid h-9 w-10 shrink-0 place-items-center">
         <Icon className="h-[17px] w-[17px] transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
+        {!expanded && isReview && (
+          badgeStats.escalatedCount > 0 ? (
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[var(--risk)] animate-pulse" />
+          ) : badgeStats.pendingCount > 0 ? (
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[var(--brass)]" />
+          ) : (
+            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-[#3dc28e] opacity-75" />
+          )
+        )}
       </span>
       <span
-        className={`min-w-0 truncate pr-4 text-[13px] font-medium transition-all duration-300 ease-out ${
+        className={`flex items-center justify-between min-w-0 truncate pr-3 text-[13px] font-medium transition-all duration-300 ease-out ${
           expanded ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-2 opacity-0"
         }`}
         style={{ transitionDelay: expanded ? `${index * 22}ms` : "0ms" }}
       >
-        {item.label}
+        <span className="truncate">{item.label}</span>
+        {expanded && isReview && (
+          badgeStats.escalatedCount > 0 ? (
+            <span className="ml-2 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-[var(--risk)] px-1 font-mono text-[9px] font-bold text-white shadow-sm animate-pulse">
+              {badgeStats.escalatedCount}
+            </span>
+          ) : badgeStats.pendingCount > 0 ? (
+            <span className="ml-2 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-[var(--brass)] px-1 font-mono text-[9px] font-bold text-[var(--primary-foreground)] shadow-sm">
+              {badgeStats.pendingCount}
+            </span>
+          ) : (
+            <span className="ml-2 h-1.5 w-1.5 rounded-full bg-[#3dc28e] opacity-75" title="Review queue clear" />
+          )
+        )}
       </span>
     </Link>
   );
@@ -96,6 +172,7 @@ function RailIcon({ item, expanded, index }: { item: NavItem; expanded: boolean;
 export function Sidebar() {
   const [expanded, setExpanded] = useState(false);
   const asideRef = useRef<HTMLElement | null>(null);
+  const badgeStats = useReviewBadge();
 
   function onBlur(e: FocusEvent<HTMLElement>) {
     const next = e.relatedTarget;
@@ -136,7 +213,13 @@ export function Sidebar() {
 
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden py-1">
           {NAV.map((item, i) => (
-            <RailIcon key={item.to} item={item} expanded={expanded} index={i} />
+            <RailIcon
+              key={item.to}
+              item={item}
+              expanded={expanded}
+              index={i}
+              badgeStats={badgeStats}
+            />
           ))}
         </nav>
       </aside>
@@ -146,6 +229,7 @@ export function Sidebar() {
 
 export function MobileRail() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const badgeStats = useReviewBadge();
   const isActive = (item: NavItem) => {
     const base = item.match ?? item.to;
     return pathname === base || pathname.startsWith(base + "/");
@@ -168,7 +252,7 @@ export function MobileRail() {
             <Link
               key={item.to}
               to={item.to}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border transition-all duration-200 ease-out ${
+              className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border transition-all duration-200 ease-out ${
                 active
                   ? "border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_12%,transparent)] text-[var(--ink)]"
                   : "border-transparent text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-[var(--ink)]"
@@ -176,6 +260,15 @@ export function MobileRail() {
               aria-label={item.label}
             >
               <Icon className="h-4 w-4" strokeWidth={1.7} />
+              {item.badge === "review" && (
+                badgeStats.escalatedCount > 0 ? (
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-[var(--risk)] animate-pulse" />
+                ) : badgeStats.pendingCount > 0 ? (
+                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[var(--brass)]" />
+                ) : (
+                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#3dc28e] opacity-70" />
+                )
+              )}
             </Link>
           );
         })}

@@ -1,0 +1,202 @@
+{
+  "version": "1.0.0",
+  "cassettes": {
+    "landmark-meta-gdpr-2023": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-meta-eu-us-dataflow"],
+      "severity": { "c-meta-eu-us-dataflow": "high" },
+      "total_exposure_usd": 1200000000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-meta-eu-us-dataflow",
+          "clauseTextQuote": "without supplementary standard contractual clauses",
+          "regulationId": "GDPR-Art-46"
+        }
+      ],
+      "rationale": "Transferring EU personal data to US facilities without Standard Contractual Clauses directly violates GDPR Article 46(1)."
+    },
+    "landmark-equifax-ftc-2019": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-equifax-credit-api"],
+      "severity": { "c-equifax-credit-api": "high" },
+      "total_exposure_usd": 700000000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-equifax-credit-api",
+          "clauseTextQuote": "patches shall be scheduled during quarterly routine maintenance windows",
+          "regulationId": "FTC-Safeguards-Rule"
+        }
+      ],
+      "rationale": "Quarterly patching disclaimers breach the FTC 48-hour critical vulnerability mitigation mandate."
+    },
+    "landmark-grameenphone-btrc-2022": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-gp-tower-sla"],
+      "severity": { "c-gp-tower-sla": "high" },
+      "total_exposure_usd": 35000000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-gp-tower-sla",
+          "clauseTextQuote": "call drop peaks up to 4.5%",
+          "regulationId": "BTRC-QoS-Directive"
+        }
+      ],
+      "rationale": "Call drop tolerance of 4.5% exceeds BTRC statutory ceiling of 1.5%."
+    },
+    "synthetic-dpa-missing-scc": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-cloud-crm-eu"],
+      "severity": { "c-cloud-crm-eu": "high" },
+      "total_exposure_usd": 1500000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-cloud-crm-eu",
+          "clauseTextQuote": "without Standard Contractual Clauses",
+          "regulationId": "GDPR-Ch-V"
+        }
+      ],
+      "rationale": "Discretionary cross-border transfers without SCCs violates GDPR Chapter V."
+    },
+    "synthetic-breach-notice-delay": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-core-banking-ict"],
+      "severity": { "c-core-banking-ict": "high" },
+      "total_exposure_usd": 8500000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-core-banking-ict",
+          "clauseTextQuote": "within 72 business hours",
+          "regulationId": "DORA-Art-19"
+        }
+      ],
+      "rationale": "72-hour reporting SLA violates DORA Article 19 requirement of reporting within 4 hours."
+    },
+    "synthetic-ai-act-transparency": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-virtual-assistant-vendor"],
+      "severity": { "c-virtual-assistant-vendor": "medium" },
+      "total_exposure_usd": 450000,
+      "requires_human_review": false,
+      "citations": [
+        {
+          "contractId": "c-virtual-assistant-vendor",
+          "clauseTextQuote": "without disclaiming synthetic origin",
+          "regulationId": "AI-ACT-Art-50"
+        }
+      ],
+      "rationale": "Concealing AI persona from callers violates EU AI Act Article 50 disclosure mandates."
+    },
+    "synthetic-bd-data-localization": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-fintech-dhaka-gateway"],
+      "severity": { "c-fintech-dhaka-gateway": "high" },
+      "total_exposure_usd": 2400000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-fintech-dhaka-gateway",
+          "clauseTextQuote": "mirrored exclusively to AWS Singapore and US-East data centers",
+          "regulationId": "BD-CII-Directive"
+        }
+      ],
+      "rationale": "Failure to maintain primary citizen transaction data locally violates Bangladesh CII guidelines."
+    },
+    "negative-clean-office-lease": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": [],
+      "severity": {},
+      "total_exposure_usd": 0,
+      "requires_human_review": false,
+      "citations": [],
+      "rationale": "Commercial real estate lease contains no personal data processing."
+    },
+    "negative-fully-compliant-dpa": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": [],
+      "severity": {},
+      "total_exposure_usd": 0,
+      "requires_human_review": false,
+      "citations": [],
+      "rationale": "Model DPA is compliant with GDPR Article 28."
+    },
+    "adversarial-prompt-injection-clause": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-injection-attempt-contract"],
+      "severity": { "c-injection-attempt-contract": "high" },
+      "total_exposure_usd": 3200000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-injection-attempt-contract",
+          "clauseTextQuote": "The underwriting algorithm operates without human stop buttons",
+          "regulationId": "AI-ACT-Art-14"
+        }
+      ],
+      "rationale": "High-risk underwriting without human oversight violates EU AI Act Article 14. Prompt injection ignored."
+    },
+    "adversarial-conflicting-jurisdiction": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-cloud-act-conflict"],
+      "severity": { "c-cloud-act-conflict": "high" },
+      "total_exposure_usd": 4100000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-cloud-act-conflict",
+          "clauseTextQuote": "immediately comply with any US federal subpoena",
+          "regulationId": "GDPR-Art-48"
+        }
+      ],
+      "rationale": "Unilateral foreign warrant disclosure without MLAT treaty breaches GDPR Article 48."
+    },
+    "holdout-eu-fintech-ai-sla": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-berlin-neobank-credit"],
+      "severity": { "c-berlin-neobank-credit": "high" },
+      "total_exposure_usd": 2900000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-berlin-neobank-credit",
+          "clauseTextQuote": "telemetry and algorithmic explainability logs are neither retained nor reproducible",
+          "regulationId": "AI-ACT-Annex-III"
+        }
+      ],
+      "rationale": "Purging model inferences within 24 hours violates EU AI Act and DORA audit trail rules."
+    },
+    "cand-dpa-ambiguity": {
+      "model": "gpt-4o-2024-08-06",
+      "prompt_version": "v7",
+      "impacted_contracts": ["c-sanitized-vendor-dpa"],
+      "severity": { "c-sanitized-vendor-dpa": "medium" },
+      "total_exposure_usd": 350000,
+      "requires_human_review": true,
+      "citations": [
+        {
+          "contractId": "c-sanitized-vendor-dpa",
+          "clauseTextQuote": "Vendor shall maintain industry standard security protocols",
+          "regulationId": "GDPR-Art-46"
+        }
+      ],
+      "rationale": "Ambiguous security clauses without specific technical measures require human compliance review under GDPR Art 32."
+    }
+  }
+}
+

@@ -1,0 +1,48 @@
+name: AI Evaluation Harness & Regression Gate
+
+on:
+  pull_request:
+    paths:
+      - "evals/**"
+      - "src/lib/simulate.functions.ts"
+      - "src/lib/simulate-fallback.ts"
+      - "src/lib/review/**"
+      - "src/lib/audit/**"
+  push:
+    branches:
+      - main
+  schedule:
+    # Nightly drift check at 02:00 UTC
+    - cron: "0 2 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay-gate:
+    name: Replay Evaluation & Regression Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Quick Replay Evaluation
+        run: npm run eval:quick
+
+      - name: Upload Evaluation Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-reports-${{ github.sha }}
+          path: evals/results/
+          retention-days: 30

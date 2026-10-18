@@ -22,7 +22,9 @@ import { Route as AuthenticatedContractsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
+import { Route as AuthenticatedReviewsRouteImport } from './routes/_authenticated/reviews'
 import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
+import { Route as AuthenticatedStaleCitationsRouteImport } from './routes/_authenticated/stale-citations'
 import { Route as AuthenticatedSupplyChainRouteImport } from './routes/_authenticated/supply-chain'
 import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
@@ -30,6 +32,7 @@ import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_
 import { Route as AuthenticatedPredictiveRegulationIdRouteImport } from './routes/_authenticated/predictive.$regulationId'
 import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings.account'
+import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -99,11 +102,22 @@ const AuthenticatedPredictiveRoute = AuthenticatedPredictiveRouteImport.update({
   path: '/predictive',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReviewsRoute = AuthenticatedReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
   id: '/simulate',
   path: '/simulate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStaleCitationsRoute =
+  AuthenticatedStaleCitationsRouteImport.update({
+    id: '/stale-citations',
+    path: '/stale-citations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSupplyChainRoute =
   AuthenticatedSupplyChainRouteImport.update({
     id: '/supply-chain',
@@ -145,6 +159,12 @@ const AuthenticatedSettingsAccountRoute =
     path: '/settings/account',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsAuditRoute =
+  AuthenticatedSettingsAuditRouteImport.update({
+    id: '/settings/audit',
+    path: '/settings/audit',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsBillingRoute =
   AuthenticatedSettingsBillingRouteImport.update({
     id: '/settings/billing',
@@ -182,13 +202,16 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/reviews': typeof AuthenticatedReviewsRoute
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/stale-citations': typeof AuthenticatedStaleCitationsRoute
   '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -207,13 +230,16 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/reviews': typeof AuthenticatedReviewsRoute
   '/simulate': typeof AuthenticatedSimulateRoute
+  '/stale-citations': typeof AuthenticatedStaleCitationsRoute
   '/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/what-if': typeof AuthenticatedWhatIfRoute
   '/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -235,13 +261,16 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/predictive': typeof AuthenticatedPredictiveRouteWithChildren
+  '/_authenticated/reviews': typeof AuthenticatedReviewsRoute
   '/_authenticated/simulate': typeof AuthenticatedSimulateRoute
+  '/_authenticated/stale-citations': typeof AuthenticatedStaleCitationsRoute
   '/_authenticated/supply-chain': typeof AuthenticatedSupplyChainRoute
   '/_authenticated/what-if': typeof AuthenticatedWhatIfRoute
   '/_authenticated/contracts/$contractId': typeof AuthenticatedContractsContractIdRoute
   '/_authenticated/predictive/$regulationId': typeof AuthenticatedPredictiveRegulationIdRoute
   '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -263,13 +292,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/predictive'
+    | '/reviews'
     | '/simulate'
+    | '/stale-citations'
     | '/supply-chain'
     | '/what-if'
     | '/contracts/$contractId'
     | '/predictive/$regulationId'
     | '/regulations/$regId'
     | '/settings/account'
+    | '/settings/audit'
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
@@ -288,13 +320,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/predictive'
+    | '/reviews'
     | '/simulate'
+    | '/stale-citations'
     | '/supply-chain'
     | '/what-if'
     | '/contracts/$contractId'
     | '/predictive/$regulationId'
     | '/regulations/$regId'
     | '/settings/account'
+    | '/settings/audit'
     | '/settings/billing'
     | '/settings/team'
     | '/api/public/health'
@@ -315,13 +350,16 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/feed'
     | '/_authenticated/predictive'
+    | '/_authenticated/reviews'
     | '/_authenticated/simulate'
+    | '/_authenticated/stale-citations'
     | '/_authenticated/supply-chain'
     | '/_authenticated/what-if'
     | '/_authenticated/contracts/$contractId'
     | '/_authenticated/predictive/$regulationId'
     | '/_authenticated/regulations/$regId'
     | '/_authenticated/settings/account'
+    | '/_authenticated/settings/audit'
     | '/_authenticated/settings/billing'
     | '/_authenticated/settings/team'
     | '/api/public/health'
@@ -434,11 +472,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPredictiveRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reviews': {
+      id: '/_authenticated/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof AuthenticatedReviewsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/simulate': {
       id: '/_authenticated/simulate'
       path: '/simulate'
       fullPath: '/simulate'
       preLoaderRoute: typeof AuthenticatedSimulateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stale-citations': {
+      id: '/_authenticated/stale-citations'
+      path: '/stale-citations'
+      fullPath: '/stale-citations'
+      preLoaderRoute: typeof AuthenticatedStaleCitationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/supply-chain': {
@@ -488,6 +540,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/account'
       fullPath: '/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/audit': {
+      id: '/_authenticated/settings/audit'
+      path: '/settings/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/billing': {
@@ -560,11 +619,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedPredictiveRoute: typeof AuthenticatedPredictiveRouteWithChildren
+  AuthenticatedReviewsRoute: typeof AuthenticatedReviewsRoute
   AuthenticatedSimulateRoute: typeof AuthenticatedSimulateRoute
+  AuthenticatedStaleCitationsRoute: typeof AuthenticatedStaleCitationsRoute
   AuthenticatedSupplyChainRoute: typeof AuthenticatedSupplyChainRoute
   AuthenticatedWhatIfRoute: typeof AuthenticatedWhatIfRoute
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
+  AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsBillingRoute: typeof AuthenticatedSettingsBillingRoute
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
 }
@@ -576,11 +638,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedPredictiveRoute: AuthenticatedPredictiveRouteWithChildren,
+  AuthenticatedReviewsRoute: AuthenticatedReviewsRoute,
   AuthenticatedSimulateRoute: AuthenticatedSimulateRoute,
+  AuthenticatedStaleCitationsRoute: AuthenticatedStaleCitationsRoute,
   AuthenticatedSupplyChainRoute: AuthenticatedSupplyChainRoute,
   AuthenticatedWhatIfRoute: AuthenticatedWhatIfRoute,
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+  AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsBillingRoute: AuthenticatedSettingsBillingRoute,
   AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
 }

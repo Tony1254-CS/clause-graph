@@ -59,6 +59,27 @@ export const startContractExtraction = createServerFn({ method: "POST" })
     if (!inserted) throw new Error("Failed to create contract record");
     const contractId = inserted.id;
 
+    // Log contract.uploaded audit event (§5)
+    try {
+      const { logAuditEvent } = await import("./audit/audit.server");
+      await logAuditEvent({
+        orgId,
+        action: "contract.uploaded",
+        entityType: "contract",
+        entityId: contractId,
+        actorId: userId,
+        actorRole: (context.role as any) || "member",
+        after: {
+          name: data.name,
+          counterparty: data.counterparty,
+          value: data.value,
+          source_file_url: data.sourceFilePath,
+        },
+      });
+    } catch (auditErr) {
+      console.warn("[upload.functions] audit log error on upload:", auditErr);
+    }
+
     // Fire-and-forget the AI extraction; the client polls extraction_status.
     void runContractExtraction(contractId, data.rawText).catch(async (err) => {
       console.error("[upload.functions] extraction failed", contractId, err);
@@ -91,5 +112,21 @@ export const deleteContract = createServerFn({ method: "POST" })
       `DELETE FROM public.contracts WHERE id = $1 AND org_id = $2 AND is_sample = false`,
       [data.id, context.orgId]
     );
+
+    // Log contract.deleted audit event (§5)
+    try {
+      const { logAuditEvent } = await import("./audit/audit.server");
+      await logAuditEvent({
+        orgId: context.orgId,
+        action: "contract.deleted",
+        entityType: "contract",
+        entityId: data.id,
+        actorId: context.userId,
+        actorRole: (context.role as any) || "member",
+      });
+    } catch (auditErr) {
+      console.warn("[upload.functions] audit log error on delete:", auditErr);
+    }
+
     return { ok: true };
   });

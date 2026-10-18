@@ -1,0 +1,61 @@
+{
+  "dataset": "simulation",
+  "version": "1.0.0",
+  "class": "negative",
+  "cases": [
+    {
+      "id": "negative-clean-office-lease",
+      "class": "negative",
+      "tags": ["negative", "real-estate", "clean", "quick"],
+      "regulation_family": "GDPR",
+      "jurisdiction": "EU",
+      "clause_type": "commercial-lease",
+      "regulation_text": "GDPR Article 33: In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the personal data breach to the supervisory authority competent in accordance with Article 55.",
+      "contracts": [
+        {
+          "id": "c-clean-commercial-lease",
+          "name": "Frankfurt Office Real Estate Commercial Lease Agreement",
+          "value": 600000,
+          "clauses": [
+            "Section 4 (Rent and Utilities): Tenant agrees to remit monthly rental charges of 50,000 EUR on or before the 1st day of each calendar month. Building management shall provide heating, security guards, and janitorial services."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [],
+        "severity": {},
+        "total_exposure_usd": 0,
+        "requires_human_review": false
+      },
+      "labeled_by": "qa_negative_verifier",
+      "labeled_at": "2026-10-18"
+    },
+    {
+      "id": "negative-fully-compliant-dpa",
+      "class": "negative",
+      "tags": ["negative", "compliant", "dpa", "quick"],
+      "regulation_family": "GDPR",
+      "jurisdiction": "EU",
+      "clause_type": "data-processing",
+      "regulation_text": "GDPR Article 28(3): Processing by a processor shall be governed by a contract or other legal act under Union or Member State law, that is binding on the processor with regard to the controller.",
+      "contracts": [
+        {
+          "id": "c-gold-standard-dpa",
+          "name": "Standard EU Model Data Processing Agreement",
+          "value": 800000,
+          "clauses": [
+            "Section 5 (Compliance): Processor explicitly agrees to process personal data solely on documented controller instructions, enforces EU Model SCCs (Module 2), maintains certified ISO 27001 safeguards, and guarantees notification within 24 hours of any incident."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": [],
+        "severity": {},
+        "total_exposure_usd": 0,
+        "requires_human_review": false
+      },
+      "labeled_by": "qa_negative_verifier",
+      "labeled_at": "2026-10-18"
+    }
+  ]
+}

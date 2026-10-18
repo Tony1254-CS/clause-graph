@@ -31,6 +31,29 @@ export const generateActionPlan = createServerFn({ method: "POST" })
       }
     }
 
+    // Query open stale citation findings to prioritize remediation actions
+    const staleFindings = await query<{
+      contract_id: string;
+      contract_name: string;
+      raw_citation: string;
+      severity: string;
+      reason: string;
+      suggested_citation: string | null;
+      suggested_clause_text: string | null;
+      transition_deadline: string | null;
+    }>(
+      `SELECT ci.contract_id, c.name as contract_name, ci.raw_citation,
+              f.severity, f.reason, f.suggested_citation, f.suggested_clause_text,
+              f.transition_deadline
+       FROM public.stale_citation_findings f
+       JOIN public.citation_instances ci ON ci.id = f.citation_instance_id
+       JOIN public.contracts c ON c.id = ci.contract_id
+       WHERE f.org_id = $1 AND f.status = 'open'
+       ORDER BY CASE f.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 ELSE 3 END ASC
+       LIMIT 10`,
+      [orgId]
+    );
+
     const system = `You are a senior compliance officer drafting a remediation action plan for legal review. Return STRICT JSON only:
 {
   "policy_draft": string,
@@ -39,9 +62,9 @@ export const generateActionPlan = createServerFn({ method: "POST" })
 }
 Rules:
 - policy_draft is ONE paragraph of proposed internal policy language (4–6 sentences).
-- amendments MUST cover every impacted contract from the input, using its exact contract_id.
+- amendments MUST cover impacted contracts and any critical stale citation findings.
+- tech_fixes are prioritized operational/engineering steps: use P0 for critical repealed laws, P1 for substantive amendments, P2 for procedural changes.
 - Each amendment suggestion is one sentence of proposed contract language; rationale is one short sentence.
-- tech_fixes are 3–6 prioritized operational/engineering steps.
 - Nothing is presented as final. All output is a draft for legal review.
 - Output JSON only, no code fences, no prose.`;
 
@@ -50,6 +73,9 @@ ${data.regulationText}
 
 SIMULATION SUMMARY:
 ${data.summary ?? "(none)"}
+
+PORTFOLIO STALE CITATION AUDIT FINDINGS:
+${JSON.stringify(staleFindings ?? [])}
 
 IMPACTED CONTRACTS:
 ${JSON.stringify(data.impacts)}`;
@@ -75,9 +101,121 @@ ${JSON.stringify(data.impacts)}`;
       }
       const plan = coerceActionPlan(parsed);
       if (!plan) return { ...fallbackActionPlan };
+
+      // Ensure open critical stale findings are represented in tech_fixes if omitted
+      for (const sf of staleFindings || []) {
+        const priority = sf.severity === 'critical' ? 'P0' : sf.severity === 'high' ? 'P1' : 'P2';
+        const alreadyIncluded = plan.tech_fixes.some((tf) => tf.title.includes(sf.raw_citation));
+        if (!alreadyIncluded && plan.tech_fixes.length < 8) {
+          plan.tech_fixes.unshift({
+            priority,
+            title: `Remediate citation to ${sf.raw_citation}`,
+            detail: `${sf.reason} Deadline: ${sf.transition_deadline || 'Immediate legal review required'}.`,
+          });
+        }
+      }
+
+      const { evaluateGate, enqueueForReview } = await import("./review/gate.server");
+      const gate = evaluateGate({
+        sourceType: "action_plan",
+        severity: "medium",
+        engine: "llm",
+        inputText: data.regulationText,
+      });
+
+      const planUuid = `00000000-0000-0000-0000-${Date.now().toString(16).padStart(12, "0")}`.slice(0, 36);
+      plan.plan_id = planUuid;
+
+      if (gate.required && plan.amendments && plan.amendments.length > 0) {
+        try {
+          const review = await enqueueForReview({
+            orgId,
+            sourceType: "action_plan",
+            sourceId: planUuid,
+            severity: "medium",
+            summary: `Action Plan amendment suggestions for ${data.regulationText.slice(0, 80)}`,
+            payload: {
+              policy_draft: plan.policy_draft,
+              amendments: plan.amendments,
+              tech_fixes: plan.tech_fixes,
+            },
+            inputSnapshot: {
+              regulationText: data.regulationText,
+              impacts: data.impacts,
+            },
+            engine: "llm",
+            modelName: "gpt-4o",
+            promptVersion: "v2.0",
+            gate,
+          });
+
+          plan.review_status = "pending_review";
+          plan.review_id = review.id;
+          for (const a of plan.amendments) {
+            a.review_status = "pending_review";
+            a.review_id = review.id;
+          }
+        } catch (enqueueErr) {
+          console.warn("[action-plan] review enqueue error:", enqueueErr);
+          plan.review_status = "pending_review";
+        }
+      } else {
+        plan.review_status = "not_required";
+      }
+
+      // Record action_plan.generated audit event (§5)
+      if (orgId) {
+        try {
+          const { logAuditEvent } = await import("./audit/audit.server");
+          await logAuditEvent({
+            orgId,
+            action: "action_plan.generated",
+            entityType: "action_plan",
+            entityId: planUuid,
+            actorId: context.userId,
+            actorRole: (context.role as any) || "member",
+            after: {
+              amendment_count: plan.amendments?.length || 0,
+              tech_fix_count: plan.tech_fixes?.length || 0,
+              fallback: plan.fallback || false,
+            },
+            basis: {
+              model_name: "gpt-4o",
+              prompt_version: "v2.0",
+            },
+          });
+        } catch (auditErr) {
+          console.warn("[action-plan] audit log error:", auditErr);
+        }
+      }
+
       return plan;
     } catch (err) {
       console.error("[action-plan] exception", err);
       return { ...fallbackActionPlan };
     }
+  });
+
+/**
+ * Server-side audit logging for client-side jsPDF Action Plan generation (§8.3, §12)
+ * The server records action_plan.exported_pdf before the client generates or downloads the file.
+ */
+export const recordActionPlanPdfExport = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .validator((input: { planId: string; summary?: string }) => {
+    if (!input?.planId) throw new Error("Plan ID required");
+    return { planId: String(input.planId), summary: input.summary };
+  })
+  .handler(async ({ data, context }) => {
+    const { logAuditEvent } = await import("./audit/audit.server");
+    const auditId = await logAuditEvent({
+      orgId: context.orgId,
+      action: "action_plan.exported_pdf",
+      entityType: "action_plan",
+      entityId: data.planId,
+      actorId: context.userId,
+      actorRole: (context.role as any) || "member",
+      metadata: { summary: data.summary },
+    });
+    return { success: true, auditId };
   });

@@ -1,0 +1,34 @@
+{
+  "dataset": "simulation",
+  "version": "1.0.0",
+  "class": "holdout",
+  "cases": [
+    {
+      "id": "holdout-eu-fintech-ai-sla",
+      "class": "holdout",
+      "tags": ["holdout", "ai-act", "dora", "eu"],
+      "regulation_family": "EU AI Act & DORA",
+      "jurisdiction": "EU",
+      "clause_type": "high-risk-credit-scoring",
+      "regulation_text": "EU AI Act Annex III Section 5(b) & DORA: AI systems intended to be used to evaluate the creditworthiness of natural persons or establish their credit score are classified as high-risk, requiring continuous post-market monitoring and explicit logging.",
+      "contracts": [
+        {
+          "id": "c-berlin-neobank-credit",
+          "name": "Automated Consumer Micro-Loan Underwriting Services",
+          "value": 2900000,
+          "clauses": [
+            "Section 4.1: Model inferences are purged after 24 hours to economize cloud storage; telemetry and algorithmic explainability logs are neither retained nor reproducible."
+          ]
+        }
+      ],
+      "expected": {
+        "impacted_contract_ids": ["c-berlin-neobank-credit"],
+        "severity": { "c-berlin-neobank-credit": "high" },
+        "total_exposure_usd": 2900000,
+        "requires_human_review": true
+      },
+      "labeled_by": "independent_auditor",
+      "labeled_at": "2026-10-18"
+    }
+  ]
+}

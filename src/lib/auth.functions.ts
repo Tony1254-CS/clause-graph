@@ -34,6 +34,18 @@ export const demoLoginFn = createServerFn({ method: "POST" })
     return await ensureAndLoginDemoJudge();
   });
 
+export const googleLoginFn = createServerFn({ method: "POST" })
+  .validator((input?: { email?: string; name?: string }) => {
+    return {
+      email: input?.email ? String(input.email).trim() : undefined,
+      name: input?.name ? String(input.name).trim() : undefined,
+    };
+  })
+  .handler(async ({ data }): Promise<{ user: AuthUser; token: string }> => {
+    const { loginWithGoogle } = await import("./auth.server");
+    return await loginWithGoogle(data);
+  });
+
 export const getCurrentUserFn = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<AuthUser> => {
