@@ -21,6 +21,13 @@ import {
 } from "lucide-react";
 import { ContractCard } from "@/components/clausegraph/ContractCard";
 import { UploadContract } from "@/components/clausegraph/UploadContract";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { contractsQuery, formatUSD } from "@/data/queries";
 import type { Contract } from "@/data/types";
 
@@ -249,43 +256,43 @@ function ContractsIndex() {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
           <button
             onClick={() => setFilterTab("all")}
-            className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 ${
+            className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "all"
-                ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
-                : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
             All ({contracts.length})
           </button>
           <button
             onClick={() => setFilterTab("high")}
-            className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 ${
+            className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "high"
-                ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
-                : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
             High Value (&gt;$10M)
           </button>
           <button
             onClick={() => setFilterTab("standard")}
-            className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 ${
+            className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "standard"
-                ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
-                : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
             Core (&lt;$10M)
           </button>
           <button
             onClick={() => setFilterTab("multi")}
-            className={`rounded-full px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 ${
+            className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "multi"
-                ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
-                : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
             }`}
           >
             Multi-Clause (2+)
@@ -295,53 +302,56 @@ function ContractsIndex() {
         {/* Sort & View Mode Toggles */}
         <div className="flex items-center gap-2">
           {/* Sort selector */}
-          <div className="relative flex items-center">
-            <ArrowUpDown className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="h-9 cursor-pointer appearance-none rounded-full border border-white/5 bg-white/[0.03] pl-8 pr-7 text-[12px] font-medium text-foreground hover:bg-white/[0.06] focus:border-[var(--hairline-strong)] focus:outline-none focus:ring-1 focus:ring-[var(--brass)]"
-            >
-              <option value="value-desc" className="bg-[var(--sidebar)] text-foreground">
-                Highest Notional
-              </option>
-              <option value="value-asc" className="bg-[var(--sidebar)] text-foreground">
-                Lowest Notional
-              </option>
-              <option value="clauses-desc" className="bg-[var(--sidebar)] text-foreground">
-                Most Clauses
-              </option>
-              <option value="name-asc" className="bg-[var(--sidebar)] text-foreground">
-                Alphabetical (A–Z)
-              </option>
-            </select>
+          <div className="flex items-center gap-1.5 font-mono text-xs">
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+            <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
+              <SelectTrigger className="h-9 min-w-[170px] rounded-xl border border-white/10 bg-white/[0.04] px-3 font-mono text-xs text-foreground hover:bg-white/[0.08] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
+                <SelectItem value="value-desc" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">
+                  Highest Notional
+                </SelectItem>
+                <SelectItem value="value-asc" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">
+                  Lowest Notional
+                </SelectItem>
+                <SelectItem value="clauses-desc" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">
+                  Most Clauses
+                </SelectItem>
+                <SelectItem value="name-asc" className="cursor-pointer hover:bg-white/[0.08] focus:bg-[var(--brass)]/20 focus:text-foreground">
+                  Alphabetical (A–Z)
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Grid vs Table Switcher */}
-          <div className="flex items-center rounded-full border border-white/5 bg-white/[0.03] p-0.5">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
             <button
               onClick={() => setViewMode("grid")}
-              className={`rounded-full p-1.5 transition-colors ${
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] transition-all cursor-pointer ${
                 viewMode === "grid"
-                  ? "bg-[color-mix(in_oklab,var(--brass)_20%,transparent)] text-[var(--brass)] shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
               }`}
               title="Grid View"
               aria-label="Grid View"
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Grid</span>
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={`rounded-full p-1.5 transition-colors ${
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] transition-all cursor-pointer ${
                 viewMode === "table"
-                  ? "bg-[color-mix(in_oklab,var(--brass)_20%,transparent)] text-[var(--brass)] shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
               }`}
               title="Table View"
               aria-label="Table View"
             >
-              <List className="h-4 w-4" />
+              <List className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Table</span>
             </button>
           </div>
         </div>

@@ -27,7 +27,6 @@ type NavItem = {
     | "/contracts"
     | "/feed"
     | "/simulate"
-    | "/supply-chain"
     | "/backtest"
     | "/actions"
     | "/predictive"
@@ -45,10 +44,8 @@ const NAV: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Contracts", icon: FileText, to: "/contracts", match: "/contracts" },
   { label: "Regulatory Feed", icon: Rss, to: "/feed" },
-  { label: "Simulate Impact", icon: Zap, to: "/simulate" },
-  { label: "Supply Chain", icon: Network, to: "/supply-chain" },
+  { label: "Simulate & Cascades", icon: Zap, to: "/simulate" },
   { label: "Predictive Radar", icon: Radar, to: "/predictive", match: "/predictive" },
-  { label: "What-If Sandbox", icon: FlaskConical, to: "/what-if" },
   { label: "Review Queue", icon: UserCheck, to: "/review-queue", match: "/review-queue" },
   { label: "Background Jobs", icon: Activity, to: "/jobs" as any, match: "/jobs" },
   { label: "Sources & Backups", icon: ShieldCheck, to: "/legal-sources" as any, match: "/legal-sources" },

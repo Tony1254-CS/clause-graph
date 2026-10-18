@@ -551,7 +551,7 @@ function ActionsPage() {
 
         {/* ── Toolbar: Search & Type Pills & View Mode Switcher ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5 backdrop-blur-xl shadow-[var(--shadow-soft)]">
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5">
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
             {FILTERS.map((f) => {
               const count =
                 f.id === "all" ? runs.length : runs.filter((r) => r.run_type === f.id).length;
@@ -561,13 +561,22 @@ function ActionsPage() {
                   key={f.id}
                   type="button"
                   onClick={() => setFilter(f.id)}
-                  className={`rounded-lg px-3 py-1 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all duration-200 cursor-pointer ${
                     active
-                      ? "bg-[var(--brass)] text-[var(--ink-base)] shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                      ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-md ring-1 ring-white/20"
+                      : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                   }`}
                 >
-                  {f.label} ({count})
+                  <span>{f.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
+                      active
+                        ? "bg-black/25 text-[var(--primary-foreground)] border-black/20 font-bold"
+                        : "bg-white/[0.05] text-foreground border-white/10"
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               );
             })}
@@ -586,14 +595,14 @@ function ActionsPage() {
             </div>
 
             {/* View Mode Switcher */}
-            <div className="flex items-center rounded-xl bg-black/40 p-1 border border-white/5">
+            <div className="flex items-center gap-1.5 rounded-xl bg-[rgba(0,0,0,0.35)] p-1.5 border border-[var(--hairline)]">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
-                    ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
                 title="Table View (Proportional & Dense)"
               >
@@ -603,10 +612,10 @@ function ActionsPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("feed")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "feed"
-                    ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
                 }`}
                 title="Accordion Feed View"
               >

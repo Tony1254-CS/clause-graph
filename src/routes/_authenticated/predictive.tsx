@@ -234,55 +234,82 @@ function RadarDashboard() {
         </section>
 
         {/* ── Filter Controls Bar ─────────────────────────────────────────── */}
-        <section className="flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-[var(--hairline)] bg-[var(--surface-raised)]/40 p-3 backdrop-blur-xl">
-          <div className="flex items-center gap-1.5">
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 p-2.5 backdrop-blur-xl shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-2">
               Filter by Horizon:
             </span>
-            <button
-              onClick={() => setFilterBand("all")}
-              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
-                filterBand === "all"
-                  ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm"
-                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-              }`}
-            >
-              All Frameworks ({forecasts.length})
-            </button>
-            <button
-              onClick={() => setFilterBand("high")}
-              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
-                filterBand === "high"
-                  ? "border border-[color-mix(in_oklab,var(--risk)_35%,transparent)] bg-[color-mix(in_oklab,var(--risk)_18%,transparent)] text-[var(--risk)] shadow-sm font-semibold"
-                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-              }`}
-            >
-              High Risk ({highRiskCount})
-            </button>
-            <button
-              onClick={() => setFilterBand("medium")}
-              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
-                filterBand === "medium"
-                  ? "border border-[color-mix(in_oklab,var(--brass)_30%,transparent)] bg-[color-mix(in_oklab,var(--brass)_15%,transparent)] text-[var(--brass)] shadow-sm font-semibold"
-                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-              }`}
-            >
-              Medium Risk
-            </button>
-            <button
-              onClick={() => setFilterBand("low")}
-              className={`rounded-full px-3.5 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
-                filterBand === "low"
-                  ? "border border-white/20 bg-white/10 text-foreground shadow-sm"
-                  : "border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-              }`}
-            >
-              Low / Stable
-            </button>
+            <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+              <button
+                type="button"
+                onClick={() => setFilterBand("all")}
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                  filterBand === "all"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                }`}
+              >
+                <span>All Frameworks</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
+                  filterBand === "all"
+                    ? "bg-black/25 text-[var(--primary-foreground)] border-black/20 font-bold"
+                    : "bg-white/[0.05] text-foreground border-white/10"
+                }`}>
+                  {forecasts.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterBand("high")}
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                  filterBand === "high"
+                    ? "bg-[var(--risk)] text-white font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--risk)]/40 hover:bg-white/[0.08] hover:text-[var(--risk)]"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--risk)]" />
+                <span>High Risk</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
+                  filterBand === "high"
+                    ? "bg-black/25 text-white border-black/20 font-bold"
+                    : "bg-white/[0.05] text-foreground border-white/10"
+                }`}>
+                  {highRiskCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterBand("medium")}
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                  filterBand === "medium"
+                    ? "bg-amber-500 text-black font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-amber-500/40 hover:bg-white/[0.08] hover:text-amber-400"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                <span>Medium Risk</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterBand("low")}
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                  filterBand === "low"
+                    ? "bg-blue-500 text-white font-semibold shadow-md ring-1 ring-white/20"
+                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-blue-500/40 hover:bg-white/[0.08] hover:text-blue-400"
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                <span>Low / Stable</span>
+              </button>
+            </div>
           </div>
 
-          <span className="font-mono text-[10px] text-muted-foreground pr-2">
-            Click any card to simulate what-if impact &rarr;
+          <span className="font-mono text-[10px] text-muted-foreground pr-2 flex items-center gap-1">
+            <span>Click any card to simulate what-if impact</span>
+            <span>&rarr;</span>
           </span>
         </section>
 
