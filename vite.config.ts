@@ -16,6 +16,9 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     allowedHosts: [
+      "clause-graph-production.up.railway.app",
+      ".railway.app",
+      ".up.railway.app",
       "clause-graph.onrender.com",
       ".onrender.com",
       "localhost",
@@ -25,6 +28,9 @@ export default defineConfig({
   preview: {
     host: "0.0.0.0",
     allowedHosts: [
+      "clause-graph-production.up.railway.app",
+      ".railway.app",
+      ".up.railway.app",
       "clause-graph.onrender.com",
       ".onrender.com",
       "localhost",
