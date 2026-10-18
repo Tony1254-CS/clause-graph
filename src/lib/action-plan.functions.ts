@@ -73,9 +73,68 @@ ${JSON.stringify(data.impacts)}`;
       } catch {
         return { ...fallbackActionPlan };
       }
-      const plan = coerceActionPlan(parsed);
-      if (!plan) return { ...fallbackActionPlan };
-      return plan;
+      let finalPlan = plan ?? { ...fallbackActionPlan };
+
+      // Verify citations in generated policy draft and amendments
+      try {
+        const { verifyCitations, mapDbRegulationToMetadata } = await import("./citation-verifier");
+        const regRows = await query(
+          `SELECT id, jurisdiction, title, summary, obligations FROM public.regulations`
+        );
+        const dbMetadata = (regRows ?? []).map((r: any) =>
+          mapDbRegulationToMetadata({
+            id: r.id,
+            title: r.title,
+            jurisdiction: r.jurisdiction,
+            summary: r.summary,
+            obligations: r.obligations,
+          })
+        );
+        const textToAudit = [
+          data.regulationText,
+          finalPlan.policy_draft,
+          ...finalPlan.amendments.map((a) => `${a.suggestion} ${a.rationale}`),
+        ].join("\n\n");
+
+        finalPlan.citation_verification = verifyCitations(textToAudit, dbMetadata);
+
+        // Auto Review Trigger: Automatically enqueue for human review if risk rules fired
+        if (orgId && finalPlan.citation_verification?.requiresHumanReview) {
+          try {
+            const { createReviewTaskIfTriggered } = await import("./review.server");
+            const triggerType =
+              finalPlan.citation_verification.repealedCount > 0
+                ? "REPEALED_CITATION"
+                : finalPlan.citation_verification.supersededCount > 0
+                  ? "SUPERSEDED_CITATION"
+                  : "UNVERIFIED_CITATION";
+
+            const warnings = finalPlan.citation_verification.findings
+              .map((f) => f.warningMessage)
+              .filter((w): w is string => Boolean(w));
+
+            await createReviewTaskIfTriggered({
+              orgId,
+              triggerType,
+              riskLevel: finalPlan.citation_verification.highestRisk,
+              title: `Action Plan Audit: Remediation Policy Draft`,
+              description: `Proposed amendments contain references to ${finalPlan.citation_verification.repealedCount} repealed, ${finalPlan.citation_verification.supersededCount} superseded, or unverified legal references. Requires counsel sign-off.`,
+              sourceType: "action_plan",
+              sourceId: `plan-${Date.now()}`,
+              originalAiResponse: JSON.stringify(finalPlan),
+              citationsSnapshot: finalPlan.citation_verification.findings,
+              warningsSnapshot: warnings,
+              createdBy: context.userId,
+            });
+          } catch (reviewQueueErr) {
+            console.error("[action-plan] auto review task creation failed:", reviewQueueErr);
+          }
+        }
+      } catch (verifyErr) {
+        console.error("[action-plan] citation verification error", verifyErr);
+      }
+
+      return finalPlan;
     } catch (err) {
       console.error("[action-plan] exception", err);
       return { ...fallbackActionPlan };

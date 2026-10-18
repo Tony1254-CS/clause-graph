@@ -1,0 +1,482 @@
+{
+  "manifest": {
+    "manifestVersion": "2.0.0",
+    "timestamp": "2026-10-18T18:32:37.918Z",
+    "recordCounts": {
+      "regulations": 10,
+      "amendments": 0,
+      "contracts": 8,
+      "clauses": 9,
+      "sources": 6,
+      "versions": 0
+    },
+    "checksums": {
+      "regulations": "7fc77e86201040002bcf317b78172b6acf901727ec142cf0ecad4f8782a91a34",
+      "amendments": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "contracts": "63dc87f61ed44fbca71e02eb59c788ddba922f2c5ba41f9d6b1e10a285877fb9",
+      "clauses": "507e80e5f907385afba64d33de4cbe1272ca6975c93897f840865835f1a8bd53",
+      "sources": "02ab7002823238e957ece4087d7c84bee986985bbd4323a02c80fbc0c67c10d2",
+      "versions": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "encryption": "NONE",
+    "storageLocation": "F:\\ClouseGraph\\clause-graph\\storage\\backups\\clausegraph_backup_a999ac41-ab81-4db2-8a0d-ee12ced96875_2026-10-18T18-32-36-105Z.json"
+  },
+  "data": {
+    "regulations": [
+      {
+        "id": "REG-BB-DPS-2023",
+        "org_id": null,
+        "jurisdiction": "BD",
+        "title": "Bangladesh Bank Digital Payment Security Circular (2023)",
+        "summary": "Digital payment providers must enforce 2FA, tokenization, transaction monitoring, and 6-hour incident reporting.",
+        "obligations": [
+          "strong_customer_authentication",
+          "tokenization",
+          "transaction_monitoring",
+          "6h_incident_report"
+        ],
+        "news_signal_boost": "0.09",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-BD-DSA-2018",
+        "org_id": null,
+        "jurisdiction": "BD",
+        "title": "Digital Security Act 2018 §26 — Unauthorized Use of Identity Information",
+        "summary": "Unauthorized collection, transfer, or sale of identity information is prohibited with mandatory safeguards.",
+        "obligations": [
+          "identity_info_safeguards",
+          "lawful_production",
+          "incident_cooperation"
+        ],
+        "news_signal_boost": "0.11",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-BD-LA-2006",
+        "org_id": null,
+        "jurisdiction": "BD",
+        "title": "Bangladesh Labour Act 2006 §26 — Notice of Termination",
+        "summary": "Permanent workers termination requires 120 days written notice or wages in lieu and statutory dues.",
+        "obligations": [
+          "written_notice_period",
+          "reason_in_writing",
+          "statutory_compensation"
+        ],
+        "news_signal_boost": "0.04",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-CCPA-1798.120",
+        "org_id": null,
+        "jurisdiction": "US",
+        "title": "CCPA §1798.120 — Right to Opt Out of Sale/Sharing",
+        "summary": "Consumers have the right to direct a business not to sell or share their personal information.",
+        "obligations": [
+          "opt_out_link",
+          "global_privacy_control",
+          "sharing_disclosure",
+          "minor_opt_in"
+        ],
+        "news_signal_boost": "0.12",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-GDPR-33",
+        "org_id": null,
+        "jurisdiction": "EU",
+        "title": "GDPR Article 33 — Personal Data Breach Notification",
+        "summary": "A controller must notify the supervisory authority of a breach within 72 hours of becoming aware of it.",
+        "obligations": [
+          "72h_breach_notification",
+          "breach_documentation",
+          "risk_assessment",
+          "processor_notification"
+        ],
+        "news_signal_boost": "0.10",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-GDPR-44",
+        "org_id": null,
+        "jurisdiction": "EU",
+        "title": "GDPR Article 44 — International Data Transfers",
+        "summary": "Any transfer of personal data outside the EEA must comply with adequacy decisions, SCCs, or specific safeguards.",
+        "obligations": [
+          "adequacy_or_safeguards",
+          "transfer_impact_assessment",
+          "onward_transfer_controls"
+        ],
+        "news_signal_boost": "0.15",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-GDPR-5",
+        "org_id": null,
+        "jurisdiction": "EU",
+        "title": "GDPR Article 5 — Principles / Data Minimization",
+        "summary": "Personal data must be adequate, relevant, and limited to what is necessary for the purpose it was collected for. Controllers must be able to demonstrate compliance with the principles of lawfulness, purpose limitation, accuracy, storage limitation, and integrity.",
+        "obligations": [
+          "data_minimization",
+          "purpose_limitation",
+          "storage_limitation",
+          "accountability",
+          "accuracy"
+        ],
+        "news_signal_boost": "0.05",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-HIPAA-SEC",
+        "org_id": null,
+        "jurisdiction": "US",
+        "title": "HIPAA Security Rule (45 CFR §164.306–.312)",
+        "summary": "Covered entities must implement administrative, physical, and technical safeguards for ePHI.",
+        "obligations": [
+          "access_controls",
+          "audit_controls",
+          "encryption_at_rest_and_transit",
+          "incident_response"
+        ],
+        "news_signal_boost": "0.14",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-SEC-17A4",
+        "org_id": null,
+        "jurisdiction": "US",
+        "title": "SEC Rule 17a-4 — Broker-Dealer Records",
+        "summary": "Broker-dealers must preserve records in non-rewriteable format or equivalent audit-trail system.",
+        "obligations": [
+          "immutable_retention",
+          "audit_trail",
+          "designated_executive",
+          "offsite_backup"
+        ],
+        "news_signal_boost": "0.08",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      },
+      {
+        "id": "REG-SOX-302",
+        "org_id": null,
+        "jurisdiction": "US",
+        "title": "SOX §302 — Officer Certification",
+        "summary": "Principal executive and financial officers must certify quarterly and annual reports and controls.",
+        "obligations": [
+          "officer_certification",
+          "disclosure_controls",
+          "audit_committee_disclosure"
+        ],
+        "news_signal_boost": "0.06",
+        "created_at": "2026-10-18T17:17:44.366Z"
+      }
+    ],
+    "amendments": [],
+    "contracts": [
+      {
+        "id": "12f893b8-7d2b-4759-9d8e-40e7775ff84a",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Consumer Privacy Notice — California",
+        "counterparty": "Internal — US Legal",
+        "value": "2600000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "23defea3-56fd-45da-91fc-033072809364",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Fixed-Term Employment Contract — Padma Knitwear",
+        "counterparty": "Padma Knitwear Mills Ltd.",
+        "value": "420000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "2403679c-b72b-4d24-8673-4d4730bc2112",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Broker-Dealer Recordkeeping SLA — Ridgefield Securities",
+        "counterparty": "Ridgefield Securities LLC",
+        "value": "3400000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "a5ac6024-365e-42cc-aa3e-157da97dfcfe",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Consumer Terms of Service — EU Consumers",
+        "counterparty": "Nord Retail S.A.",
+        "value": "4200000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "b6e5e05e-a839-4587-9d3c-120acb88370e",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Merchant Acquiring Agreement — bKash Payments",
+        "counterparty": "bKash Limited",
+        "value": "18300000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "cacb024f-f624-465f-9be0-88e9aef99105",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Standard Contractual Clauses Addendum — Aegis Cloud",
+        "counterparty": "Aegis Cloud GmbH",
+        "value": "9800000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "eaf26a23-5e3d-4053-981f-94ca5cb641e2",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Business Associate Agreement — Cedar Health",
+        "counterparty": "Cedar Health Systems, LLC",
+        "value": "15750000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "f1657108-57f3-41fa-89f1-5d5fb1027d5f",
+        "org_id": "a999ac41-ab81-4db2-8a0d-ee12ced96875",
+        "name": "Data Processing Agreement — Helix Analytics (EU SaaS)",
+        "counterparty": "Helix Analytics BV",
+        "value": "12500000",
+        "source_file_url": null,
+        "extraction_status": "complete",
+        "extraction_error": null,
+        "uploaded_by": "d35980bd-1043-46d2-ba4c-01495f415343",
+        "is_sample": true,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      }
+    ],
+    "clauses": [
+      {
+        "id": "12d2190b-5be8-4d4e-a344-b86b88a3b345",
+        "contract_id": "f1657108-57f3-41fa-89f1-5d5fb1027d5f",
+        "text": "Any transfer of personal data by Processor outside the EEA shall be made only under Standard Contractual Clauses.",
+        "linked_regs": [
+          "REG-GDPR-44"
+        ],
+        "confidence": "1.0",
+        "position": 2,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "1750fffa-64f6-4bfa-9fb9-2492172278cf",
+        "contract_id": "cacb024f-f624-465f-9be0-88e9aef99105",
+        "text": "The parties adopt the Standard Contractual Clauses set out in Commission Implementing Decision (EU) 2021/914.",
+        "linked_regs": [
+          "REG-GDPR-44"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "1c34645a-150c-483c-af08-a7cd7d67fb5a",
+        "contract_id": "23defea3-56fd-45da-91fc-033072809364",
+        "text": "Either party may terminate upon 120 days written notice or payment of wages in lieu pursuant to §26 Labour Act.",
+        "linked_regs": [
+          "REG-BD-LA-2006"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "32ff2c71-ccbe-4ebf-820b-c5737b5cc9fe",
+        "contract_id": "eaf26a23-5e3d-4053-981f-94ca5cb641e2",
+        "text": "Business Associate shall implement administrative, physical, and technical safeguards protecting confidentiality of ePHI.",
+        "linked_regs": [
+          "REG-HIPAA-SEC"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "822664fd-bbac-4b3e-96a3-50a278eaf8b8",
+        "contract_id": "2403679c-b72b-4d24-8673-4d4730bc2112",
+        "text": "Service Provider shall preserve all books and records in non-rewriteable format for periods prescribed by SEC Rule 17a-4.",
+        "linked_regs": [
+          "REG-SEC-17A4"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "bf711b12-2859-43e2-a5c2-2bb92030ed6d",
+        "contract_id": "f1657108-57f3-41fa-89f1-5d5fb1027d5f",
+        "text": "Processor shall notify Controller of any personal data breach without undue delay and within 24 hours of becoming aware of it.",
+        "linked_regs": [
+          "REG-GDPR-33"
+        ],
+        "confidence": "1.0",
+        "position": 1,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "d41bd488-05b5-484f-a659-7fae5ce48184",
+        "contract_id": "12f893b8-7d2b-4759-9d8e-40e7775ff84a",
+        "text": "California residents have the right to direct us not to sell or share their personal information via Do Not Sell link.",
+        "linked_regs": [
+          "REG-CCPA-1798.120"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "d6d6af5b-1184-4762-9cc4-4ce6185a2b17",
+        "contract_id": "f1657108-57f3-41fa-89f1-5d5fb1027d5f",
+        "text": "Processor shall process personal data only on documented instructions from Controller and only for the purposes set out in Annex I.",
+        "linked_regs": [
+          "REG-GDPR-5"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      },
+      {
+        "id": "e78930ac-0487-40fc-9fab-db73476b5301",
+        "contract_id": "b6e5e05e-a839-4587-9d3c-120acb88370e",
+        "text": "Merchant shall implement 2FA for all digital payment transactions above BDT 5,000 per Bangladesh Bank guidelines.",
+        "linked_regs": [
+          "REG-BB-DPS-2023"
+        ],
+        "confidence": "1.0",
+        "position": 0,
+        "created_at": "2026-10-18T17:18:27.604Z"
+      }
+    ],
+    "sources": [
+      {
+        "id": "SRC-BB-CIRCULARS",
+        "source_name": "Bangladesh Bank Regulations & Circulars",
+        "official_url": "https://www.bb.org.bd/en/index.php/mediaroom/circular",
+        "jurisdiction": "BD",
+        "document_category": "CIRCULAR",
+        "retrieval_method": "OFFICIAL_GAZETTE_FEED",
+        "update_frequency": "daily",
+        "last_successful_check": null,
+        "last_discovered_version": null,
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:28:29.436Z"
+      },
+      {
+        "id": "SRC-BD-LAWS",
+        "source_name": "Bangladesh Code / Laws of Bangladesh",
+        "official_url": "http://bdlaws.minlaw.gov.bd/",
+        "jurisdiction": "BD",
+        "document_category": "STATUTE",
+        "retrieval_method": "OFFICIAL_GAZETTE_FEED",
+        "update_frequency": "weekly",
+        "last_successful_check": null,
+        "last_discovered_version": null,
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:28:29.436Z"
+      },
+      {
+        "id": "SRC-CPPA-GOV",
+        "source_name": "California Privacy Protection Agency (CPPA)",
+        "official_url": "https://cppa.ca.gov/regulations/",
+        "jurisdiction": "US",
+        "document_category": "REGULATION",
+        "retrieval_method": "HTTP_POLL",
+        "update_frequency": "weekly",
+        "last_successful_check": null,
+        "last_discovered_version": null,
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:28:29.436Z"
+      },
+      {
+        "id": "SRC-ECFR",
+        "source_name": "Electronic Code of Federal Regulations (eCFR)",
+        "official_url": "https://www.ecfr.gov/current/title-17/chapter-II/part-240/section-240.17a-4",
+        "jurisdiction": "US",
+        "document_category": "REGULATION",
+        "retrieval_method": "REST_API",
+        "update_frequency": "daily",
+        "last_successful_check": "2026-10-18T18:31:50.464Z",
+        "last_discovered_version": null,
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:31:50.464Z"
+      },
+      {
+        "id": "SRC-EUR-LEX",
+        "source_name": "EUR-Lex Official Journal",
+        "official_url": "https://eur-lex.europa.eu/oj/direct-access.html",
+        "jurisdiction": "EU",
+        "document_category": "REGULATION",
+        "retrieval_method": "HTTP_POLL",
+        "update_frequency": "daily",
+        "last_successful_check": "2026-10-18T18:31:40.109Z",
+        "last_discovered_version": "2026-Test-Guideline-v1",
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:31:40.109Z"
+      },
+      {
+        "id": "SRC-SEC-EDGAR",
+        "source_name": "U.S. SEC Regulatory Releases",
+        "official_url": "https://www.sec.gov/rules/final",
+        "jurisdiction": "US",
+        "document_category": "REGULATION",
+        "retrieval_method": "HTTP_POLL",
+        "update_frequency": "daily",
+        "last_successful_check": null,
+        "last_discovered_version": null,
+        "verification_status": "VERIFIED",
+        "consecutive_failures": 0,
+        "last_error_message": null,
+        "created_at": "2026-10-18T18:28:29.436Z",
+        "updated_at": "2026-10-18T18:28:29.436Z"
+      }
+    ],
+    "versions": []
+  }
+}

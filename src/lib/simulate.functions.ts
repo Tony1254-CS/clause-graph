@@ -122,12 +122,38 @@ ${JSON.stringify(contractContext)}`;
       console.error("[simulate] exception", err);
     }
 
+    // Citation Verification Step: Extract and verify references without modifying original text
+    try {
+      const { verifyCitations, mapDbRegulationToMetadata } = await import("./citation-verifier");
+      const dbMetadata = (regRows ?? []).map((r: any) =>
+        mapDbRegulationToMetadata({
+          id: r.id,
+          title: r.title,
+          jurisdiction: r.jurisdiction,
+          summary: r.summary,
+          obligations: r.obligations,
+        })
+      );
+      // Verify both input regulation text and AI-generated summary/amendments
+      const combinedTextToVerify = [
+        data.regulationText,
+        result.summary ?? "",
+        ...result.impacts.map((i) => i.suggested_amendment),
+      ].join("\n\n");
+
+      result.citation_verification = verifyCitations(combinedTextToVerify, dbMetadata);
+    } catch (verifyErr) {
+      console.error("[simulate] citation verification error", verifyErr);
+    }
+
     // Persist for audit history in PostgreSQL (best-effort)
+    let persistedRunId: string | undefined = undefined;
     if (orgId) {
       try {
-        await query(
+        const insertRes = await query<{ id: string }>(
           `INSERT INTO public.simulation_runs (org_id, input_regulation_text, result_json, triggered_by, run_type)
-           VALUES ($1, $2, $3::jsonb, $4, $5)`,
+           VALUES ($1, $2, $3::jsonb, $4, $5)
+           RETURNING id`,
           [
             orgId,
             data.regulationText,
@@ -136,8 +162,42 @@ ${JSON.stringify(contractContext)}`;
             data.runType,
           ]
         );
+        persistedRunId = insertRes?.[0]?.id;
       } catch (insertErr) {
         console.error("[simulate] persist error", insertErr);
+      }
+    }
+
+    // Auto Review Trigger: Automatically enqueue for human review if risk rules fired
+    if (orgId && result.citation_verification?.requiresHumanReview) {
+      try {
+        const { createReviewTaskIfTriggered } = await import("./review.server");
+        const triggerType =
+          result.citation_verification.repealedCount > 0
+            ? "REPEALED_CITATION"
+            : result.citation_verification.supersededCount > 0
+              ? "SUPERSEDED_CITATION"
+              : "UNVERIFIED_CITATION";
+
+        const warnings = result.citation_verification.findings
+          .map((f) => f.warningMessage)
+          .filter((w): w is string => Boolean(w));
+
+        await createReviewTaskIfTriggered({
+          orgId,
+          triggerType,
+          riskLevel: result.citation_verification.highestRisk,
+          title: `Simulation Audit: ${result.summary?.slice(0, 80) || "Regulatory blast radius review"}`,
+          description: `Flagged automatically: ${result.citation_verification.repealedCount} repealed, ${result.citation_verification.supersededCount} superseded, or unverified legal references detected.`,
+          sourceType: "simulation",
+          sourceId: persistedRunId,
+          originalAiResponse: JSON.stringify(result),
+          citationsSnapshot: result.citation_verification.findings,
+          warningsSnapshot: warnings,
+          createdBy: userId,
+        });
+      } catch (reviewQueueErr) {
+        console.error("[simulate] auto review task creation failed:", reviewQueueErr);
       }
     }
 

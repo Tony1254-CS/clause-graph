@@ -59,20 +59,34 @@ export const startContractExtraction = createServerFn({ method: "POST" })
     if (!inserted) throw new Error("Failed to create contract record");
     const contractId = inserted.id;
 
-    // Fire-and-forget the AI extraction; the client polls extraction_status.
-    void runContractExtraction(contractId, data.rawText).catch(async (err) => {
-      console.error("[upload.functions] extraction failed", contractId, err);
-      try {
-        await query(
-          `UPDATE public.contracts 
-           SET extraction_status = 'failed', extraction_error = 'Extraction could not be completed. Try uploading again.'
-           WHERE id = $1 AND extraction_status = 'processing'`,
-          [contractId]
-        );
-      } catch (e) {
-        console.error("extraction status write failed", contractId, e);
-      }
-    });
+    // Enqueue background extraction job with idempotency and transaction safety
+    try {
+      const { enqueueJob } = await import("./jobs.server");
+      await enqueueJob({
+        orgId,
+        createdBy: userId,
+        jobType: "CONTRACT_EXTRACTION",
+        priority: "high",
+        payload: { contractId, rawText: data.rawText },
+        idempotencyKey: `contract-extract-${contractId}`,
+      });
+    } catch (queueErr) {
+      console.warn("[upload.functions] queue insert error, falling back to synchronous execution:", queueErr);
+      // Resilient fallback: execute extraction directly if queue unreachable
+      void runContractExtraction(contractId, data.rawText).catch(async (err) => {
+        console.error("[upload.functions] extraction failed", contractId, err);
+        try {
+          await query(
+            `UPDATE public.contracts 
+             SET extraction_status = 'failed', extraction_error = 'Extraction could not be completed. Try uploading again.'
+             WHERE id = $1 AND extraction_status = 'processing'`,
+            [contractId]
+          );
+        } catch (e) {
+          console.error("extraction status write failed", contractId, e);
+        }
+      });
+    }
 
     return { id: contractId };
   });

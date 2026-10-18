@@ -20,7 +20,7 @@ export function getPool(): pg.Pool {
       connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 15000,
       ...(isCloudDb ? { ssl: { rejectUnauthorized: false } } : {}),
     });
 
