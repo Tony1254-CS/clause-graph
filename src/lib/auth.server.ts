@@ -203,6 +203,7 @@ export async function loginWithPassword(params: {
   return { user, token };
 }
 
+
 /**
  * Pre-seeded enterprise evaluation workspace for judges & hackathon evaluation
  */
@@ -238,6 +239,68 @@ export async function ensureAndLoginDemoJudge(): Promise<{ user: AuthUser; token
 
   const user = await getUserDetails(inserted.id);
   if (!user) throw new Error("Could not load evaluation workspace profile");
+
+  const token = await signToken(user);
+  return { user, token };
+}
+
+/**
+ * Authenticate or register an OAuth user (Google, GitHub, etc.)
+ */
+export async function loginWithOAuth(params: {
+  provider: "google" | "github";
+  email?: string;
+  fullName?: string;
+  avatarUrl?: string;
+}): Promise<{ user: AuthUser; token: string }> {
+  const provider = params.provider === "github" ? "github" : "google";
+
+  const defaultEmail =
+    provider === "google" ? "google.workspace@clausegraph.ai" : "github.developer@clausegraph.ai";
+  const defaultName =
+    provider === "google" ? "Google Enterprise User" : "GitHub Developer";
+
+  const email = (params.email?.trim() || defaultEmail).toLowerCase();
+  const fullName = params.fullName?.trim() || defaultName;
+
+  // Check if user already exists
+  let userRow = await queryOne<{ id: string }>(
+    `SELECT id FROM auth.users WHERE LOWER(email) = $1`,
+    [email]
+  );
+
+  if (!userRow) {
+    const dummyHash = await hashPassword(crypto.randomUUID() + "-oauth-salt");
+
+    const inserted = await queryOne<{ id: string }>(
+      `INSERT INTO auth.users (email, encrypted_password, email_confirmed_at, raw_user_meta_data, raw_app_meta_data)
+       VALUES ($1, $2, now(), $3::jsonb, $4::jsonb)
+       RETURNING id`,
+      [
+        email,
+        dummyHash,
+        JSON.stringify({
+          full_name: fullName,
+          avatar_url: params.avatarUrl || null,
+          provider,
+        }),
+        JSON.stringify({
+          provider,
+          providers: [provider],
+        }),
+      ]
+    );
+
+    if (!inserted) {
+      throw new Error("Failed to create OAuth user profile");
+    }
+    userRow = inserted;
+  }
+
+  const user = await getUserDetails(userRow.id);
+  if (!user) {
+    throw new Error("Could not load user workspace profile");
+  }
 
   const token = await signToken(user);
   return { user, token };

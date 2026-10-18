@@ -34,6 +34,18 @@ export const demoLoginFn = createServerFn({ method: "POST" })
     return await ensureAndLoginDemoJudge();
   });
 
+export const signInWithOAuthFn = createServerFn({ method: "POST" })
+  .validator((input: { provider: "google" | "github"; email?: string; fullName?: string }) => {
+    const provider = input?.provider === "github" ? "github" : "google";
+    const email = input?.email ? String(input.email).trim() : undefined;
+    const fullName = input?.fullName ? String(input.fullName).trim() : undefined;
+    return { provider, email, fullName };
+  })
+  .handler(async ({ data }): Promise<{ user: AuthUser; token: string }> => {
+    const { loginWithOAuth } = await import("./auth.server");
+    return await loginWithOAuth(data);
+  });
+
 export const getCurrentUserFn = createServerFn({ method: "GET" })
   .middleware([requireAuth])
   .handler(async ({ context }): Promise<AuthUser> => {
