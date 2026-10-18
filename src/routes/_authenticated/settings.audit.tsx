@@ -6,13 +6,10 @@ import {
   History,
   ShieldCheck,
   ShieldAlert,
-  Download,
-  Filter,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
   Search,
-  ExternalLink,
   ChevronRight,
   X,
   FileSpreadsheet,
@@ -23,6 +20,7 @@ import {
   Hash,
   Database,
   ArrowDownCircle,
+  Filter,
 } from "lucide-react";
 import { AppShell } from "@/components/clausegraph/AppShell";
 import { myRoleQuery, profileQuery } from "@/data/queries";
@@ -67,6 +65,95 @@ function formatTimestamp(value: unknown): string {
     return value.replace("T", " ").replace("Z", " UTC");
   }
   return String(value);
+}
+
+function StatCard({
+  label,
+  value,
+  sub,
+  alert,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  sub?: string;
+  alert?: boolean;
+  icon?: any;
+}) {
+  return (
+    <div
+      className={`glass-panel p-4 flex flex-col justify-between ${
+        alert ? "border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)]" : ""
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground">
+          {label}
+        </p>
+        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />}
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span
+          className={`font-display text-[26px] font-semibold leading-none ${
+            alert ? "text-[var(--risk)]" : "text-foreground"
+          }`}
+        >
+          {value}
+        </span>
+        {sub && <span className="font-mono text-[10px] text-muted-foreground">{sub}</span>}
+      </div>
+    </div>
+  );
+}
+
+function ActionBadge({ action }: { action: string }) {
+  if (action.startsWith("auth.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-blue-400">
+        {action}
+      </span>
+    );
+  }
+  if (action.startsWith("simulation.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-purple-400">
+        {action}
+      </span>
+    );
+  }
+  if (action.startsWith("review.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-amber-400">
+        {action}
+      </span>
+    );
+  }
+  if (action.startsWith("audit.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-400">
+        {action}
+      </span>
+    );
+  }
+  if (action.startsWith("contract.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-sky-400">
+        {action}
+      </span>
+    );
+  }
+  if (action.startsWith("workspace.")) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-rose-400">
+        {action}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--hairline)] bg-[var(--surface-glass)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+      {action}
+    </span>
+  );
 }
 
 function AuditPage() {
@@ -217,7 +304,9 @@ function AuditPage() {
 
       if (latestAnchor) {
         doc.text(
-          `Latest Verified Anchor: #${latestAnchor.head_id} (${latestAnchor.row_count} rows, anchored ${latestAnchor.anchored_at})`,
+          `Latest Verified Anchor: #${latestAnchor.head_id} (${latestAnchor.row_count} rows, anchored ${formatTimestamp(
+            latestAnchor.anchored_at
+          )})`,
           14,
           46
         );
@@ -230,7 +319,7 @@ function AuditPage() {
       doc.setFontSize(9);
       doc.setTextColor(0);
 
-      events.slice(0, 30).forEach((evt, idx) => {
+      events.slice(0, 30).forEach((evt) => {
         if (y > 270) {
           doc.addPage();
           y = 20;
@@ -240,7 +329,7 @@ function AuditPage() {
         doc.text(`#${evt.id} [${evt.action}]`, 14, y);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100);
-        doc.text(`${evt.created_at} | Actor: ${evt.actor_label || evt.actor_id || "system"}`, 80, y);
+        doc.text(`${formatTimestamp(evt.created_at)} | Actor: ${evt.actor_label || evt.actor_id || "system"}`, 80, y);
         doc.setTextColor(0);
 
         y += 5;
@@ -250,7 +339,11 @@ function AuditPage() {
 
       if (events.length > 30) {
         doc.setTextColor(120);
-        doc.text(`... and ${events.length - 30} additional records truncated from PDF preview. Use CSV for full export.`, 14, y);
+        doc.text(
+          `... and ${events.length - 30} additional records truncated from PDF preview. Use CSV for full export.`,
+          14,
+          y
+        );
       }
 
       doc.save(`clausegraph-audit-report-${Date.now()}.pdf`);
@@ -262,24 +355,14 @@ function AuditPage() {
     }
   };
 
-  const getActionBadgeColor = (action: string) => {
-    if (action.startsWith("auth.")) return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-    if (action.startsWith("simulation.")) return "bg-purple-500/10 text-purple-400 border-purple-500/20";
-    if (action.startsWith("review.")) return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-    if (action.startsWith("audit.")) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-    if (action.startsWith("contract.")) return "bg-sky-500/10 text-sky-400 border-sky-500/20";
-    if (action.startsWith("workspace.")) return "bg-rose-500/10 text-rose-400 border-rose-500/20";
-    return "bg-slate-500/10 text-slate-300 border-slate-500/20";
-  };
-
   if (!isAdmin) {
     return (
       <AppShell>
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6">
-          <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-8 text-center backdrop-blur-sm">
-            <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-rose-200">Access Restricted</h2>
-            <p className="mt-2 text-sm text-slate-300 max-w-lg mx-auto">
+        <div className="w-full max-w-[1200px] py-12">
+          <div className="glass-panel p-8 text-center max-w-lg mx-auto border-[rgba(225,82,75,0.3)]">
+            <ShieldAlert className="w-12 h-12 text-[var(--risk)] mx-auto mb-4" />
+            <h2 className="font-display text-xl font-semibold text-foreground">Access Restricted</h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
               The tamper-evident audit ledger contains organization-wide compliance records and cryptographic chain proofs.
               Access is restricted strictly to designated workspace administrators.
             </p>
@@ -293,194 +376,171 @@ function AuditPage() {
 
   return (
     <AppShell>
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Header & Verification Banner */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="w-full max-w-[1200px] space-y-6">
+        {/* Header: Clean luxury design system */}
+        <header className="flex flex-wrap items-end justify-between gap-6 pb-2">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                <History className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                  Tamper-Evident Audit Ledger
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    SHA-256 Chained
-                  </span>
-                </h1>
-                <p className="text-sm text-slate-400 mt-0.5">
-                  Append-only, cryptographically verified governance trail with external anchoring.
-                </p>
-              </div>
-            </div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--brass)]">
+              Governance Trail · Cryptographic Chain v1
+            </p>
+            <h1 className="mt-2 font-display text-[34px] sm:text-[38px] leading-[1.05] tracking-tight text-foreground flex flex-wrap items-center gap-3">
+              Audit Ledger
+              <span className="rounded-full border border-[var(--hairline-strong)] bg-[rgba(94,234,212,0.08)] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--brass)] font-normal">
+                SHA-256 Chained
+              </span>
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground font-sans">
+              Append-only, cryptographically verified governance trail with external anchoring.
+            </p>
           </div>
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              type="button"
               onClick={() => verifyMutation.mutate()}
               disabled={verifyMutation.isPending}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--brass)] px-4 py-2 text-xs md:text-sm font-semibold text-[var(--primary-foreground)] shadow-[var(--glow-brass)] transition-all duration-200 ease-out hover:-translate-y-px hover:bg-[var(--brass-strong)] disabled:opacity-50"
               title="Verify cryptographic hash chain and compare against anchor"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${verifyMutation.isPending ? "animate-spin" : ""}`} />
-              {verifyMutation.isPending ? "Verifying..." : "Verify Chain"}
+              <RefreshCw className={`h-3.5 w-3.5 ${verifyMutation.isPending ? "animate-spin" : ""}`} />
+              <span>{verifyMutation.isPending ? "Verifying..." : "Verify Chain"}</span>
             </button>
 
             <button
+              type="button"
               onClick={() => anchorMutation.mutate()}
               disabled={anchorMutation.isPending}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-sm transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3.5 py-2 text-xs font-semibold text-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--brass)] hover:text-[var(--brass)] disabled:opacity-50"
               title="Create point-in-time external anchor snapshot to prevent tail-deletion"
             >
-              <Anchor className="w-3.5 h-3.5 text-sky-400" />
-              Anchor Head
+              <Anchor className="h-3.5 w-3.5 text-sky-400" />
+              <span>Anchor Head</span>
             </button>
 
             <button
+              type="button"
               onClick={handleExportCsv}
               disabled={isExporting || events.length === 0}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-2 text-xs font-mono text-muted-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50"
+              title="Export ledger as CSV"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-              CSV
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
+              <span>CSV</span>
             </button>
 
             <button
+              type="button"
               onClick={handleExportPdf}
               disabled={isExporting || events.length === 0}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] px-3 py-2 text-xs font-mono text-muted-foreground transition-all duration-200 ease-out hover:-translate-y-px hover:border-[var(--hairline-strong)] hover:text-foreground disabled:opacity-50"
+              title="Export certificate as PDF"
             >
-              <FileText className="w-3.5 h-3.5 text-rose-400" />
-              PDF
+              <FileText className="h-3.5 w-3.5 text-rose-400" />
+              <span>PDF</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Verification Status Card */}
+        {/* Verification Status Banner */}
         {verifyStatus && (
           <div
-            className={`p-4 rounded-xl border backdrop-blur-md transition-all ${
-              verifyStatus.valid
-                ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-200"
-                : "bg-rose-950/30 border-rose-500/40 text-rose-200"
+            className={`glass-panel p-4 flex items-center justify-between gap-4 border ${
+              verifyStatus.valid ? "border-emerald-500/30" : "border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)]"
             }`}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                {verifyStatus.valid ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
+            <div className="flex items-center gap-3">
+              {verifyStatus.valid ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 text-[var(--risk)] shrink-0" />
+              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono">
+                <span className="font-semibold text-foreground">
+                  {verifyStatus.valid ? "Cryptographic Chain Verified Valid" : "Chain Integrity Failure Detected"}
+                </span>
+                <span className="text-[var(--brass)]">{verifyStatus.rows_checked} links checked</span>
+                <span className="text-muted-foreground">
+                  Head #{verifyStatus.head_id} ({verifyStatus.head_hash?.slice(0, 12)}...)
+                </span>
+                {verifyStatus.anchored && (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Tail Intact (Anchored)
+                  </span>
                 )}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">
-                      {verifyStatus.valid
-                        ? "Cryptographic Chain Verified Valid"
-                        : "Audit Chain Integrity Failure Detected"}
-                    </span>
-                    {verifyStatus.anchored && (
-                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                        Tail Intact (Anchored)
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    Checked {verifyStatus.rows_checked} event links from genesis. Live chain head: #
-                    {verifyStatus.head_id} (
-                    <span className="font-mono">{verifyStatus.head_hash?.slice(0, 16)}...</span>)
-                  </p>
-                  {verifyStatus.error && (
-                    <p className="text-xs font-mono text-rose-300 bg-rose-900/40 p-2 rounded mt-2">
-                      Error: {verifyStatus.error}
-                    </p>
-                  )}
-                </div>
+                {verifyStatus.error && (
+                  <span className="text-[var(--risk)]">{verifyStatus.error}</span>
+                )}
               </div>
-              <button
-                onClick={() => setVerifyStatus(null)}
-                className="text-slate-400 hover:text-slate-200 p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
+            <button
+              onClick={() => setVerifyStatus(null)}
+              className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+              title="Dismiss"
+            >
+              <X size={14} />
+            </button>
           </div>
         )}
 
         {verifyError && (
-          <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-950/30 text-rose-200 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+          <div className="glass-panel p-4 flex items-center justify-between gap-4 border border-[rgba(225,82,75,0.4)] bg-[rgba(225,82,75,0.06)] text-xs font-mono text-[var(--risk)]">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{verifyError}</span>
             </div>
-            <button onClick={() => setVerifyError(null)} className="text-slate-400 hover:text-slate-200">
-              <X className="w-4 h-4" />
+            <button
+              onClick={() => setVerifyError(null)}
+              className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+            >
+              <X size={14} />
             </button>
           </div>
         )}
 
-        {/* Anchor Telemetry Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-              <span>Active Ledger Head</span>
-              <Hash className="w-3.5 h-3.5 text-slate-500" />
+        {/* Telemetry Summary Cards: matching StatCard layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Active Ledger Head"
+            value={`#${events[0]?.id || 0}`}
+            sub={events[0]?.row_hash ? `${events[0].row_hash.slice(0, 12)}...` : "Genesis"}
+            icon={Hash}
+          />
+          <StatCard
+            label="External Anchor Checkpoint"
+            value={latestAnchor ? `#${latestAnchor.head_id}` : "None"}
+            sub={latestAnchor ? `${latestAnchor.row_count} rows protected` : "Snapshot recommended"}
+            icon={Anchor}
+          />
+          <div className="glass-panel p-4 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground">
+                Tail Protection
+              </p>
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
             </div>
-            <div className="text-lg font-bold text-white font-mono">
-              #{events[0]?.id || 0}
-            </div>
-            <div className="text-[11px] text-slate-400 truncate mt-1">
-              {events[0]?.row_hash ? `${events[0].row_hash.slice(0, 20)}...` : "Genesis"}
-            </div>
-          </div>
-
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-              <span>External Anchor Checkpoint</span>
-              <Anchor className="w-3.5 h-3.5 text-sky-400" />
-            </div>
-            <div className="text-lg font-bold text-white font-mono">
-              {latestAnchor ? `#${latestAnchor.head_id}` : "Not Anchored"}
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              {latestAnchor ? `${latestAnchor.row_count} rows protected` : "Snapshot recommended"}
-            </div>
-          </div>
-
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-              <span>Tail-Deletion Protection</span>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            </div>
-            <div className="text-lg font-bold text-emerald-400 flex items-center gap-1.5">
-              <span>Active</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Guarded against root row-truncation
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="font-display text-[26px] font-semibold leading-none text-emerald-400 flex items-center gap-2">
+                Active
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground">Truncation Guard</span>
             </div>
           </div>
-
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-              <span>Loaded Log Records</span>
-              <Database className="w-3.5 h-3.5 text-purple-400" />
-            </div>
-            <div className="text-lg font-bold text-white">
-              {events.length}
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Cursor-paginated view
-            </div>
-          </div>
+          <StatCard
+            label="Loaded Log Records"
+            value={events.length}
+            sub="Cursor-paginated"
+            icon={Database}
+          />
         </div>
 
-        {/* Multi-attribute Filter Toolbar */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-            <span className="flex items-center gap-1.5">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
+        {/* Streamlined Filter Toolbar */}
+        <div className="glass-panel p-4 space-y-3">
+          <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              <Filter className="h-3.5 w-3.5 text-[var(--brass)]" />
               Ledger Filters
             </span>
             {(filterAction !== "all" ||
@@ -490,6 +550,7 @@ function AuditPage() {
               filterStartDate ||
               filterEndDate) && (
               <button
+                type="button"
                 onClick={() => {
                   setFilterAction("all");
                   setFilterEntityType("all");
@@ -499,7 +560,7 @@ function AuditPage() {
                   setFilterEndDate("");
                   setActiveCursor(undefined);
                 }}
-                className="text-[11px] text-sky-400 hover:text-sky-300"
+                className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] hover:underline"
               >
                 Clear all filters
               </button>
@@ -509,14 +570,16 @@ function AuditPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* Action Filter */}
             <div>
-              <label className="block text-slate-400 mb-1">Action Type</label>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Action Type
+              </label>
               <select
                 value={filterAction}
                 onChange={(e) => {
                   setFilterAction(e.target.value);
                   setActiveCursor(undefined);
                 }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-slate-700"
+                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
               >
                 <option value="all">All Actions</option>
                 <optgroup label="AI Simulations & Pipelines">
@@ -558,14 +621,16 @@ function AuditPage() {
 
             {/* Entity Type Filter */}
             <div>
-              <label className="block text-slate-400 mb-1">Entity Type</label>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Entity Type
+              </label>
               <select
                 value={filterEntityType}
                 onChange={(e) => {
                   setFilterEntityType(e.target.value);
                   setActiveCursor(undefined);
                 }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-slate-700"
+                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
               >
                 <option value="all">All Entities</option>
                 <option value="simulation">simulation</option>
@@ -580,7 +645,9 @@ function AuditPage() {
 
             {/* Entity ID Search */}
             <div>
-              <label className="block text-slate-400 mb-1">Entity ID (e.g. Contract ID)</label>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Entity ID
+              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -590,34 +657,37 @@ function AuditPage() {
                     setFilterEntityId(e.target.value);
                     setActiveCursor(undefined);
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-2.5 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-slate-700 font-mono text-[11px]"
+                  className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
                 />
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
               </div>
             </div>
 
             {/* Correlation ID Search */}
             <div>
-              <label className="block text-slate-400 mb-1">Correlation ID</label>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Correlation ID
+              </label>
               <input
                 type="text"
-                placeholder="Incident Correlation UUID..."
+                placeholder="UUID..."
                 value={filterCorrelationId}
                 onChange={(e) => {
                   setFilterCorrelationId(e.target.value);
                   setActiveCursor(undefined);
                 }}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-slate-700 font-mono text-[11px]"
-              />
+                className="w-full rounded-full bg-[var(--surface-glass)] border border-[var(--hairline)] px-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
+              >
+              </input>
             </div>
           </div>
         </div>
 
-        {/* Timeline Table */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        {/* Ledger Table: matching clean liquid-glass styling */}
+        <div className="glass-panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
+              <thead className="bg-[var(--surface-raised)] border-b border-[var(--hairline)] text-muted-foreground font-mono text-[9.5px] uppercase tracking-[0.18em]">
                 <tr>
                   <th className="py-3 px-4 w-16">ID</th>
                   <th className="py-3 px-4 w-44">Timestamp (UTC)</th>
@@ -628,17 +698,17 @@ function AuditPage() {
                   <th className="py-3 px-4 text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans">
+              <tbody className="divide-y divide-[var(--hairline)] font-sans">
                 {logsLoading && events.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-400">
-                      <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-500" />
+                    <td colSpan={7} className="py-12 text-center text-muted-foreground font-mono text-xs">
+                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--brass)]" />
                       Loading tamper-evident ledger...
                     </td>
                   </tr>
                 ) : events.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <td colSpan={7} className="py-12 text-center text-muted-foreground font-mono text-xs">
                       No audit events match the specified filters.
                     </td>
                   </tr>
@@ -647,60 +717,54 @@ function AuditPage() {
                     <tr
                       key={evt.id}
                       onClick={() => setSelectedEvent(evt)}
-                      className="hover:bg-slate-800/40 cursor-pointer transition-colors group"
+                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors group"
                     >
-                      <td className="py-3 px-4 font-mono font-medium text-slate-400">
+                      <td className="py-3 px-4 font-mono font-semibold text-[var(--brass)]">
                         #{evt.id}
                       </td>
-                      <td className="py-3 px-4 text-slate-300 font-mono text-[11px] whitespace-nowrap">
+                      <td className="py-3 px-4 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" />
+                          <Clock className="w-3 h-3 text-muted-foreground/60 shrink-0" />
                           <span>{formatTimestamp(evt.created_at)}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border ${getActionBadgeColor(
-                            evt.action
-                          )}`}
-                        >
-                          {evt.action}
-                        </span>
+                        <ActionBadge action={evt.action} />
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-slate-200">{evt.entity_type}</span>
-                          <span className="text-[11px] text-slate-400 font-mono truncate max-w-[140px]">
+                          <span className="font-semibold text-foreground">{evt.entity_type}</span>
+                          <span className="text-[11px] text-muted-foreground font-mono truncate max-w-[140px]">
                             {evt.entity_id}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <User className="w-3 h-3 text-slate-500 shrink-0" />
+                      <td className="py-3 px-4 text-foreground whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <User className="w-3 h-3 text-muted-foreground shrink-0" />
                           <span className="truncate max-w-[140px]">
                             {evt.actor_label || evt.actor_id || "System Engine"}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                      <td className="py-3 px-4 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
                         {evt.correlation_id ? (
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
                               setFilterCorrelationId(evt.correlation_id || "");
                             }}
-                            className="text-sky-400 hover:underline cursor-pointer"
+                            className="text-[var(--brass)] hover:underline cursor-pointer"
                             title={`Filter by correlation ${evt.correlation_id}`}
                           >
                             {evt.correlation_id.slice(0, 8)}...
                           </span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-muted-foreground/40">—</span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 group-hover:text-sky-400 transition-colors">
+                        <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-[var(--brass)] transition-colors">
                           Inspect
                           <ChevronRight className="w-3.5 h-3.5" />
                         </span>
@@ -714,66 +778,64 @@ function AuditPage() {
 
           {/* Cursor Pagination Footer */}
           {logsData?.nextCursor && (
-            <div className="p-4 border-t border-slate-800 bg-slate-950/40 flex justify-center">
+            <div className="p-4 border-t border-[var(--hairline)] bg-[var(--surface-raised)] flex justify-center">
               <button
+                type="button"
                 onClick={() => setActiveCursor(logsData.nextCursor || undefined)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all shadow-sm"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] px-4 py-2 text-xs font-mono text-foreground hover:border-[var(--brass)] hover:text-[var(--brass)] transition-all shadow-sm"
               >
-                <ArrowDownCircle className="w-4 h-4 text-sky-400" />
+                <ArrowDownCircle className="w-4 h-4 text-[var(--brass)]" />
                 Load Older Records (Before #{logsData.nextCursor})
               </button>
             </div>
           )}
         </div>
 
-        {/* Detail Inspection Drawer */}
+        {/* Detail Inspection Drawer: matching EvidenceDrawer / ReviewDetail layout */}
         {selectedEvent && (
-          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end">
-            <div className="w-full max-w-2xl bg-slate-900 border-l border-slate-800 h-full overflow-y-auto shadow-2xl p-6 space-y-6 animate-in slide-in-from-right duration-200">
-              <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
+            <div className="w-full max-w-2xl bg-[var(--shell-bg)] border-l border-[var(--hairline)] h-full overflow-y-auto shadow-2xl p-6 space-y-6 animate-in slide-in-from-right duration-200">
+              <div className="flex items-start justify-between border-b border-[var(--hairline)] pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white font-mono">
+                    <span className="text-base font-bold text-foreground font-mono">
                       Event #{selectedEvent.id}
                     </span>
-                    <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-mono border ${getActionBadgeColor(
-                        selectedEvent.action
-                      )}`}
-                    >
-                      {selectedEvent.action}
-                    </span>
+                    <ActionBadge action={selectedEvent.action} />
                   </div>
-                  <p className="text-xs text-slate-400 mt-1 font-mono">
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
                     Created: {formatTimestamp(selectedEvent.created_at)}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedEvent(null)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgba(255,255,255,0.06)] transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Cryptographic Chain Box */}
-              <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-2">
-                <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+              <div className="glass-panel p-4 space-y-2 border border-emerald-500/20">
+                <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 font-mono uppercase tracking-wider">
                   <ShieldCheck className="w-4 h-4" />
                   Cryptographic Chaining Details
                 </div>
-                <div className="text-[11px] font-mono space-y-1.5 text-slate-300">
-                  <div className="flex justify-between py-1 border-b border-slate-900">
-                    <span className="text-slate-500">Hash Version:</span>
-                    <span>v{selectedEvent.hash_version}</span>
+                <div className="text-[11px] font-mono space-y-2 text-foreground/90 mt-2">
+                  <div className="flex justify-between py-1 border-b border-[var(--hairline)]">
+                    <span className="text-muted-foreground">Hash Version:</span>
+                    <span className="text-[var(--brass)] font-semibold">v{selectedEvent.hash_version}</span>
                   </div>
-                  <div className="flex flex-col gap-0.5 py-1 border-b border-slate-900">
-                    <span className="text-slate-500">Previous Hash (prev_hash):</span>
-                    <span className="text-slate-400 break-all select-all">{selectedEvent.prev_hash}</span>
+                  <div className="flex flex-col gap-0.5 py-1 border-b border-[var(--hairline)]">
+                    <span className="text-muted-foreground">Previous Hash (prev_hash):</span>
+                    <span className="text-muted-foreground/80 break-all select-all text-[10px]">
+                      {selectedEvent.prev_hash}
+                    </span>
                   </div>
                   <div className="flex flex-col gap-0.5 py-1">
-                    <span className="text-slate-500">Row Hash (SHA-256 digest):</span>
-                    <span className="text-emerald-400 font-semibold break-all select-all">
+                    <span className="text-muted-foreground">Row Hash (SHA-256 digest):</span>
+                    <span className="text-[var(--brass)] font-semibold break-all select-all text-[10px]">
                       {selectedEvent.row_hash}
                     </span>
                   </div>
@@ -782,22 +844,28 @@ function AuditPage() {
 
               {/* Event Attributes */}
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/60">
-                  <span className="text-slate-400 block text-[11px]">Entity Type & ID</span>
-                  <span className="font-semibold text-slate-200 mt-0.5 block truncate">
+                <div className="glass-panel p-3">
+                  <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
+                    Entity Type & ID
+                  </span>
+                  <span className="font-semibold text-foreground mt-0.5 block truncate">
                     {selectedEvent.entity_type} : {selectedEvent.entity_id}
                   </span>
                 </div>
-                <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800/60">
-                  <span className="text-slate-400 block text-[11px]">Actor & Role</span>
-                  <span className="font-semibold text-slate-200 mt-0.5 block truncate">
+                <div className="glass-panel p-3">
+                  <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider">
+                    Actor & Role
+                  </span>
+                  <span className="font-semibold text-foreground mt-0.5 block truncate">
                     {selectedEvent.actor_label || selectedEvent.actor_id || "System"} ({selectedEvent.actor_role})
                   </span>
                 </div>
                 {selectedEvent.correlation_id && (
-                  <div className="col-span-2 bg-slate-950/60 p-3 rounded-lg border border-slate-800/60 font-mono text-[11px]">
-                    <span className="text-slate-400 block text-[11px] font-sans">Correlation ID</span>
-                    <span className="text-sky-400 break-all">{selectedEvent.correlation_id}</span>
+                  <div className="col-span-2 glass-panel p-3 font-mono text-[11px]">
+                    <span className="text-muted-foreground block font-mono text-[10px] uppercase tracking-wider font-sans">
+                      Correlation ID
+                    </span>
+                    <span className="text-[var(--brass)] break-all">{selectedEvent.correlation_id}</span>
                   </div>
                 )}
               </div>
@@ -806,11 +874,11 @@ function AuditPage() {
               <div className="space-y-4 text-xs">
                 {selectedEvent.basis && (
                   <div>
-                    <h4 className="font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center justify-between">
                       <span>Decision Basis (Why)</span>
-                      <span className="text-[10px] text-slate-500 font-mono font-normal">redacted at write-time</span>
+                      <span className="text-[9px] text-[var(--brass)]">redacted at write-time</span>
                     </h4>
-                    <pre className="bg-slate-950 border border-slate-800 p-3 rounded-lg text-slate-300 font-mono text-[11px] overflow-x-auto max-h-48">
+                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
                       {JSON.stringify(selectedEvent.basis, null, 2)}
                     </pre>
                   </div>
@@ -818,8 +886,10 @@ function AuditPage() {
 
                 {selectedEvent.before && (
                   <div>
-                    <h4 className="font-semibold text-slate-300 mb-1.5">Before Snapshot</h4>
-                    <pre className="bg-slate-950 border border-slate-800 p-3 rounded-lg text-slate-300 font-mono text-[11px] overflow-x-auto max-h-48">
+                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                      Before Snapshot
+                    </h4>
+                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
                       {JSON.stringify(selectedEvent.before, null, 2)}
                     </pre>
                   </div>
@@ -827,16 +897,20 @@ function AuditPage() {
 
                 {selectedEvent.after && (
                   <div>
-                    <h4 className="font-semibold text-slate-300 mb-1.5">After Snapshot / Diff</h4>
-                    <pre className="bg-slate-950 border border-slate-800 p-3 rounded-lg text-slate-300 font-mono text-[11px] overflow-x-auto max-h-48">
+                    <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                      After Snapshot / Diff
+                    </h4>
+                    <pre className="glass-panel p-3 text-foreground/90 font-mono text-[11px] overflow-x-auto max-h-48">
                       {JSON.stringify(selectedEvent.after, null, 2)}
                     </pre>
                   </div>
                 )}
 
                 <div>
-                  <h4 className="font-semibold text-slate-300 mb-1.5">Metadata & Attribution</h4>
-                  <pre className="bg-slate-950 border border-slate-800 p-3 rounded-lg text-slate-400 font-mono text-[11px] overflow-x-auto max-h-48">
+                  <h4 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                    Metadata & Attribution
+                  </h4>
+                  <pre className="glass-panel p-3 text-muted-foreground font-mono text-[11px] overflow-x-auto max-h-48">
                     {JSON.stringify(selectedEvent.metadata || {}, null, 2)}
                   </pre>
                 </div>

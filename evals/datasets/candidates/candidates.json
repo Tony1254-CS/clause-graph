@@ -9,7 +9,7 @@
       "staged_at": "2026-10-18T12:00:00Z",
       "approved": true,
       "approved_by": "admin-user-01",
-      "approved_at": "2026-10-18T08:51:27.437Z",
+      "approved_at": "2026-10-18T09:24:32.223Z",
       "case": {
         "id": "cand-dpa-ambiguity",
         "regulation_family": "GDPR",
@@ -41,7 +41,7 @@
     {
       "id": "cand-revtestaudit",
       "source_review_id": "rev-test-audit-stage-1",
-      "staged_at": "2026-10-18T08:51:27.430Z",
+      "staged_at": "2026-10-18T09:24:32.216Z",
       "staged_by": "admin-user-01",
       "decision": "rejected",
       "label_correctness": "incorrect",
