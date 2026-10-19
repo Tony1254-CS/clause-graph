@@ -544,12 +544,12 @@ function Dashboard() {
               </span>
             </div>
 
-            <div className="py-4 flex items-center justify-center min-h-[460px]">
+            <div className="py-2 sm:py-4 flex items-center justify-center min-h-[320px] sm:min-h-[420px] lg:min-h-[460px] overflow-hidden">
               <GraphMedallion contracts={contracts} regulations={regulations} />
             </div>
 
-            <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground font-mono">
-              <div className="flex items-center gap-4">
+            <div className="pt-3 sm:pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground font-mono">
+              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-[var(--brass)]" /> Contracts ({contracts.length})
                 </span>
@@ -557,7 +557,7 @@ function Dashboard() {
                   <span className="h-2 w-2 rounded-full bg-cyan-400" /> Regulations ({regulations.length})
                 </span>
               </div>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground">
                 Hover any node to inspect semantic cross-references
               </span>
             </div>
@@ -657,7 +657,7 @@ function Dashboard() {
         {/* ── Interactive Risk Analytics & Exposure Charts (shadcn / recharts) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left Chart: Jurisdiction & Framework Exposure Breakdown (shadcn Pie/Donut Chart) */}
-          <div className="lg:col-span-6 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-5 transition-all hover:border-[var(--hairline-strong)] flex flex-col justify-between">
+          <div className="lg:col-span-6 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-4 sm:p-6 backdrop-blur-xl space-y-4 sm:space-y-5 transition-all hover:border-[var(--hairline-strong)] flex flex-col justify-between">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -673,9 +673,9 @@ function Dashboard() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 sm:gap-6 items-center flex-1">
               {/* shadcn Recharts Pie Chart with callout style */}
-              <div className="sm:col-span-6 h-52 flex items-center justify-center relative">
+              <div className="sm:col-span-6 h-48 sm:h-52 flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip
@@ -768,7 +768,7 @@ function Dashboard() {
           </div>
 
           {/* Right Chart: Severity Risk Exposure & Provision Health (shadcn Bar + Line Composed Chart) */}
-          <div className="lg:col-span-6 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-5 transition-all hover:border-[var(--hairline-strong)] flex flex-col justify-between">
+          <div className="lg:col-span-6 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-4 sm:p-6 backdrop-blur-xl space-y-4 sm:space-y-5 transition-all hover:border-[var(--hairline-strong)] flex flex-col justify-between">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -785,7 +785,7 @@ function Dashboard() {
             </div>
 
             {/* shadcn Recharts Composed Bar + Line Graph (Matching real dynamic data) */}
-            <div className="h-56 w-full pt-2">
+            <div className="h-48 sm:h-56 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={riskTrendData}
