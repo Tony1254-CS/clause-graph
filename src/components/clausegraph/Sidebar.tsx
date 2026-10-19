@@ -180,28 +180,29 @@ export function MobileRail() {
   };
 
   return (
-    <aside className="flex w-16 shrink-0 flex-col items-center border-r border-[var(--hairline)] bg-[var(--sidebar)]/95 py-4 backdrop-blur-2xl md:hidden">
+    <aside className="order-last flex h-14 w-full shrink-0 flex-row items-center justify-around border-t border-[var(--hairline)] bg-[var(--sidebar)]/95 px-2 backdrop-blur-2xl md:hidden overflow-x-auto no-scrollbar z-30">
       <Link
         to="/dashboard"
-        className="mb-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--ink)]"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--hairline-strong)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--ink)]"
         aria-label="ClauseGraph home"
       >
-        <div className="h-3.5 w-3.5 rotate-45 border-2 border-current" />
+        <div className="h-3 w-3 rotate-45 border-2 border-current" />
       </Link>
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto no-scrollbar">
-        {NAV.map((item) => {
+      <div className="flex h-full items-center gap-1 overflow-x-auto no-scrollbar px-1">
+        {NAV.slice(0, 7).map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
           return (
             <Link
               key={item.to}
               to={item.to}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-[12px] border transition-all duration-200 ease-out ${
+              className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border transition-all duration-200 ease-out ${
                 active
                   ? "border-[color-mix(in_oklab,var(--brass)_32%,transparent)] bg-[color-mix(in_oklab,var(--brass)_14%,transparent)] text-[var(--brass)] shadow-[0_2px_14px_-4px_rgba(94,234,212,0.22)]"
                   : "border-transparent text-[var(--text-muted)] hover:border-[var(--hairline)] hover:bg-white/[0.05] hover:text-[var(--ink)]"
               }`}
               aria-label={item.label}
+              title={item.label}
             >
               <Icon className="h-4 w-4" strokeWidth={active ? 2 : 1.7} />
             </Link>

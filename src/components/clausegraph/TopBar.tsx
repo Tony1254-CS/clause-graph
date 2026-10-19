@@ -88,11 +88,12 @@ export function TopBar() {
 
         <Link
           to="/simulate"
-          className="group relative inline-flex h-10 shrink-0 items-center gap-2 overflow-hidden rounded-full bg-[var(--brass)] px-3.5 text-[13px] font-semibold text-[color:var(--primary-foreground)] shadow-[var(--glow-brass)] transition-ui press hover:-translate-y-[1px] hover:bg-[var(--brass-strong)] hover:shadow-[0_0_32px_-6px_color-mix(in_oklab,var(--brass)_85%,transparent)] sm:h-11 sm:px-5"
+          className="group relative inline-flex h-9 shrink-0 items-center gap-1.5 overflow-hidden rounded-full bg-[var(--brass)] px-3 text-[12px] font-semibold text-[color:var(--primary-foreground)] shadow-[var(--glow-brass)] transition-ui press hover:-translate-y-[1px] hover:bg-[var(--brass-strong)] hover:shadow-[0_0_32px_-6px_color-mix(in_oklab,var(--brass)_85%,transparent)] sm:h-11 sm:px-5 sm:text-[13px] sm:gap-2"
         >
           <span aria-hidden className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
           <Zap className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-[-8deg]" strokeWidth={2.2} />
           <span className="hidden sm:inline">Simulate Impact</span>
+          <span className="sm:hidden text-[11px]">Simulate</span>
         </Link>
 
         <div className="relative" ref={menuRef}>

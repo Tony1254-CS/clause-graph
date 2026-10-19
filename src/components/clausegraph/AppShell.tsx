@@ -10,8 +10,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-2 sm:p-4 lg:p-6">
-      <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
+    <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-1.5 sm:p-4 lg:p-6">
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
         {/* Ambient drifting mint aura — very subtle */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] ambient-drift bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--brass)_10%,transparent),transparent_70%)]" />
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-[420px] w-[420px] ambient-drift bg-[radial-gradient(circle,color-mix(in_oklab,var(--brass)_8%,transparent),transparent_65%)]" style={{ animationDelay: "-14s" }} />
@@ -29,13 +29,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
         </div>
 
-        <div className="relative flex flex-1 min-h-0">
+        <div className="relative flex flex-1 min-h-0 flex-col md:flex-row">
           <Sidebar />
           <MobileRail />
-          <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
             <TopBar />
             <PlanStatusBanner />
-            <main className="premium-scrollbar flex-1 min-h-0 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
+            <main className="premium-scrollbar flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
               <div key={pathname} className="route-transition mx-auto w-full max-w-[1420px]">
                 {children}
               </div>
