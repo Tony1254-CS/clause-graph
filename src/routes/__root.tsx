@@ -126,7 +126,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     // The inline theme script sets class="dark" before hydration, so the
     // server HTML and client tree differ on <html> by design.
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />
