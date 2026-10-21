@@ -146,6 +146,8 @@
   --shadow-soft: 0 20px 60px -34px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow-lift: 0 40px 100px -50px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --glow-brass: 0 20px 60px -24px rgba(94, 234, 212, 0.45);
+  --risk: #e1524b;
+  --success: #14c6a4;
 
   --background: var(--page-bg);
   --foreground: var(--text-primary);

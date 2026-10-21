@@ -173,6 +173,42 @@ function Dashboard() {
   // Recent 5 forensic runs for table
   const recentRuns = useMemo(() => runs.slice(0, 5), [runs]);
 
+  // Aggregate active high/medium/low impacts across simulation runs for live blast radius
+  const dashboardImpacts = useMemo(() => {
+    const map = new Map<string, "low" | "medium" | "high">();
+    const sevRank = { low: 1, medium: 2, high: 3 };
+
+    // Contract ID resolver for UUIDs or legacy formats (CTR-001, etc.)
+    const resolveToContractId = (inputContractId: string): string | null => {
+      if (!inputContractId) return null;
+      if (contractsById.has(inputContractId)) return inputContractId;
+      const lower = contractsById.get(inputContractId.toLowerCase());
+      if (lower) return lower.id;
+      const numMatch = inputContractId.match(/\d+/);
+      if (numMatch && contracts.length > 0) {
+        const num = parseInt(numMatch[0], 10);
+        const idx = Math.max(0, Math.min(contracts.length - 1, num - 1));
+        return contracts[idx]?.id ?? null;
+      }
+      return null;
+    };
+
+    runs.forEach((r) => {
+      (r.result?.impacts || []).forEach((impact) => {
+        if (!impact.contract_id) return;
+        const targetId = resolveToContractId(impact.contract_id);
+        if (!targetId) return;
+
+        const current = map.get(targetId);
+        const sev = impact.severity as "low" | "medium" | "high";
+        if (!current || (sevRank[sev] ?? 1) > (sevRank[current] ?? 1)) {
+          map.set(targetId, sev || "high");
+        }
+      });
+    });
+    return map;
+  }, [runs, contracts, contractsById]);
+
   // Dynamic Framework Breakdown derived from indexed regulations & linked contracts
   const { frameworkSegments, coveredJurisdictions } = useMemo(() => {
     const regExposureMap = new Map<
@@ -545,21 +581,11 @@ function Dashboard() {
             </div>
 
             <div className="py-2 sm:py-4 flex items-center justify-center min-h-[320px] sm:min-h-[420px] lg:min-h-[460px] overflow-hidden">
-              <GraphMedallion contracts={contracts} regulations={regulations} />
-            </div>
-
-            <div className="pt-3 sm:pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground font-mono">
-              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[var(--brass)]" /> Contracts ({contracts.length})
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400" /> Regulations ({regulations.length})
-                </span>
-              </div>
-              <span className="text-[10px] sm:text-[11px] text-muted-foreground">
-                Hover any node to inspect semantic cross-references
-              </span>
+              <GraphMedallion
+                contracts={contracts}
+                regulations={regulations}
+                impacts={dashboardImpacts.size > 0 ? dashboardImpacts : undefined}
+              />
             </div>
           </div>
 
