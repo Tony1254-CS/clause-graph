@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import {
   Zap,
   Radar,
@@ -25,6 +25,9 @@ import {
   Table as TableIcon,
   LayoutList,
   X,
+  Upload,
+  ShieldCheck,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
@@ -47,8 +50,11 @@ import {
   regulationsQuery,
   simulationRunsQuery,
   federalRegisterQuery,
+  complianceProfileQuery,
+  profileQuery,
   formatUSD,
 } from "@/data/queries";
+import { OnboardingModal } from "@/components/clausegraph/OnboardingModal";
 import { getReviewStatsFn } from "@/lib/review.functions";
 import { RouteError } from "@/components/clausegraph/RouteError";
 
@@ -99,11 +105,33 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
-  const { reviewStats } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData() as any;
+  const rawReviewStats = loaderData?.reviewStats;
+  const reviewStats = useMemo(() => ({
+    pending: rawReviewStats?.totalPending ?? rawReviewStats?.pending ?? 0,
+    inReview: rawReviewStats?.totalInReview ?? rawReviewStats?.inReview ?? 0,
+    approved: rawReviewStats?.totalApproved ?? rawReviewStats?.approved ?? 0,
+    rejected: rawReviewStats?.totalRejected ?? rawReviewStats?.rejected ?? 0,
+    needsCorrection: rawReviewStats?.totalNeedsCorrection ?? rawReviewStats?.needsCorrection ?? 0,
+    critical: rawReviewStats?.highRiskCount ?? rawReviewStats?.critical ?? 0,
+    high: rawReviewStats?.highRiskCount ?? rawReviewStats?.high ?? 0,
+    medium: rawReviewStats?.medium ?? 0,
+    low: rawReviewStats?.low ?? 0,
+    total: (rawReviewStats?.totalPending ?? 0) + (rawReviewStats?.totalApproved ?? 0),
+  }), [rawReviewStats]);
   const { data: contracts } = useSuspenseQuery(contractsQuery);
   const { data: regulations } = useSuspenseQuery(regulationsQuery);
   const { data: runs } = useSuspenseQuery(simulationRunsQuery);
   const { data: fedData } = useSuspenseQuery(federalRegisterQuery);
+  const { data: complianceProfile } = useQuery(complianceProfileQuery);
+  const { data: userProfile } = useQuery(profileQuery);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (complianceProfile && !complianceProfile.is_onboarded && userProfile?.email !== "judge@clausegraph.ai") {
+      setShowOnboarding(true);
+    }
+  }, [complianceProfile, userProfile]);
 
   // Interactive Hover States for Analytics
   const [activeDonutIdx, setActiveDonutIdx] = useState<number | null>(null);
@@ -432,8 +460,162 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* ── Real-Time Intelligence & Attention Banner ── */}
-        <div className="rounded-2xl border border-[var(--hairline)] bg-gradient-to-r from-[var(--surface-raised)] via-[var(--surface-glass)] to-[var(--surface-raised)] dark:from-[var(--surface-raised)]/90 dark:via-black/40 dark:to-[var(--surface-raised)]/70 p-4 sm:p-5 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        {contracts.length === 0 ? (
+          /* ── Clean Enterprise Activation & Getting Started Workbench ── */
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Active Compliance Scope Banner */}
+            <div className="rounded-2xl border border-[var(--brass)]/30 bg-gradient-to-r from-[var(--brass)]/15 via-[var(--surface-raised)] to-[var(--brass)]/5 p-6 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-sm">
+              <div className="flex items-start sm:items-center gap-4">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[var(--brass)] text-black shadow-[var(--glow-brass)]">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--brass)] font-semibold">
+                      Organization Scope Active
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[var(--brass)]/40 bg-[var(--brass)]/15 text-[var(--brass)]">
+                      {complianceProfile?.active_framework_ids?.length ?? 0} Statutory Frameworks In-Scope
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
+                    {complianceProfile?.entity_name || "Enterprise Workspace"}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Sector: <span className="font-semibold text-foreground uppercase">{complianceProfile?.industry_vertical || "General SaaS"}</span> &middot; Domicile: <span className="font-semibold text-foreground uppercase">{complianceProfile?.headquarters_country || "BD"}</span> &middot; Cloud: <span className="font-mono text-foreground">{complianceProfile?.cloud_providers?.join(", ").toUpperCase() || "AWS"}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to="/settings/compliance-profile"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)] hover:bg-white/[0.08] px-4 py-2 text-xs font-semibold text-foreground transition-all shadow-sm"
+                >
+                  <SettingsIcon className="h-3.5 w-3.5 text-[var(--brass)]" />
+                  Edit Scope Profile
+                </Link>
+              </div>
+            </div>
+
+            {/* Getting Started 3-Step Guided Roadmap */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Step 1: Profile Configured */}
+              <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 p-6 flex flex-col justify-between space-y-4 shadow-sm">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] font-bold">Step 1 &middot; Active</span>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                  </div>
+                  <h3 className="font-display text-base font-bold text-foreground">Compliance Scope Defined</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Your legal profile is configured. Applicable regulations across data privacy, payments, and AI are indexed for your organization.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowOnboarding(true)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[var(--surface-glass)] hover:bg-[var(--surface-raised)] px-3 py-2 text-xs font-semibold text-foreground transition-all cursor-pointer"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-[var(--brass)]" /> Reconfigure Profile
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 2: Upload First Agreement (PRIMARY ACTION) */}
+              <div className="relative rounded-2xl border-2 border-[var(--brass)]/50 bg-gradient-to-b from-[var(--brass)]/10 via-[var(--surface-raised)] to-[var(--surface-raised)] p-6 flex flex-col justify-between space-y-4 shadow-lg shadow-[var(--brass)]/10">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--brass)] font-bold">Step 2 &middot; Action Required</span>
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--brass)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--brass)]"></span>
+                    </span>
+                  </div>
+                  <h3 className="font-display text-base font-bold text-foreground">Upload Your First Agreement</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Upload a vendor contract, customer MSA, or DPA (PDF). Gemini AI will extract clauses and cross-reference against your active frameworks.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to="/contracts"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brass)] text-black font-semibold text-xs py-2.5 px-4 shadow-[var(--glow-brass)] hover:bg-[var(--brass)]/90 transition-all"
+                  >
+                    <Upload className="h-4 w-4" /> Upload Agreement PDF
+                  </Link>
+                </div>
+              </div>
+
+              {/* Step 3: Blast Radius Simulation */}
+              <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 p-6 flex flex-col justify-between space-y-4 opacity-75">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Step 3 &middot; Next</span>
+                    <Radar className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-display text-base font-bold text-foreground">Simulate Blast Radius</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Once agreements are added, test draft statutes or what-if scenarios to calculate exact financial exposure across your portfolio.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to="/simulate"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--hairline)] text-muted-foreground hover:text-foreground text-xs py-2 px-3 transition-colors"
+                  >
+                    Explore Simulation Engine <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* In-Scope Frameworks Preview */}
+            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <h3 className="font-display text-sm font-bold text-foreground">
+                    Active Regulatory Frameworks for this Workspace
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Contracts uploaded to this workspace will be automatically verified against these statutes:
+                  </p>
+                </div>
+                <Link
+                  to="/feed"
+                  className="text-xs font-semibold text-[var(--brass)] hover:underline inline-flex items-center gap-1"
+                >
+                  View Full Feed <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                {regulations
+                  .filter((r) => complianceProfile?.active_framework_ids?.includes(r.id))
+                  .slice(0, 4)
+                  .map((reg) => (
+                    <div
+                      key={reg.id}
+                      className="rounded-xl border border-[var(--hairline)] bg-[var(--surface-glass)] p-3.5 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[9px] uppercase font-bold text-[var(--brass)] bg-[var(--brass)]/10 px-1.5 py-0.5 rounded border border-[var(--brass)]/20">
+                          {reg.jurisdiction}
+                        </span>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[var(--brass)]" />
+                      </div>
+                      <h4 className="text-xs font-semibold text-foreground line-clamp-1">{reg.title}</h4>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{reg.summary}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* ── Real-Time Intelligence & Attention Banner ── */}
+            <div className="rounded-2xl border border-[var(--hairline)] bg-gradient-to-r from-[var(--surface-raised)] via-[var(--surface-glass)] to-[var(--surface-raised)] dark:from-[var(--surface-raised)]/90 dark:via-black/40 dark:to-[var(--surface-raised)]/70 p-4 sm:p-5 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-start sm:items-center gap-3.5">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
               <AlertTriangle className="h-5 w-5" />
@@ -1308,6 +1490,8 @@ function Dashboard() {
             )}
           </div>
         </div>
+        </>
+      )}
 
         {/* ── Inspection Modal (via React Portal) ── */}
         {selectedRunForModal && typeof document !== "undefined" && createPortal(
@@ -1396,6 +1580,12 @@ function Dashboard() {
           </div>,
           document.body
         )}
+        {/* Compliance Onboarding Wizard Modal */}
+        <OnboardingModal
+          open={showOnboarding}
+          profile={complianceProfile}
+          onComplete={() => setShowOnboarding(false)}
+        />
       </div>
     </AppShell>
   );

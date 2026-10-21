@@ -51,6 +51,7 @@ const NAV: NavItem[] = [
   { label: "Sources & Backups", icon: ShieldCheck, to: "/legal-sources" as any, match: "/legal-sources" },
   { label: "Backtest", icon: ShieldCheck, to: "/backtest" },
   { label: "Action Plans", icon: ListChecks, to: "/actions" },
+  { label: "Compliance Scope", icon: Settings, to: "/settings/compliance-profile" as any, match: "/settings/compliance-profile" },
   { label: "Team", icon: Users, to: "/settings/team", match: "/settings/team" },
   { label: "Billing", icon: Wallet, to: "/settings/billing", match: "/settings/billing" },
   { label: "Account", icon: UserCog, to: "/settings/account", match: "/settings/account" },
