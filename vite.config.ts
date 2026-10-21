@@ -16,6 +16,9 @@ export default defineConfig({
   ],
   server: {
     host: "0.0.0.0",
+    watch: {
+      ignored: ["**/recordings/**", "**/*.webm"],
+    },
     allowedHosts: [
       "clause-graph-production.up.railway.app",
       ".railway.app",
