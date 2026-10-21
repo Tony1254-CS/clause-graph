@@ -67,88 +67,101 @@ export async function callGroqChat(options: GroqCompletionOptions): Promise<Groq
     return null;
   }
 
-  const model = options.model || "llama-3.3-70b-versatile";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 45_000);
+  const candidateModels = Array.from(
+    new Set([
+      options.model,
+      "openai/gpt-oss-120b",
+      "openai/gpt-oss-20b",
+      "qwen/qwen3.8-27b",
+      "llama-3.3-70b-versatile",
+    ].filter(Boolean))
+  ) as string[];
 
-  try {
-    const payload: Record<string, unknown> = {
-      model,
-      messages: options.messages,
-      temperature: options.temperature ?? 0.2,
-      max_tokens: options.max_tokens ?? 2048,
-    };
+  for (const model of candidateModels) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 30_000);
 
-    if (options.response_format) {
-      payload.response_format = options.response_format;
-    }
-
-    if (options.tools && options.tools.length > 0) {
-      payload.tools = options.tools;
-      payload.tool_choice = options.tool_choice || "auto";
-    }
-
-    const res = await fetch(GROQ_ENDPOINT, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      console.error(`[Groq API Error ${res.status}]:`, errBody.slice(0, 400));
-      return null;
-    }
-
-    const data = await res.json() as {
-      choices?: Array<{
-        message?: {
-          content?: string;
-          reasoning_content?: string;
-          tool_calls?: Array<{
-            id: string;
-            type: "function";
-            function: { name: string; arguments: string };
-          }>;
-        };
-      }>;
-      usage?: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
+    try {
+      const payload: Record<string, unknown> = {
+        model,
+        messages: options.messages,
+        temperature: options.temperature ?? 0.2,
+        max_tokens: options.max_tokens ?? 2048,
       };
-    };
 
-    const choice = data.choices?.[0]?.message;
-    if (!choice) return null;
-
-    let content = choice.content ?? null;
-    let reasoning_thought = choice.reasoning_content ?? null;
-
-    // If deepseek or llama emits <think> ... </think> tags inside content, parse them cleanly
-    if (content && content.includes("<think>")) {
-      const match = content.match(/<think>([\s\S]*?)<\/think>/);
-      if (match) {
-        reasoning_thought = match[1].trim();
-        content = content.replace(/<think>[\s\S]*?<\/think>/, "").trim();
+      if (options.response_format) {
+        payload.response_format = options.response_format;
       }
-    }
 
-    return {
-      content,
-      reasoning_thought,
-      tool_calls: choice.tool_calls,
-      model,
-      usage: data.usage,
-    };
-  } catch (err) {
-    console.error("[Groq LPU Request Exception]:", err);
-    return null;
-  } finally {
-    clearTimeout(timeout);
+      if (options.tools && options.tools.length > 0) {
+        payload.tools = options.tools;
+        payload.tool_choice = options.tool_choice || "auto";
+      }
+
+      const res = await fetch(GROQ_ENDPOINT, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => "");
+        console.warn(`[Groq Model ${model} returned ${res.status}]:`, errBody.slice(0, 200));
+        continue; // Try next available model in candidate list
+      }
+
+      const data = await res.json() as {
+        choices?: Array<{
+          message?: {
+            content?: string;
+            reasoning_content?: string;
+            tool_calls?: Array<{
+              id: string;
+              type: "function";
+              function: { name: string; arguments: string };
+            }>;
+          };
+        }>;
+        usage?: {
+          prompt_tokens: number;
+          completion_tokens: number;
+          total_tokens: number;
+        };
+      };
+
+      const choice = data.choices?.[0]?.message;
+      if (!choice) continue;
+
+      let content = choice.content ?? null;
+      let reasoning_thought = choice.reasoning_content ?? null;
+
+      if (content && content.includes("<think>")) {
+        const match = content.match(/<think>([\s\S]*?)<\/think>/);
+        if (match) {
+          reasoning_thought = match[1].trim();
+          content = content.replace(/<think>[\s\S]*?<\/think>/, "").trim();
+        }
+      }
+
+      return {
+        content,
+        reasoning_thought,
+        tool_calls: choice.tool_calls,
+        model,
+        usage: data.usage,
+      };
+    } catch (err) {
+      clearTimeout(timeout);
+      console.warn(`[Groq attempt failed for ${model}]:`, err);
+    }
   }
+
+  return null;
 }
+

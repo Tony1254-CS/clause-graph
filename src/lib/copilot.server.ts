@@ -63,27 +63,44 @@ ID: ${params.inspectContext.id ?? "N/A"}
 Data: ${JSON.stringify(params.inspectContext.data ?? {}, null, 2)}`;
   } else {
     thoughtSteps.push("🌐 Global Enterprise Mode: Querying active organizational compliance scope");
-    // Graph-RAG Retrieval: fetch organization compliance profile & active framework IDs
-    const profile = await queryOne<{
+    let profile: {
       entity_name: string;
       headquarters_country: string;
       industry_vertical: string;
       active_framework_ids: string[];
-    }>(
-      `SELECT entity_name, headquarters_country, industry_vertical, active_framework_ids 
-       FROM public.organization_compliance_profiles WHERE org_id = $1`,
-      [params.orgId]
-    );
+    } | null = null;
 
-    const contracts = await query<{
+    let contracts: Array<{
       id: string;
       name: string;
       counterparty: string;
       value: number | string;
-    }>(
-      `SELECT id, name, counterparty, value FROM public.contracts WHERE org_id = $1 LIMIT 5`,
-      [params.orgId]
-    );
+    }> = [];
+
+    try {
+      profile = await queryOne<{
+        entity_name: string;
+        headquarters_country: string;
+        industry_vertical: string;
+        active_framework_ids: string[];
+      }>(
+        `SELECT entity_name, headquarters_country, industry_vertical, active_framework_ids 
+         FROM public.organization_compliance_profiles WHERE org_id = $1`,
+        [params.orgId]
+      );
+
+      contracts = await query<{
+        id: string;
+        name: string;
+        counterparty: string;
+        value: number | string;
+      }>(
+        `SELECT id, name, counterparty, value FROM public.contracts WHERE org_id = $1 LIMIT 5`,
+        [params.orgId]
+      );
+    } catch {
+      // Graceful fallback if orgId is not valid UUID or during isolated testing
+    }
 
     contextSnippet = `\n\nORGANIZATION KNOWLEDGE GRAPH:
 Legal Entity: ${profile?.entity_name ?? "Enterprise Workspace"}
@@ -136,7 +153,7 @@ ${(contracts ?? []).map((c) => `- [${c.id}] ${c.name} with ${c.counterparty} ($$
       answer: groqResult.content,
       thought_steps: thoughtSteps,
       suggested_actions: suggestions,
-      model_used: "groq/llama-3.3-70b-versatile",
+      model_used: groqResult.model ? `groq/${groqResult.model}` : "groq/openai/gpt-oss-120b",
       latency_ms: latency,
       tokens_used: groqResult.usage?.total_tokens,
     };
