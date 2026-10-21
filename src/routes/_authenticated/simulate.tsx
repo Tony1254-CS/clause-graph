@@ -186,6 +186,8 @@ function SimulatePage() {
   const runSimulate = useServerFn(simulateImpact);
   const runSupplyChain = useServerFn(simulateSupplyChainImpact);
 
+  const navigate = Route.useNavigate();
+
   // Active Scope Tab: 'portfolio' (Direct) vs 'supply-chain' (Upstream Cascade) vs 'what-if' (Sandbox)
   const [activeTab, setActiveTab] = useState<"portfolio" | "supply-chain" | "what-if">(
     search.tab === "supply-chain"
@@ -213,22 +215,28 @@ function SimulatePage() {
   const [selectedChainNode, setSelectedChainNode] = useState<ChainNode | null>(null);
   const [hopFilter, setHopFilter] = useState<"all" | number>("all");
 
-  // Sync initial search parameters
+  // Handler to switch tabs and keep URL in perfect sync
+  function handleTabChange(tab: "portfolio" | "supply-chain" | "what-if") {
+    setActiveTab(tab);
+    navigate({
+      search: (prev) => ({ ...prev, tab }),
+      replace: true,
+    });
+  }
+
+  // Sync initial URL search text only once or if URL search.text explicitly changes
   useEffect(() => {
     if (search.text && !text) {
       setText(search.text);
     }
-    if (search.tab) {
+  }, [search.text]);
+
+  // Sync search.tab ONLY when search.tab explicitly changes in URL navigation
+  useEffect(() => {
+    if (search.tab && search.tab !== activeTab) {
       setActiveTab(search.tab);
     }
-  }, [search.text, search.tab, text]);
-
-  // Direct Portfolio Computations
-  const impactMap = useMemo(() => {
-    const m = new Map<string, Severity>();
-    portResult?.impacts.forEach((i) => m.set(i.contract_id, i.severity));
-    return m;
-  }, [portResult]);
+  }, [search.tab]);
 
   const contractsById = useMemo(() => {
     const m = new Map<string, (typeof contracts)[number]>();
@@ -252,6 +260,20 @@ function SimulatePage() {
       return contracts[0] ?? undefined;
     };
   }, [contractsById, contracts]);
+
+  // Direct Portfolio Computations with robust ID mapping
+  const impactMap = useMemo(() => {
+    const m = new Map<string, Severity>();
+    portResult?.impacts.forEach((i) => {
+      const resolved = resolveContract(i.contract_id);
+      if (resolved?.id) {
+        m.set(resolved.id, i.severity);
+      } else {
+        m.set(i.contract_id, i.severity);
+      }
+    });
+    return m;
+  }, [portResult, resolveContract]);
 
   const totalExposure = useMemo(() => {
     if (!portResult) return 0;
@@ -322,11 +344,10 @@ function SimulatePage() {
     return tiers.size;
   }, [chain.nodes]);
 
-  // Handler for scenario selection
+  // Handler for scenario selection (respects user's active tab without forcing unexpected tab switches)
   function handleSelectPreset(preset: PresetScenario) {
     setText(preset.text);
     setActiveScenarioId(preset.id);
-    setActiveTab(preset.scope);
   }
 
   // Execute Direct Portfolio Simulation
@@ -499,7 +520,7 @@ function SimulatePage() {
             {/* Direct Portfolio Tab Button */}
             <button
               type="button"
-              onClick={() => setActiveTab("portfolio")}
+              onClick={() => handleTabChange("portfolio")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "portfolio"
                   ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
@@ -520,7 +541,7 @@ function SimulatePage() {
             {/* Upstream Supply Chain Tab Button */}
             <button
               type="button"
-              onClick={() => setActiveTab("supply-chain")}
+              onClick={() => handleTabChange("supply-chain")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "supply-chain"
                   ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
@@ -541,7 +562,7 @@ function SimulatePage() {
             {/* What-If Sandbox Tab Button */}
             <button
               type="button"
-              onClick={() => setActiveTab("what-if")}
+              onClick={() => handleTabChange("what-if")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "what-if"
                   ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
@@ -583,13 +604,14 @@ function SimulatePage() {
               </span>
             </div>
             <span className="text-[11px] text-muted-foreground font-mono">
-              Click to load standard scenario &amp; switch mode
+              Click any scenario to load into your active simulator
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             {PRESET_SCENARIOS.map((p) => {
               const isSelected = activeScenarioId === p.id;
+              const isRecommendedForCurrentTab = p.scope === activeTab;
               return (
                 <button
                   key={p.id}
@@ -599,22 +621,26 @@ function SimulatePage() {
                   className={`group relative text-left rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
                     isSelected
                       ? "border-[var(--brass)] bg-[var(--brass)]/10 shadow-[0_4px_20px_-4px_rgba(94,234,212,0.25)]"
-                      : "border-white/5 bg-white/[0.02] hover:border-[var(--hairline-strong)] hover:bg-white/[0.04]"
+                      : isRecommendedForCurrentTab
+                      ? "border-white/10 bg-white/[0.03] hover:border-[var(--brass)]/40 hover:bg-white/[0.05]"
+                      : "border-white/5 bg-white/[0.015] hover:border-white/15 hover:bg-white/[0.03] opacity-80 hover:opacity-100"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1 mb-1">
                     <span className="font-mono text-[10px] font-semibold text-[var(--brass)] uppercase tracking-wider truncate">
                       {p.tag}
                     </span>
-                    {isSelected && (
+                    {isSelected ? (
                       <CheckCircle2 className="h-3.5 w-3.5 text-[var(--brass)] shrink-0" />
-                    )}
+                    ) : isRecommendedForCurrentTab ? (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--brass)]/70 shrink-0" title="Recommended for active mode" />
+                    ) : null}
                   </div>
                   <h4 className="font-display text-xs font-semibold text-foreground group-hover:text-[var(--brass)] transition-colors truncate">
                     {p.title}
                   </h4>
                   <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                    {p.sector} &middot; <span className="uppercase text-[9px]">{p.scope === "portfolio" ? "Portfolio" : "Supply Chain"}</span>
+                    {p.sector} &middot; <span className="uppercase text-[9px] font-mono">{p.scope}</span>
                   </p>
                 </button>
               );
@@ -1199,36 +1225,76 @@ function SimulatePage() {
               </div>
             )}
 
-            {/* Interactive Portfolio Topology Medallion */}
-            <div className="group relative flex flex-col items-center justify-center rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 sm:p-10 backdrop-blur-xl shadow-[var(--shadow-soft)] overflow-hidden transition-all duration-300">
-              <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--hairline)] pb-4 mb-4">
-                <div>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--brass)] font-semibold">
-                    Portfolio Topology &middot; Dynamic Graph Medallion
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Full-spectrum mapping of active agreements, regulatory nodes, and propagated blast radius
+            {/* Interactive Portfolio Topology Medallion - Senior Engineered Simulation Cockpit */}
+            <div className="group relative flex flex-col items-center justify-center rounded-[26px] border border-[var(--hairline)] bg-gradient-to-b from-[var(--surface-raised)]/90 via-[var(--shell-bg)] to-black/30 p-6 sm:p-9 backdrop-blur-2xl shadow-xl overflow-hidden transition-all duration-300">
+              {/* Ambient Glowing Hairline */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent" />
+
+              {/* Cockpit Status Header */}
+              <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4 mb-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[var(--brass)] animate-pulse" />
+                    <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[var(--brass)]">
+                      Simulated Blast Topology
+                    </h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Live propagation network connecting statutory mandates to affected commercial agreements.
                   </p>
                 </div>
-                <div className="flex items-center gap-3 font-mono text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-[var(--brass)] shadow-[0_0_8px_var(--brass)]" /> Contract Node
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" /> Regulation
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-[var(--risk)] shadow-[0_0_8px_var(--risk)]" /> In Blast Radius
-                  </span>
+
+                {/* Dynamic State Indicator */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {portStatus === "loading" ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brass)]/40 bg-[var(--brass)]/15 px-3 py-1 font-mono text-[11px] font-semibold text-[var(--brass)] animate-pulse">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Scanning Topology...
+                    </span>
+                  ) : impactMap.size > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--risk)]/40 bg-[var(--risk)]/15 px-3 py-1 font-mono text-[11px] font-semibold text-[var(--risk)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--risk)] animate-ping" />
+                      {impactMap.size} Contracts In Blast Radius
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] text-emerald-400">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      Topology Baseline Stable
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="relative flex items-center justify-center w-full py-4">
+              {/* Informational Guidance Chips for Clarity */}
+              <div className="w-full flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-xl border border-white/5 bg-white/[0.02] text-[11px] font-mono text-muted-foreground mb-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--brass)]" />
+                    Inner Ring: <strong>{contracts.length} Contracts</strong>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                    Outer Ring: <strong>{regulations.length} Regulations</strong>
+                  </span>
+                  <span className="text-muted-foreground/60 hidden md:inline">&middot;</span>
+                  <span className="hidden md:inline text-muted-foreground/80">
+                    Hover nodes to trace citation paths
+                  </span>
+                </div>
+
+                <div className="text-[10.5px] text-[var(--brass)]">
+                  {impactMap.size > 0 ? `${impactMap.size} agreements require amendment` : "Run simulation above to test exposure"}
+                </div>
+              </div>
+
+              {/* Graph Medallion with hideHeader=true to eliminate duplicate titles and duplicate legends */}
+              <div className="relative flex items-center justify-center w-full py-2">
                 <GraphMedallion
                   contracts={contracts}
                   regulations={regulations}
                   impacts={impactMap.size > 0 ? impactMap : undefined}
                   pulsing={portStatus === "loading"}
+                  hideHeader={true}
                 />
               </div>
             </div>
