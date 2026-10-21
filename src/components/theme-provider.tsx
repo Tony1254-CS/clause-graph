@@ -55,6 +55,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) return { theme: "light" as Theme, setTheme: () => {}, toggle: () => {} };
+  if (!ctx) return { theme: "dark" as Theme, setTheme: () => {}, toggle: () => {} };
   return ctx;
 }
