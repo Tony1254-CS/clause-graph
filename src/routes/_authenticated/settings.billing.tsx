@@ -72,7 +72,7 @@ function ParkedBillingPage() {
         </div>
 
         {/* ── Early Access Showcase Banner ── */}
-        <div className="relative overflow-hidden rounded-2xl border border-[var(--brass)]/30 bg-gradient-to-br from-[var(--surface-raised)]/90 via-black/40 to-[var(--brass)]/[0.06] p-6 sm:p-8 backdrop-blur-2xl shadow-xl shadow-black/25">
+        <div className="relative overflow-hidden rounded-2xl border border-[var(--brass)]/30 bg-[var(--surface-raised)]/95 dark:bg-gradient-to-br dark:from-[var(--surface-raised)]/90 dark:via-black/40 dark:to-[var(--brass)]/[0.06] p-6 sm:p-8 backdrop-blur-2xl shadow-xl shadow-slate-900/5 dark:shadow-black/25">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">

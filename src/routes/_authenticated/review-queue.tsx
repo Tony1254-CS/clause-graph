@@ -319,14 +319,14 @@ function ReviewQueuePage() {
 
           <div className="flex items-center gap-3">
             {/* View Switcher: Table vs Split-Screen */}
-            <div className="flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[rgba(0,0,0,0.35)] p-1.5 shadow-sm font-mono text-xs">
+            <div className="flex items-center gap-1.5 rounded-xl switcher-track p-1.5 shadow-sm text-xs font-sans">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
-                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
                 <TableIcon className="h-3.5 w-3.5" />
@@ -337,8 +337,8 @@ function ReviewQueuePage() {
                 onClick={() => setViewMode("split")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
                   viewMode === "split"
-                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
                 <Columns2 className="h-3.5 w-3.5" />
@@ -426,14 +426,14 @@ function ReviewQueuePage() {
                 placeholder="Search citation or response..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-white/5 bg-white/[0.04] text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--brass)] focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border search-input-theme text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
               />
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
               <Filter className="h-3.5 w-3.5 text-muted-foreground mr-1" />
               <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as any)}>
-                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                <SelectTrigger className="h-8 rounded-xl border search-input-theme px-3 font-mono text-xs text-foreground hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
@@ -449,7 +449,7 @@ function ReviewQueuePage() {
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
               <Select value={riskFilter} onValueChange={(val) => setRiskFilter(val as any)}>
-                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                <SelectTrigger className="h-8 rounded-xl border search-input-theme px-3 font-mono text-xs text-foreground hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
                   <SelectValue placeholder="All Risk Levels" />
                 </SelectTrigger>
                 <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
@@ -989,7 +989,7 @@ function DetailInspector({
                   SHA-256 Verified Snapshot
                 </span>
               </div>
-              <div className="rounded-xl border border-white/10 bg-black/50 p-4 max-h-[260px] overflow-y-auto text-xs font-mono text-foreground/90 whitespace-pre-wrap leading-relaxed shadow-inner">
+              <div className="rounded-xl border inspect-code-box p-4 max-h-[260px] overflow-y-auto text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-inner">
                 {task.originalAiResponse}
               </div>
             </div>

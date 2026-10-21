@@ -229,22 +229,22 @@ function FeedPage() {
 
         {/* ── Main Stream Switcher (Curated Ontology ⟷ Live Federal Register) ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 backdrop-blur-xl">
-          <div className="flex items-center gap-2 p-1.5 bg-[rgba(0,0,0,0.35)] rounded-xl border border-[var(--hairline)]">
+          <div className="flex items-center gap-1.5 p-1.5 switcher-track rounded-xl">
             <button
               type="button"
               onClick={() => setActiveStream("curated")}
-              className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
                 activeStream === "curated"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <Landmark className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeStream === "curated" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
               <span>Curated Ontology Stream</span>
               <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                 activeStream === "curated"
-                  ? "bg-black/25 text-[var(--primary-foreground)] border-black/20"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  ? "bg-black/20 text-[var(--primary-foreground)] border-black/20"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {regs.length}
               </span>
@@ -253,18 +253,18 @@ function FeedPage() {
             <button
               type="button"
               onClick={() => setActiveStream("federal")}
-              className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
                 activeStream === "federal"
-                  ? "bg-emerald-500 text-black font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-emerald-500/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
-              <Globe className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeStream === "federal" ? "text-black" : "text-emerald-400"}`} />
+              <Globe className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeStream === "federal" ? "text-white dark:text-black" : "text-emerald-600 dark:text-emerald-400"}`} />
               <span>U.S. Federal Register Live</span>
               <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                 activeStream === "federal"
-                  ? "bg-black/25 text-black border-black/20"
-                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                  ? "bg-black/20 text-white dark:text-black border-black/20"
+                  : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
               }`}>
                 LIVE
               </span>
@@ -315,7 +315,7 @@ function FeedPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search regulation or mandate..."
-                    className="w-52 sm:w-64 rounded-xl border border-[var(--hairline)] bg-black/40 pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-all"
+                    className="w-52 sm:w-64 rounded-xl border search-input-theme pl-8 pr-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-all"
                   />
                   {searchQuery && (
                     <button
@@ -328,14 +328,14 @@ function FeedPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[rgba(0,0,0,0.35)] p-1">
+                <div className="flex items-center gap-1.5 rounded-xl switcher-track p-1">
                   <button
                     type="button"
                     onClick={() => setViewMode("table")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans transition-all duration-200 cursor-pointer ${
                       viewMode === "table"
-                        ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                        : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                        ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                     }`}
                     title="Dense Table View"
                   >
@@ -345,10 +345,10 @@ function FeedPage() {
                   <button
                     type="button"
                     onClick={() => setViewMode("grid")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans transition-all duration-200 cursor-pointer ${
                       viewMode === "grid"
-                        ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                        : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                        ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                     }`}
                     title="Grid Card View"
                   >
@@ -526,7 +526,7 @@ function FeedPage() {
                     value={fedSearch}
                     onChange={(e) => setFedSearch(e.target.value)}
                     placeholder="Search filing or agency..."
-                    className="w-52 sm:w-64 rounded-xl border border-[var(--hairline)] bg-black/40 pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
+                    className="w-52 sm:w-64 rounded-xl border search-input-theme pl-8 pr-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
                   />
                   {fedSearch && (
                     <button

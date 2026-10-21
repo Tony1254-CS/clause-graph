@@ -212,7 +212,7 @@ function BacktestPage() {
               placeholder="Search by company, regulation, or case keywords..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-white/5 bg-white/[0.04] text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--brass)] focus:outline-none transition-colors"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border search-input-theme text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
             />
           </div>
 
@@ -222,14 +222,14 @@ function BacktestPage() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1.5 rounded-xl bg-[rgba(0,0,0,0.35)] p-1.5 border border-[var(--hairline)]">
+            <div className="flex items-center gap-1.5 rounded-xl switcher-track p-1.5">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
                     ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
                 title="Table View (Dense & Proportional)"
               >
@@ -242,7 +242,7 @@ function BacktestPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "grid"
                     ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
                 title="Cards View"
               >

@@ -294,7 +294,7 @@ function RegulationDetail() {
                 placeholder="Filter obligations..."
                 value={obligationQueryStr}
                 onChange={(e) => setObligationQueryStr(e.target.value)}
-                className="w-full rounded-full border border-white/10 bg-black/30 pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
+                className="w-full rounded-full border search-input-theme pl-8 pr-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
               />
             </div>
           </div>
