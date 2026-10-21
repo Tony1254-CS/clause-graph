@@ -126,12 +126,13 @@ function Dashboard() {
   const { data: complianceProfile } = useQuery(complianceProfileQuery);
   const { data: userProfile } = useQuery(profileQuery);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
 
   useEffect(() => {
-    if (complianceProfile && !complianceProfile.is_onboarded && userProfile?.email !== "judge@clausegraph.ai") {
+    if (!hasDismissedOnboarding && complianceProfile && !complianceProfile.is_onboarded && userProfile?.email !== "judge@clausegraph.ai") {
       setShowOnboarding(true);
     }
-  }, [complianceProfile, userProfile]);
+  }, [complianceProfile, userProfile, hasDismissedOnboarding]);
 
   // Interactive Hover States for Analytics
   const [activeDonutIdx, setActiveDonutIdx] = useState<number | null>(null);
@@ -1584,7 +1585,10 @@ function Dashboard() {
         <OnboardingModal
           open={showOnboarding}
           profile={complianceProfile}
-          onComplete={() => setShowOnboarding(false)}
+          onComplete={() => {
+            setShowOnboarding(false);
+            setHasDismissedOnboarding(true);
+          }}
         />
       </div>
     </AppShell>
