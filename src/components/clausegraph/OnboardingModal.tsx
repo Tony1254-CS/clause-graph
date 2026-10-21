@@ -15,6 +15,7 @@ import {
   HeartPulse,
   Scale,
   Users,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -197,11 +198,9 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onComplete()}>
       <DialogContent
         className="max-w-2xl overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] p-0 shadow-[var(--shadow-lift)] backdrop-blur-2xl sm:max-w-2xl"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         {/* Ambient Top Glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[var(--brass)]/15 via-transparent to-transparent" />
@@ -223,13 +222,23 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
                   </DialogTitle>
                 </div>
               </div>
-              {/* Step indicator */}
-              <div className="flex items-center gap-1.5 font-mono text-xs font-semibold text-muted-foreground">
-                <span className={`px-2 py-0.5 rounded-full ${step >= 1 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>1</span>
-                <span className="text-[var(--hairline)]">/</span>
-                <span className={`px-2 py-0.5 rounded-full ${step >= 2 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>2</span>
-                <span className="text-[var(--hairline)]">/</span>
-                <span className={`px-2 py-0.5 rounded-full ${step >= 3 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>3</span>
+              {/* Step indicator and Close X */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 font-mono text-xs font-semibold text-muted-foreground">
+                  <span className={`px-2 py-0.5 rounded-full ${step >= 1 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>1</span>
+                  <span className="text-[var(--hairline)]">/</span>
+                  <span className={`px-2 py-0.5 rounded-full ${step >= 2 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>2</span>
+                  <span className="text-[var(--hairline)]">/</span>
+                  <span className={`px-2 py-0.5 rounded-full ${step >= 3 ? "bg-[var(--brass)] text-black" : "bg-white/5"}`}>3</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onComplete}
+                  className="rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Close / Skip setup"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
             <DialogDescription className="text-xs text-muted-foreground sm:text-sm">

@@ -618,6 +618,13 @@ function SimulatePage() {
                   type="button"
                   onClick={() => handleSelectPreset(p)}
                   disabled={currentLoading}
+                  data-copilot-context={JSON.stringify({
+                    type: "simulation_run",
+                    id: p.id,
+                    title: p.title,
+                    content: `Preset Stress Test Scenario '${p.title}' [${p.tag}]. Sector: ${p.sector}, Scope: ${p.scope}. Prompt draft: ${p.text.slice(0, 160)}...`,
+                    metadata: { tag: p.tag, sector: p.sector, scope: p.scope },
+                  })}
                   className={`group relative text-left rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
                     isSelected
                       ? "scenario-card-selected"
@@ -790,7 +797,16 @@ function SimulatePage() {
             {activeTab === "portfolio" || activeTab === "what-if" ? (
               portResult ? (
                 /* Direct Portfolio / What-If Sandbox Result */
-                <aside className="group relative flex flex-col h-full rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 sm:p-7 backdrop-blur-xl shadow-[var(--shadow-soft)] space-y-5 animate-in fade-in duration-300 transition-all duration-300 hover:border-[color-mix(in_oklab,var(--risk)_40%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(225,82,75,0.22)]">
+                <aside
+                  data-copilot-context={JSON.stringify({
+                    type: "simulation_run",
+                    id: "active-simulation-result",
+                    title: activeTab === "what-if" ? "What-If Shockwave Assessment" : "Direct Portfolio Blast Assessment",
+                    content: `Direct Capital Exposure: ${formatUSD(totalExposure)} (${exposurePercentage.toFixed(1)}% of portfolio). Impacted Contracts: ${sortedImpacts.length} (${highSeverityCount} High, ${mediumSeverityCount} Medium). Executive Diagnosis: ${portResult.summary || "Evaluation completed."}`,
+                    metadata: { totalExposure, exposurePercentage, highSeverityCount, mediumSeverityCount, impactsCount: sortedImpacts.length },
+                  })}
+                  className="group relative flex flex-col h-full rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 sm:p-7 backdrop-blur-xl shadow-[var(--shadow-soft)] space-y-5 animate-in fade-in duration-300 transition-all duration-300 hover:border-[color-mix(in_oklab,var(--risk)_40%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(225,82,75,0.22)]"
+                >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--risk)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                   <div className="flex items-center justify-between border-b border-[var(--hairline)] pb-3">

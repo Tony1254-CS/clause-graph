@@ -437,6 +437,13 @@ function ContractsIndex() {
                   return (
                     <tr
                       key={c.id}
+                      data-copilot-context={JSON.stringify({
+                        type: "contract",
+                        id: c.id,
+                        title: c.name,
+                        content: `Contract '${c.name}' with ${c.counterparty}. Value: ${formatUSD(c.value)}. Clauses: ${c.clauses.length}. Applicable statutes: ${uniqueRegs.join(", ") || "None"}.`,
+                        metadata: { contract_id: c.id, counterparty: c.counterparty, value: c.value },
+                      })}
                       className="group transition-colors duration-150 hover:bg-[color-mix(in_oklab,var(--brass)_6%,transparent)]"
                     >
                       <td className="px-6 py-4">

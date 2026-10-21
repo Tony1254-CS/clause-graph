@@ -4,10 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getOrgUsage } from "@/lib/billing.functions";
 import { BILLING_ENABLED } from "@/lib/plans";
-import { Zap, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { Zap, ChevronDown, LogOut, User as UserIcon, Crosshair } from "lucide-react";
 import { profileQuery, contractsQuery } from "@/data/queries";
 import { signOut } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useCopilot } from "./CopilotContext";
 
 export function TopBar() {
   const { data: profile } = useQuery(profileQuery);
@@ -50,6 +51,8 @@ export function TopBar() {
     navigate({ to: "/auth", replace: true });
   }
 
+  const { isInspectModeActive, toggleInspectMode } = useCopilot();
+
   const initial =
     (profile?.full_name?.trim().charAt(0) || profile?.email?.trim().charAt(0) || "?").toUpperCase();
 
@@ -83,6 +86,21 @@ export function TopBar() {
             {contractCount} monitored
           </span>
         </div>
+
+        {/* Inspect Lens Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleInspectMode}
+          title={isInspectModeActive ? "Exit Inspect Mode (Esc)" : "Inspect & Ask AI Lens (Click any card to analyze)"}
+          className={`group relative inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 sm:px-3 text-[11px] font-semibold tracking-wide transition-all ${
+            isInspectModeActive
+              ? "border-emerald-400 bg-emerald-500/20 text-emerald-300 shadow-[0_0_16px_rgba(16,185,129,0.35)] animate-pulse"
+              : "border-[var(--hairline-strong)] bg-[var(--surface-glass)] text-[var(--ink)] hover:border-emerald-400/60 hover:text-emerald-400 hover:bg-[var(--surface-glass-strong)]"
+          }`}
+        >
+          <Crosshair className={`h-3.5 w-3.5 ${isInspectModeActive ? "rotate-90 text-emerald-400" : "text-[var(--brass)]"} transition-transform duration-300`} />
+          <span className="hidden md:inline">{isInspectModeActive ? "Inspecting..." : "Inspect Context"}</span>
+        </button>
 
         <ThemeToggle />
 
