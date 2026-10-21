@@ -65,31 +65,31 @@
 :root {
   --radius: 20px;
 
-  --page-bg: #f4f6f5;
-  --shell-bg: rgba(255, 255, 255, 0.82);
-  --shell-secondary: rgba(246, 249, 248, 0.82);
-  --ink: #0b1220;
-  --ink-soft: #1c2733;
-  --text-primary: #0b1220;
-  --text-muted: #64707c;
+  --page-bg: #f8fafc;
+  --shell-bg: rgba(255, 255, 255, 0.95);
+  --shell-secondary: rgba(248, 250, 252, 0.95);
+  --ink: #0f172a;
+  --ink-soft: #1e293b;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
   --paper: #ffffff;
-  --paper-soft: #eef2f1;
-  --brass: #0ea48f;
-  --brass-strong: #14c6a4;
-  --aura: #0ea48f;
+  --paper-soft: #f1f5f9;
+  --brass: #0d9488;
+  --brass-strong: #0f766e;
+  --aura: #0d9488;
 
-  --surface-raised: rgba(255, 255, 255, 0.76);
-  --surface-glass: rgba(255, 255, 255, 0.44);
-  --surface-glass-strong: rgba(255, 255, 255, 0.66);
+  --surface-raised: rgba(255, 255, 255, 0.92);
+  --surface-glass: rgba(255, 255, 255, 0.82);
+  --surface-glass-strong: rgba(255, 255, 255, 0.96);
 
-  --hairline: rgba(11, 18, 32, 0.10);
-  --hairline-strong: rgba(14, 164, 143, 0.28);
-  --shadow-soft: 0 24px 70px -34px rgba(10, 22, 28, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  --shadow-lift: 0 36px 100px -42px rgba(6, 18, 26, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --glow-brass: 0 18px 50px -24px rgba(14, 164, 143, 0.55);
+  --hairline: rgba(15, 23, 42, 0.08);
+  --hairline-strong: rgba(13, 148, 136, 0.28);
+  --shadow-soft: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-lift: 0 20px 40px -15px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glow-brass: 0 12px 36px -12px rgba(13, 148, 136, 0.25);
 
-  --risk: #e1524b;
-  --success: #14c6a4;
+  --risk: #e11d48;
+  --success: #059669;
 
   /* shadcn semantic mapping */
   --background: var(--page-bg);
@@ -197,6 +197,141 @@
   backdrop-filter: blur(22px) saturate(140%);
   border: 1px solid var(--hairline);
   border-radius: 9999px;
+}
+
+@utility switcher-track {
+  background: var(--paper-soft);
+  border: 1px solid var(--hairline);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.dark .switcher-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--hairline);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.search-input-theme {
+  background-color: var(--paper);
+  border-color: var(--hairline);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+}
+
+.search-input-theme::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.dark .search-input-theme {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.dark .search-input-theme::placeholder {
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+/* Preset Scenario Cards - light friendly & prominent */
+.scenario-card {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+}
+.scenario-card:hover {
+  border-color: rgba(13, 148, 136, 0.35);
+  box-shadow: 0 4px 12px -2px rgba(13, 148, 136, 0.12);
+}
+
+.scenario-card-recommended {
+  background-color: #ffffff;
+  border-color: rgba(13, 148, 136, 0.22);
+  box-shadow: 0 2px 6px -1px rgba(13, 148, 136, 0.08);
+}
+.scenario-card-recommended:hover {
+  border-color: rgba(13, 148, 136, 0.5);
+  box-shadow: 0 6px 16px -2px rgba(13, 148, 136, 0.16);
+}
+
+.scenario-card-selected {
+  background-color: rgba(13, 148, 136, 0.08);
+  border-color: var(--brass);
+  box-shadow: 0 4px 20px -2px rgba(13, 148, 136, 0.22);
+}
+
+/* Character counter in light mode */
+.char-counter-pill {
+  background-color: rgba(241, 245, 249, 0.9);
+  color: #475569;
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode overrides (strictly preserve exact dark design) */
+.dark .scenario-card {
+  background-color: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+.dark .scenario-card:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.dark .scenario-card-recommended {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+.dark .scenario-card-recommended:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(94, 234, 212, 0.4);
+  box-shadow: none;
+}
+
+.dark .scenario-card-selected {
+  background-color: rgba(94, 234, 212, 0.1);
+  border-color: var(--brass);
+  box-shadow: 0 4px 20px -4px rgba(94, 234, 212, 0.25);
+}
+
+.dark .char-counter-pill {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: rgba(148, 163, 184, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+/* User-friendly Table Row Hover in Light Mode */
+tbody tr:hover:not([class*="bg-"]):not([data-no-hover="true"]),
+tbody tr.hover\:bg-white\/\[0\.03\]:hover,
+tbody tr.hover\:bg-white\/\[0\.02\]:hover {
+  background-color: rgba(13, 148, 136, 0.06) !important;
+}
+
+/* In dark mode, strictly preserve subtle dark hover */
+.dark tbody tr:hover:not([class*="bg-"]):not([data-no-hover="true"]),
+.dark tbody tr.hover\:bg-white\/\[0\.03\]:hover,
+.dark tbody tr.hover\:bg-white\/\[0\.02\]:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Code & Output inspection containers - light friendly & dark preserved */
+.inspect-code-box {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+}
+
+.dark .inspect-code-box {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(234, 242, 239, 0.9);
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 @utility hairline-b {
@@ -365,7 +500,7 @@
 
   body {
     background-image:
-      radial-gradient(ellipse 60% 45% at 50% 0%, color-mix(in oklab, var(--hairline) 30%, transparent), transparent 70%);
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(13, 148, 136, 0.04), transparent 70%);
     background-attachment: fixed;
     min-height: 100dvh;
   }

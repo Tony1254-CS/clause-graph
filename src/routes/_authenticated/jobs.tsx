@@ -253,13 +253,13 @@ function BackgroundJobsPage() {
                 placeholder="Search job ID, type, or error..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-white/5 bg-white/[0.04] text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--brass)] focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border search-input-theme text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
               />
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
               <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val)}>
-                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                <SelectTrigger className="h-8 rounded-xl border search-input-theme px-3 font-mono text-xs text-foreground hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
@@ -276,7 +276,7 @@ function BackgroundJobsPage() {
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
               <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val)}>
-                <SelectTrigger className="h-8 rounded-xl border border-white/10 bg-black/40 px-3 font-mono text-xs text-foreground hover:bg-white/[0.06] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+                <SelectTrigger className="h-8 rounded-xl border search-input-theme px-3 font-mono text-xs text-foreground hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
                   <SelectValue placeholder="All Job Types" />
                 </SelectTrigger>
                 <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
@@ -596,7 +596,7 @@ function BackgroundJobsPage() {
                     <Terminal className="h-3.5 w-3.5 text-[var(--brass)]" />
                     Invocation Payload:
                   </div>
-                  <pre className="max-h-48 overflow-auto rounded-2xl border border-[var(--hairline)] bg-black/40 p-3.5 font-mono text-[11px] text-foreground">
+                  <pre className="max-h-48 overflow-auto rounded-2xl border inspect-code-box p-3.5 font-mono text-[11px]">
                     {JSON.stringify(selectedJob.payload, null, 2)}
                   </pre>
                 </div>
@@ -608,7 +608,7 @@ function BackgroundJobsPage() {
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                       Execution Result Output:
                     </div>
-                    <pre className="max-h-56 overflow-auto rounded-2xl border border-[var(--hairline)] bg-black/40 p-3.5 font-mono text-[11px] text-foreground">
+                    <pre className="max-h-56 overflow-auto rounded-2xl border inspect-code-box p-3.5 font-mono text-[11px]">
                       {JSON.stringify(selectedJob.result, null, 2)}
                     </pre>
                   </div>

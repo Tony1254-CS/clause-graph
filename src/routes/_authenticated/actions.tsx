@@ -551,7 +551,7 @@ function ActionsPage() {
 
         {/* ── Toolbar: Search & Type Pills & View Mode Switcher ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5 backdrop-blur-xl shadow-[var(--shadow-soft)]">
-          <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl switcher-track">
             {FILTERS.map((f) => {
               const count =
                 f.id === "all" ? runs.length : runs.filter((r) => r.run_type === f.id).length;
@@ -564,15 +564,15 @@ function ActionsPage() {
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-1 font-mono text-[11px] uppercase tracking-wider font-semibold transition-all duration-200 cursor-pointer ${
                     active
                       ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-md ring-1 ring-white/20"
-                      : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                   }`}
                 >
                   <span>{f.label}</span>
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
                       active
-                        ? "bg-black/25 text-[var(--primary-foreground)] border-black/20 font-bold"
-                        : "bg-white/[0.05] text-foreground border-white/10"
+                        ? "bg-black/20 text-[var(--primary-foreground)] border-black/20 font-bold"
+                        : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
                     }`}
                   >
                     {count}
@@ -590,19 +590,19 @@ function ActionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search regulation, contract, keyword..."
-                className="w-full rounded-xl border border-white/5 bg-white/[0.04] pl-9 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[var(--brass)] transition-colors"
+                className="w-full rounded-xl border search-input-theme pl-9 pr-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)] transition-colors"
               />
             </div>
 
             {/* View Mode Switcher */}
-            <div className="flex items-center gap-1.5 rounded-xl bg-[rgba(0,0,0,0.35)] p-1.5 border border-[var(--hairline)]">
+            <div className="flex items-center gap-1.5 rounded-xl switcher-track p-1.5">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "table"
                     ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
                 title="Table View (Proportional & Dense)"
               >
@@ -615,7 +615,7 @@ function ActionsPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
                   viewMode === "feed"
                     ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
                 title="Accordion Feed View"
               >
@@ -1066,8 +1066,8 @@ function ActionsPage() {
                     </span>
                     <CopyButton text={selectedRunForModal.input_regulation_text} label="Copy Mandate" />
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/40 p-4 max-h-48 overflow-y-auto">
-                    <p className="font-mono text-xs leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                  <div className="rounded-2xl border inspect-code-box p-4 max-h-48 overflow-y-auto">
+                    <p className="font-mono text-xs leading-relaxed whitespace-pre-wrap">
                       {selectedRunForModal.input_regulation_text || "(Direct Trigger)"}
                     </p>
                   </div>
@@ -1152,7 +1152,7 @@ function ActionsPage() {
                     value={artifactSearch}
                     onChange={(e) => setArtifactSearch(e.target.value)}
                     placeholder="Search stack, gap, script..."
-                    className="w-48 sm:w-60 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 pl-8 pr-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-all"
+                    className="w-48 sm:w-60 rounded-xl border search-input-theme pl-8 pr-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-all"
                   />
                   {artifactSearch && (
                     <button

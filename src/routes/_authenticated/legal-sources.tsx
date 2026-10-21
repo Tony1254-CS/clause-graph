@@ -359,22 +359,22 @@ function LegalSourcesAndBackupsPage() {
         {/* ── Toolbar with Tab Switcher & Universal Search ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5 backdrop-blur-xl shadow-[var(--shadow-soft)]">
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 p-1.5 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-xl switcher-track">
             <button
               type="button"
               onClick={() => setActiveTab("sources")}
-              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
                 activeTab === "sources"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <Database className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "sources" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
               <span>Sources</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${
                 activeTab === "sources"
-                  ? "bg-black/25 text-[var(--primary-foreground)] border-black/20"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  ? "bg-black/20 text-[var(--primary-foreground)] border-black/20"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {rawSources.length}
               </span>
@@ -383,18 +383,18 @@ function LegalSourcesAndBackupsPage() {
             <button
               type="button"
               onClick={() => setActiveTab("candidates")}
-              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
                 activeTab === "candidates"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <GitCompare className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "candidates" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
               <span>Candidate Updates</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${
                 activeTab === "candidates"
-                  ? "bg-black/25 text-[var(--primary-foreground)] border-black/20"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  ? "bg-black/20 text-[var(--primary-foreground)] border-black/20"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {rawCandidates.length}
               </span>
@@ -403,18 +403,18 @@ function LegalSourcesAndBackupsPage() {
             <button
               type="button"
               onClick={() => setActiveTab("backups")}
-              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-sans font-medium transition-all duration-200 cursor-pointer ${
                 activeTab === "backups"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <ShieldCheck className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "backups" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
               <span>Backups &amp; Restore</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${
                 activeTab === "backups"
-                  ? "bg-black/25 text-[var(--primary-foreground)] border-black/20"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  ? "bg-black/20 text-[var(--primary-foreground)] border-black/20"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {rawBackups.length}
               </span>
@@ -429,7 +429,7 @@ function LegalSourcesAndBackupsPage() {
               placeholder={`Search ${activeTab}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-white/5 bg-white/[0.04] text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--brass)] focus:outline-none transition-colors"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border search-input-theme text-xs font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none transition-colors"
             />
           </div>
         </div>

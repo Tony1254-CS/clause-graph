@@ -242,7 +242,7 @@ function ContractsIndex() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by contract name, counterparty, ID, or regulation..."
-            className="h-9 w-full rounded-full border border-white/5 bg-white/[0.03] pl-9 pr-8 text-[13px] text-foreground placeholder:text-muted-foreground/70 focus:border-[var(--hairline-strong)] focus:bg-white/[0.06] focus:outline-none focus:ring-1 focus:ring-[var(--brass)]"
+            className="h-9 w-full rounded-full border search-input-theme pl-9 pr-8 text-[13px] font-sans text-foreground placeholder:text-muted-foreground focus:border-[var(--brass)] focus:outline-none focus:ring-1 focus:ring-[var(--brass)]"
           />
           {searchQuery && (
             <button
@@ -256,13 +256,13 @@ function ContractsIndex() {
         </div>
 
         {/* Filter Pills */}
-        <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+        <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl switcher-track">
           <button
             onClick={() => setFilterTab("all")}
             className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "all"
                 ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
             }`}
           >
             All ({contracts.length})
@@ -272,7 +272,7 @@ function ContractsIndex() {
             className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "high"
                 ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
             }`}
           >
             High Value (&gt;$10M)
@@ -282,7 +282,7 @@ function ContractsIndex() {
             className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "standard"
                 ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
             }`}
           >
             Core (&lt;$10M)
@@ -292,7 +292,7 @@ function ContractsIndex() {
             className={`rounded-lg px-3 py-1 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
               filterTab === "multi"
                 ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
             }`}
           >
             Multi-Clause (2+)
@@ -305,7 +305,7 @@ function ContractsIndex() {
           <div className="flex items-center gap-1.5 font-mono text-xs">
             <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
             <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
-              <SelectTrigger className="h-9 min-w-[170px] rounded-xl border border-white/10 bg-white/[0.04] px-3 font-mono text-xs text-foreground hover:bg-white/[0.08] hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
+              <SelectTrigger className="h-9 min-w-[170px] rounded-xl border search-input-theme px-3 font-mono text-xs text-foreground hover:border-[var(--brass)]/40 focus:ring-1 focus:ring-[var(--brass)] cursor-pointer">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
               <SelectContent className="border border-[var(--hairline)] bg-[var(--surface-raised)]/95 backdrop-blur-xl text-foreground font-mono text-xs shadow-xl">
@@ -326,13 +326,13 @@ function ContractsIndex() {
           </div>
 
           {/* Grid vs Table Switcher */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl switcher-track">
             <button
               onClick={() => setViewMode("grid")}
               className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] transition-all cursor-pointer ${
                 viewMode === "grid"
                   ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
               title="Grid View"
               aria-label="Grid View"
@@ -345,7 +345,7 @@ function ContractsIndex() {
               className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] transition-all cursor-pointer ${
                 viewMode === "table"
                   ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
               title="Table View"
               aria-label="Table View"

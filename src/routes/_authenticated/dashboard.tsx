@@ -433,7 +433,7 @@ function Dashboard() {
         </div>
 
         {/* ── Real-Time Intelligence & Attention Banner ── */}
-        <div className="rounded-2xl border border-[var(--hairline)] bg-gradient-to-r from-[var(--surface-raised)]/90 via-black/40 to-[var(--surface-raised)]/70 p-4 sm:p-5 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="rounded-2xl border border-[var(--hairline)] bg-gradient-to-r from-[var(--surface-raised)] via-[var(--surface-glass)] to-[var(--surface-raised)] dark:from-[var(--surface-raised)]/90 dark:via-black/40 dark:to-[var(--surface-raised)]/70 p-4 sm:p-5 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-start sm:items-center gap-3.5">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
               <AlertTriangle className="h-5 w-5" />
@@ -562,8 +562,8 @@ function Dashboard() {
         {/* ── Main Dual Workbench: Topology Graph (Left) & Risk Watchlist (Right) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left: Interactive Topological Graph Medallion */}
-          <div className="lg:col-span-7 flex flex-col justify-between rounded-2xl border border-[var(--hairline)] bg-gradient-to-br from-[var(--surface-raised)]/80 via-black/40 to-white/[0.02] p-6 backdrop-blur-2xl shadow-xl">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <div className="lg:col-span-7 flex flex-col justify-between rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/95 dark:bg-gradient-to-br dark:from-[var(--surface-raised)]/80 dark:via-black/40 dark:to-white/[0.02] p-6 backdrop-blur-2xl shadow-xl">
+            <div className="flex items-center justify-between border-b border-[var(--hairline)] dark:border-white/5 pb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-[var(--brass)]" />
@@ -590,8 +590,8 @@ function Dashboard() {
           </div>
 
           {/* Right: Portfolio Exposure Watchlist */}
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-2xl border border-[var(--hairline)] bg-gradient-to-br from-[var(--surface-raised)]/80 via-black/40 to-white/[0.02] p-6 backdrop-blur-2xl shadow-xl space-y-5">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+          <div className="lg:col-span-5 flex flex-col justify-between rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/95 dark:bg-gradient-to-br dark:from-[var(--surface-raised)]/80 dark:via-black/40 dark:to-white/[0.02] p-6 backdrop-blur-2xl shadow-xl space-y-5">
+            <div className="flex items-center justify-between border-b border-[var(--hairline)] dark:border-white/5 pb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="h-4 w-4 text-[var(--risk)]" />
@@ -621,7 +621,7 @@ function Dashboard() {
                     key={c.id}
                     to="/contracts/$contractId"
                     params={{ contractId: c.id }}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--brass)]/40 hover:bg-white/[0.04] hover:shadow-[0_16px_36px_-12px_rgba(201,166,107,0.16)] space-y-3"
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/60 dark:bg-white/[0.02] p-4 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[var(--brass)]/40 hover:bg-[var(--paper-soft)] dark:hover:bg-white/[0.04] hover:shadow-[0_16px_36px_-12px_rgba(201,166,107,0.16)] space-y-3"
                   >
                     {/* Glowing Top Hairline on hover */}
                     <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--brass)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -629,7 +629,7 @@ function Dashboard() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground border border-white/5 bg-white/[0.04] px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)] dark:bg-white/[0.04] px-1.5 py-0.5 rounded">
                             {c.id.slice(0, 8)}
                           </span>
                           <span className="text-sm font-semibold text-foreground group-hover:text-[var(--brass)] flex items-center gap-1.5 truncate transition-colors">
@@ -652,9 +652,9 @@ function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px] font-mono text-muted-foreground">
+                    <div className="flex items-center justify-between pt-1 border-t border-[var(--hairline)] dark:border-white/5 text-[11px] font-mono text-muted-foreground">
                       <div className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                         <span>Ready</span>
                         {uniqueRegs.length > 0 && (
                           <span className="ml-1 rounded-full border border-[var(--brass)]/20 bg-[var(--brass)]/10 px-2 py-0.2 text-[9.5px] text-[var(--brass)] font-semibold">
@@ -671,7 +671,7 @@ function Dashboard() {
               })}
             </div>
 
-            <div className="p-3.5 rounded-xl border border-white/10 bg-black/40 flex items-center justify-between text-xs">
+            <div className="p-3.5 rounded-xl border border-[var(--hairline)] dark:border-white/10 bg-[var(--paper-soft)]/80 dark:bg-black/40 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Total Indexed Capital:</span>
               <strong className="font-mono text-foreground font-semibold">
                 {formatUSD(totalPortfolioValue)}
@@ -710,7 +710,7 @@ function Dashboard() {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <div className="rounded-xl border border-white/20 bg-[#090e15] p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] text-xs font-mono select-none">
+                            <div className="rounded-xl border border-[var(--hairline)] dark:border-white/20 bg-[var(--surface-raised)] dark:bg-[#090e15] p-3.5 shadow-xl text-xs font-mono select-none">
                               <p className="font-semibold text-foreground text-[12px]">{data.name}</p>
                               <p className="text-[var(--brass)] mt-1 font-bold">
                                 Value: {data.val} ({data.pct})
@@ -763,7 +763,7 @@ function Dashboard() {
                 {frameworkSegments.map((item) => (
                   <div
                     key={item.name}
-                    className="flex items-center justify-between p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
+                    className="flex items-center justify-between p-2 rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/50 dark:bg-white/[0.02] hover:bg-[var(--paper-soft)] dark:hover:bg-white/[0.05] transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span
@@ -787,7 +787,7 @@ function Dashboard() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl border border-white/5 bg-black/30 flex items-center justify-between text-xs font-mono text-muted-foreground">
+            <div className="p-3 rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/80 dark:bg-black/30 flex items-center justify-between text-xs font-mono text-muted-foreground">
               <span>Jurisdictions covered:</span>
               <span className="text-foreground font-semibold">{coveredJurisdictions}</span>
             </div>
@@ -837,12 +837,12 @@ function Dashboard() {
                     content={({ active, payload, label }: any) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="rounded-xl border border-white/20 bg-[#090e15] p-3 shadow-xl backdrop-blur-xl text-xs font-mono">
+                          <div className="rounded-xl border border-[var(--hairline)] dark:border-white/20 bg-[var(--surface-raised)] dark:bg-[#090e15] p-3 shadow-xl backdrop-blur-xl text-xs font-mono">
                             <p className="font-semibold text-foreground text-[12px]">{label}</p>
-                            <p className="text-[var(--risk)] mt-1">
+                            <p className="text-[var(--risk)] mt-1 font-medium">
                               Exposure: {payload[0]?.value}%
                             </p>
-                            <p className="text-cyan-400">
+                            <p className="text-cyan-600 dark:text-cyan-400 font-medium">
                               Stress Benchmark: {payload[1]?.value}%
                             </p>
                           </div>
@@ -995,23 +995,23 @@ function Dashboard() {
         {/* ── Twin Columns: Federal Register Live Radar (Left) & Audit Trail Ledger (Right) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left: Federal Register Live Feed (Compact Table & Card Switcher) */}
-          <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
+          <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/95 dark:bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--hairline)] dark:border-white/5 pb-3">
               <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-emerald-400" />
+                <Globe className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <h3 className="text-sm font-semibold text-foreground">
                   Federal Register Live Regulatory Feed
                 </h3>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-white/[0.03] p-0.5">
+                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-[var(--paper-soft)]/60 dark:bg-white/[0.03] p-0.5">
                   <button
                     type="button"
                     onClick={() => setFedViewMode("table")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer ${
                       fedViewMode === "table"
-                        ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold"
+                        ? "bg-white dark:bg-emerald-500/15 border border-[var(--hairline)] dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     title="Compact Table View"
@@ -1022,9 +1022,9 @@ function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setFedViewMode("feed")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer ${
                       fedViewMode === "feed"
-                        ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold"
+                        ? "bg-white dark:bg-emerald-500/15 border border-[var(--hairline)] dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     title="Feed Card View"
@@ -1036,7 +1036,7 @@ function Dashboard() {
 
                 <Link
                   to="/feed"
-                  className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
+                  className="text-xs font-sans font-semibold text-[var(--brass)] hover:underline flex items-center gap-1"
                 >
                   Full Feed <ChevronRight className="h-3 w-3" />
                 </Link>
@@ -1049,48 +1049,48 @@ function Dashboard() {
               </div>
             ) : fedViewMode === "table" ? (
               /* Compact Mini Table View for Federal Register */
-              <div className="overflow-x-auto rounded-xl border border-white/5">
+              <div className="overflow-x-auto rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-white/40 dark:bg-transparent">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/5 bg-white/[0.02] font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground">
+                    <tr className="border-b border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/60 dark:bg-white/[0.02] text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       <th className="px-3.5 py-2.5">Document Title &amp; Agency</th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Published</th>
                       <th className="px-3.5 py-2.5 text-right">Stress Test</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                  <tbody className="divide-y divide-[var(--hairline)] dark:divide-white/5 text-[12px]">
                     {fedData.results.slice(0, 5).map((doc) => (
                       <tr
                         key={doc.document_number}
-                        className="group hover:bg-white/[0.03] transition-colors"
+                        className="group hover:bg-[var(--paper-soft)]/50 dark:hover:bg-white/[0.03] transition-colors"
                       >
-                        <td className="px-3.5 py-2.5 max-w-[200px]">
-                          <span className="font-medium text-foreground group-hover:text-emerald-400 truncate block transition-colors">
+                        <td className="px-3.5 py-2.5 max-w-[220px]">
+                          <span className="font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 truncate block transition-colors leading-snug">
                             {doc.title}
                           </span>
-                          <span className="text-[10px] text-muted-foreground block truncate">
-                            {doc.agencies?.[0]?.name ?? "Federal Agency"} &middot; {doc.document_number}
+                          <span className="text-[11px] text-muted-foreground block truncate mt-0.5">
+                            {doc.agencies?.[0]?.name ?? "Federal Agency"} &middot; <span className="font-mono text-[10px]">{doc.document_number}</span>
                           </span>
                         </td>
 
                         <td className="px-3 py-2.5 whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded text-[9.5px] border uppercase font-bold border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                             {doc.type ?? "RULE"}
                           </span>
                         </td>
 
-                        <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground text-[10px]">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground text-[11px] font-mono">
                           {doc.publication_date}
                         </td>
 
                         <td className="px-3.5 py-2.5 whitespace-nowrap text-right">
                           <Link
                             to="/simulate"
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10.5px] font-mono text-muted-foreground hover:text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-lg border border-[var(--hairline)] dark:border-white/10 bg-[var(--paper-soft)]/80 dark:bg-white/[0.04] px-2.5 py-1 text-[11px] font-sans font-medium text-foreground/80 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all cursor-pointer shadow-xs"
                           >
                             Test
-                            <ArrowUpRight className="h-2.5 w-2.5" />
+                            <ArrowUpRight className="h-3 w-3" />
                           </Link>
                         </td>
                       </tr>
@@ -1104,10 +1104,10 @@ function Dashboard() {
                 {fedData.results.slice(0, 4).map((doc) => (
                   <div
                     key={doc.document_number}
-                    className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 hover:bg-white/[0.03] transition-colors"
+                    className="rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/40 dark:bg-white/[0.02] p-3.5 space-y-2 hover:border-[var(--hairline-strong)] hover:bg-[var(--paper-soft)] dark:hover:bg-white/[0.03] transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[9.5px] uppercase tracking-wider text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
                         {doc.type ?? "RULE"}
                       </span>
                       <span className="font-mono text-[10px] text-muted-foreground">
@@ -1123,7 +1123,7 @@ function Dashboard() {
                       </span>
                       <Link
                         to="/simulate"
-                        className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400 hover:underline"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 hover:underline"
                       >
                         Test On Portfolio <ArrowUpRight className="h-3 w-3" />
                       </Link>
@@ -1135,8 +1135,8 @@ function Dashboard() {
           </div>
 
           {/* Right: Recent Forensic Audit Runs (Compact Table & Card Switcher) */}
-          <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
+          <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/95 dark:bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--hairline)] dark:border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-[var(--brass)]" />
                 <h3 className="text-sm font-semibold text-foreground">
@@ -1145,13 +1145,13 @@ function Dashboard() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-white/[0.03] p-0.5">
+                <div className="flex items-center rounded-lg border border-[var(--hairline)] bg-[var(--paper-soft)]/60 dark:bg-white/[0.03] p-0.5">
                   <button
                     type="button"
                     onClick={() => setRunsViewMode("table")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer ${
                       runsViewMode === "table"
-                        ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold"
+                        ? "bg-white dark:bg-[var(--brass)]/15 border border-[var(--hairline)] dark:border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     title="Compact Table View"
@@ -1162,9 +1162,9 @@ function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setRunsViewMode("feed")}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-sans font-medium transition-all cursor-pointer ${
                       runsViewMode === "feed"
-                        ? "bg-[var(--brass)]/15 border border-[var(--brass)]/40 text-[var(--brass)] font-semibold"
+                        ? "bg-white dark:bg-[var(--brass)]/15 border border-[var(--hairline)] dark:border-[var(--brass)]/40 text-[var(--brass)] font-semibold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     title="Feed Card View"
@@ -1176,7 +1176,7 @@ function Dashboard() {
 
                 <Link
                   to="/actions"
-                  className="text-xs font-mono uppercase tracking-wider text-[var(--brass)] hover:underline flex items-center gap-1"
+                  className="text-xs font-sans font-semibold text-[var(--brass)] hover:underline flex items-center gap-1"
                 >
                   All ({runs.length}) <ChevronRight className="h-3 w-3" />
                 </Link>
@@ -1189,10 +1189,10 @@ function Dashboard() {
               </div>
             ) : runsViewMode === "table" ? (
               /* Compact Mini Table View */
-              <div className="overflow-x-auto rounded-xl border border-white/5">
+              <div className="overflow-x-auto rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-white/40 dark:bg-transparent">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/5 bg-white/[0.02] font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground">
+                    <tr className="border-b border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/60 dark:bg-white/[0.02] text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       <th className="px-3.5 py-2.5">Execution &amp; Trigger</th>
                       <th className="px-3 py-2.5">Mode</th>
                       <th className="px-3 py-2.5">Impacted</th>
@@ -1200,7 +1200,7 @@ function Dashboard() {
                       <th className="px-3.5 py-2.5 text-right">Inspect</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                  <tbody className="divide-y divide-[var(--hairline)] dark:divide-white/5 text-[12px]">
                     {recentRuns.map((r) => {
                       const impactCount = (r.result.impacts ?? []).length;
                       let exposure = 0;
@@ -1216,29 +1216,31 @@ function Dashboard() {
                         <tr
                           key={r.id}
                           onClick={() => setSelectedRunForModal(r)}
-                          className="group hover:bg-white/[0.03] transition-colors cursor-pointer"
+                          className="group hover:bg-[var(--paper-soft)]/50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
                         >
-                          <td className="px-3.5 py-2.5 max-w-[180px]">
-                            <span className="font-medium text-foreground group-hover:text-[var(--brass)] truncate block transition-colors">
+                          <td className="px-3.5 py-2.5 max-w-[200px]">
+                            <span className="font-medium text-foreground group-hover:text-[var(--brass)] truncate block transition-colors leading-snug">
                               {r.result.summary || r.input_regulation_text || "Simulation Run"}
                             </span>
-                            <span className="text-[10px] text-muted-foreground block truncate">
-                              ID: {r.id.slice(0, 8)} &middot; {new Date(r.created_at).toLocaleDateString()}
+                            <span className="text-[11px] text-muted-foreground block truncate mt-0.5">
+                              ID: <span className="font-mono text-[10px]">{r.id.slice(0, 8)}</span> &middot; {new Date(r.created_at).toLocaleDateString()}
                             </span>
                           </td>
 
                           <td className="px-3 py-2.5 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded text-[9.5px] border uppercase font-bold bg-white/5 text-muted-foreground border-white/10">
-                              {r.run_type}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border border-[var(--hairline)] dark:border-white/10 bg-[var(--paper-soft)] dark:bg-white/5 text-foreground/80 dark:text-muted-foreground">
+                              {r.run_type.replace('_', ' ')}
                             </span>
                           </td>
 
-                          <td className="px-3 py-2.5 whitespace-nowrap text-foreground/90">
+                          <td className="px-3 py-2.5 whitespace-nowrap text-foreground/90 font-medium">
                             {impactCount} inst.
                           </td>
 
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[var(--risk)] font-bold">
-                            {formatUSD(exposure)}
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono font-bold">
+                            <span className={exposure > 0 ? "text-[var(--risk)]" : "text-muted-foreground"}>
+                              {formatUSD(exposure)}
+                            </span>
                           </td>
 
                           <td className="px-3.5 py-2.5 whitespace-nowrap text-right">
@@ -1248,10 +1250,10 @@ function Dashboard() {
                                 e.stopPropagation();
                                 setSelectedRunForModal(r);
                               }}
-                              className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10.5px] font-mono text-muted-foreground hover:text-[var(--brass)] hover:border-[var(--brass)] hover:bg-[var(--brass)]/10 transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-[var(--hairline)] dark:border-white/10 bg-[var(--paper-soft)]/80 dark:bg-white/[0.04] px-2.5 py-1 text-[11px] font-sans font-medium text-foreground/80 hover:text-[var(--brass)] hover:border-[var(--brass)]/40 hover:bg-[var(--brass)]/10 transition-all cursor-pointer shadow-xs"
                             >
                               Inspect
-                              <ArrowRight className="h-2.5 w-2.5" />
+                              <ArrowRight className="h-3 w-3" />
                             </button>
                           </td>
                         </tr>
@@ -1278,11 +1280,11 @@ function Dashboard() {
                     <div
                       key={r.id}
                       onClick={() => setSelectedRunForModal(r)}
-                      className="rounded-xl border border-white/5 bg-white/[0.02] p-3.5 space-y-2 hover:border-white/10 hover:bg-white/[0.03] transition-colors cursor-pointer"
+                      className="rounded-xl border border-[var(--hairline)] dark:border-white/5 bg-[var(--paper-soft)]/40 dark:bg-white/[0.02] p-3.5 space-y-2 hover:border-[var(--hairline-strong)] hover:bg-[var(--paper-soft)] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[9.5px] uppercase tracking-wider text-[var(--brass)] border border-[var(--brass)]/30 bg-[var(--brass)]/10 px-2 py-0.5 rounded-full">
-                          {r.run_type.toUpperCase()}
+                        <span className="text-[10px] font-semibold text-[var(--brass)] border border-[var(--brass)]/30 bg-[var(--brass)]/10 px-2 py-0.5 rounded-md">
+                          {r.run_type.toUpperCase().replace('_', ' ')}
                         </span>
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {new Date(r.created_at).toLocaleDateString()}
@@ -1356,7 +1358,7 @@ function Dashboard() {
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
                       Trigger Mandate
                     </span>
-                    <div className="rounded-xl border border-white/10 bg-black/40 p-3 leading-relaxed text-foreground/90 whitespace-pre-wrap max-h-36 overflow-y-auto">
+                    <div className="rounded-xl border inspect-code-box p-3 leading-relaxed whitespace-pre-wrap max-h-36 overflow-y-auto">
                       {selectedRunForModal.input_regulation_text}
                     </div>
                   </div>

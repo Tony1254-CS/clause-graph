@@ -516,15 +516,15 @@ function SimulatePage() {
 
         {/* Engine Scope Switcher (Segmented Tab Bar) */}
         <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 p-2 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-raised)]/70 backdrop-blur-xl shadow-sm">
-          <div className="inline-flex items-center rounded-xl border border-[var(--hairline)] bg-[rgba(0,0,0,0.35)] p-1 gap-1.5 shrink-0">
+          <div className="inline-flex items-center rounded-xl switcher-track p-1 gap-1.5 shrink-0">
             {/* Direct Portfolio Tab Button */}
             <button
               type="button"
               onClick={() => handleTabChange("portfolio")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "portfolio"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <Zap className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "portfolio" ? "fill-current" : "text-[var(--brass)]"}`} />
@@ -532,7 +532,7 @@ function SimulatePage() {
               <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full border ${
                 activeTab === "portfolio"
                   ? "bg-black/20 text-[var(--primary-foreground)] border-black/20 font-bold"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {contracts.length}
               </span>
@@ -544,8 +544,8 @@ function SimulatePage() {
               onClick={() => handleTabChange("supply-chain")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "supply-chain"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <Network className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "supply-chain" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
@@ -553,7 +553,7 @@ function SimulatePage() {
               <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full border ${
                 activeTab === "supply-chain"
                   ? "bg-black/20 text-[var(--primary-foreground)] border-black/20 font-bold"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 {chain.nodes.length} nodes
               </span>
@@ -565,8 +565,8 @@ function SimulatePage() {
               onClick={() => handleTabChange("what-if")}
               className={`group relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === "what-if"
-                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-[0_4px_16px_-4px_rgba(94,234,212,0.4)] ring-1 ring-white/20"
-                  : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                  ? "bg-[var(--brass)] text-[var(--primary-foreground)] shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
               }`}
             >
               <FlaskConical className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${activeTab === "what-if" ? "text-[var(--primary-foreground)]" : "text-[var(--brass)]"}`} />
@@ -574,7 +574,7 @@ function SimulatePage() {
               <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full border ${
                 activeTab === "what-if"
                   ? "bg-black/20 text-[var(--primary-foreground)] border-black/20 font-bold"
-                  : "bg-white/[0.05] text-foreground border-white/10"
+                  : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
               }`}>
                 Isolated
               </span>
@@ -620,10 +620,10 @@ function SimulatePage() {
                   disabled={currentLoading}
                   className={`group relative text-left rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
                     isSelected
-                      ? "border-[var(--brass)] bg-[var(--brass)]/10 shadow-[0_4px_20px_-4px_rgba(94,234,212,0.25)]"
+                      ? "scenario-card-selected"
                       : isRecommendedForCurrentTab
-                      ? "border-white/10 bg-white/[0.03] hover:border-[var(--brass)]/40 hover:bg-white/[0.05]"
-                      : "border-white/5 bg-white/[0.015] hover:border-white/15 hover:bg-white/[0.03] opacity-80 hover:opacity-100"
+                      ? "scenario-card-recommended"
+                      : "scenario-card opacity-90 hover:opacity-100"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1 mb-1">
@@ -720,10 +720,10 @@ function SimulatePage() {
                     }
                     rows={8}
                     disabled={currentLoading}
-                    className="w-full resize-none rounded-xl border border-white/5 bg-white/[0.03] p-4 text-[13.5px] leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:border-[var(--hairline-strong)] focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-[var(--brass)] duration-200 transition-all font-sans"
+                    className="w-full resize-none rounded-xl border search-input-theme p-4 text-[13.5px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--hairline-strong)] focus:outline-none focus:ring-1 focus:ring-[var(--brass)] duration-200 transition-all font-sans"
                   />
                   {text && (
-                    <span className="absolute bottom-3 right-3 font-mono text-[10px] text-muted-foreground/60 select-none bg-[rgba(0,0,0,0.4)] px-2 py-0.5 rounded border border-white/5">
+                    <span className="absolute bottom-3 right-3 font-mono text-[10px] select-none px-2 py-0.5 rounded border char-counter-pill">
                       {text.length} chars &middot; ~{Math.ceil(text.split(/\s+/).length)} words
                     </span>
                   )}

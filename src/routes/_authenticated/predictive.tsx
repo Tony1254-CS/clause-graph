@@ -239,21 +239,21 @@ function RadarDashboard() {
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-2">
               Filter by Horizon:
             </span>
-            <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[rgba(0,0,0,0.35)] border border-[var(--hairline)]">
+            <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl switcher-track">
               <button
                 type="button"
                 onClick={() => setFilterBand("all")}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-sans text-[11px] font-medium transition-all duration-200 cursor-pointer ${
                   filterBand === "all"
-                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--brass)]/40 hover:bg-white/[0.08] hover:text-foreground"
+                    ? "bg-[var(--brass)] text-[var(--primary-foreground)] font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
                 <span>All Frameworks</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
                   filterBand === "all"
-                    ? "bg-black/25 text-[var(--primary-foreground)] border-black/20 font-bold"
-                    : "bg-white/[0.05] text-foreground border-white/10"
+                    ? "bg-black/20 text-[var(--primary-foreground)] border-black/20 font-bold"
+                    : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
                 }`}>
                   {forecasts.length}
                 </span>
@@ -262,18 +262,18 @@ function RadarDashboard() {
               <button
                 type="button"
                 onClick={() => setFilterBand("high")}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-sans text-[11px] font-medium transition-all duration-200 cursor-pointer ${
                   filterBand === "high"
-                    ? "bg-[var(--risk)] text-white font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-[var(--risk)]/40 hover:bg-white/[0.08] hover:text-[var(--risk)]"
+                    ? "bg-[var(--risk)] text-white font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-[var(--risk)] hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--risk)]" />
                 <span>High Risk</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
                   filterBand === "high"
-                    ? "bg-black/25 text-white border-black/20 font-bold"
-                    : "bg-white/[0.05] text-foreground border-white/10"
+                    ? "bg-black/20 text-white border-black/20 font-bold"
+                    : "bg-black/5 dark:bg-white/[0.05] text-foreground border-[var(--hairline)] dark:border-white/10"
                 }`}>
                   {highRiskCount}
                 </span>
@@ -282,26 +282,26 @@ function RadarDashboard() {
               <button
                 type="button"
                 onClick={() => setFilterBand("medium")}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-sans text-[11px] font-medium transition-all duration-200 cursor-pointer ${
                   filterBand === "medium"
-                    ? "bg-amber-500 text-black font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-amber-500/40 hover:bg-white/[0.08] hover:text-amber-400"
+                    ? "bg-amber-500 text-black font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                 <span>Medium Risk</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilterBand("low")}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-mono text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-sans text-[11px] font-medium transition-all duration-200 cursor-pointer ${
                   filterBand === "low"
-                    ? "bg-blue-500 text-white font-semibold shadow-md ring-1 ring-white/20"
-                    : "border border-white/10 bg-white/[0.04] text-muted-foreground hover:border-blue-500/40 hover:bg-white/[0.08] hover:text-blue-400"
+                    ? "bg-blue-600 dark:bg-blue-500 text-white font-semibold shadow-sm ring-1 ring-black/10 dark:ring-white/20"
+                    : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/60 dark:hover:bg-white/[0.08]"
                 }`}
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                 <span>Low / Stable</span>
               </button>
             </div>

@@ -215,7 +215,7 @@ function TeamPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="colleague@organization.com"
-                    className="w-full rounded-xl border border-white/10 bg-black/40 pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)]"
+                    className="w-full rounded-xl border search-input-theme pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)]"
                   />
                 </div>
               </label>
@@ -229,7 +229,7 @@ function TeamPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Elena Rostova"
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)]"
+                  className="w-full rounded-xl border search-input-theme px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[var(--brass)]"
                 />
               </label>
 
