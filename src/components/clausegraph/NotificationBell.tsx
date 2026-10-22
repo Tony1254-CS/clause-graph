@@ -14,9 +14,12 @@ import {
   Check,
   AlertTriangle,
   Info,
+  Volume2,
+  Pause,
 } from "lucide-react";
 import { useNotifications } from "@/lib/notifications.context";
 import { useCopilot } from "./CopilotContext";
+import { useVoice } from "@/lib/voice.context";
 import type { LegalNotification, NotificationType } from "@/lib/notifications.types";
 
 export function NotificationBell() {
@@ -31,10 +34,20 @@ export function NotificationBell() {
   } = useNotifications();
 
   const { openWithPrompt } = useCopilot();
+  const { speak, isSpeakingId } = useVoice();
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "critical" | "regulatory" | "pipeline">("all");
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const handleListenNotification = (notif: LegalNotification) => {
+    markAsRead(notif.id);
+    const exposureText = notif.metadata?.exposureUsd
+      ? `Direct financial exposure is ${notif.metadata.exposureUsd.toLocaleString()} dollars.`
+      : "";
+    const textToSpeak = `${notif.title}. ${notif.message}. ${exposureText}`;
+    speak(textToSpeak, { id: notif.id });
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -301,6 +314,30 @@ export function NotificationBell() {
                           <ExternalLink className="h-2.5 w-2.5" />
                         </Link>
                       )}
+
+                      {/* Listen to Alert Voice Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleListenNotification(notif)}
+                        title={isSpeakingId(notif.id) ? "Stop reading" : "Listen to notification voice narration"}
+                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors ${
+                          isSpeakingId(notif.id)
+                            ? "border-emerald-400 bg-emerald-500/25 text-emerald-300 animate-pulse"
+                            : "border-[var(--hairline-strong)] bg-white/5 text-[var(--ink)] hover:bg-white/15 hover:text-emerald-300"
+                        }`}
+                      >
+                        {isSpeakingId(notif.id) ? (
+                          <>
+                            <Pause className="h-2.5 w-2.5 fill-current" />
+                            Reading...
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-2.5 w-2.5 text-emerald-400" />
+                            Listen
+                          </>
+                        )}
+                      </button>
 
                       {/* Ask Copilot Button */}
                       <button

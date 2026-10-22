@@ -19,7 +19,11 @@ import {
   CheckCircle2,
   Brain,
   Sliders,
+  Mic,
+  Volume2,
+  Pause,
 } from "lucide-react";
+import { useVoice } from "@/lib/voice.context";
 
 export function GlobalCopilot() {
   const {
@@ -33,6 +37,29 @@ export function GlobalCopilot() {
     pendingPrompt,
     setPendingPrompt,
   } = useCopilot();
+
+  const {
+    speak,
+    isSpeakingId,
+    startListening,
+    stopListening,
+    listeningState,
+  } = useVoice();
+
+  const handleMicToggle = () => {
+    if (listeningState === "listening") {
+      stopListening();
+    } else {
+      startListening((text) => {
+        setInput(text);
+      });
+    }
+  };
+
+  const handleSpeakMessage = (content: string, idx: number) => {
+    const id = `msg-${idx}`;
+    speak(content, { id });
+  };
 
   const [messages, setMessages] = useState<CopilotChatMessage[]>([
     {
@@ -329,6 +356,18 @@ export function GlobalCopilot() {
                     <>
                       <Bot className="h-3 w-3 text-[var(--brass)]" />
                       <span className="font-semibold text-[var(--brass)]">Copilot</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSpeakMessage(m.content, idx)}
+                        title={isSpeakingId(`msg-${idx}`) ? "Stop reading" : "Read aloud with natural voice"}
+                        className="ml-1 p-0.5 rounded text-muted-foreground hover:text-emerald-400 transition-colors cursor-pointer"
+                      >
+                        {isSpeakingId(`msg-${idx}`) ? (
+                          <Pause className="h-2.5 w-2.5 text-emerald-400 fill-current animate-pulse" />
+                        ) : (
+                          <Volume2 className="h-2.5 w-2.5" />
+                        )}
+                      </button>
                     </>
                   ) : (
                     <>
@@ -440,6 +479,20 @@ export function GlobalCopilot() {
                 disabled={loading}
                 className="flex-1 rounded-xl border border-[var(--hairline)] bg-black/40 px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-[var(--brass)] focus:outline-none transition-all"
               />
+              {/* Voice Dictation Button */}
+              <button
+                type="button"
+                onClick={handleMicToggle}
+                title={listeningState === "listening" ? "Stop dictating" : "Voice dictation (Speak your query)"}
+                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all shrink-0 cursor-pointer ${
+                  listeningState === "listening"
+                    ? "border-rose-500 bg-rose-500/25 text-rose-400 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.4)]"
+                    : "border-[var(--hairline)] bg-black/40 text-muted-foreground hover:text-emerald-400 hover:border-emerald-500/40"
+                }`}
+              >
+                <Mic className="h-3.5 w-3.5" />
+              </button>
+
               <button
                 type="submit"
                 disabled={!input.trim() || loading}

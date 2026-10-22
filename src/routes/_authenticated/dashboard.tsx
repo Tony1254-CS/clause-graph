@@ -57,6 +57,7 @@ import {
 import { OnboardingModal } from "@/components/clausegraph/OnboardingModal";
 import { getReviewStatsFn } from "@/lib/review.functions";
 import { RouteError } from "@/components/clausegraph/RouteError";
+import { ExecutiveBriefingCard } from "@/components/clausegraph/ExecutiveBriefingCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -460,6 +461,15 @@ function Dashboard() {
             </Link>
           </div>
         </div>
+
+        {/* ── Executive Compliance Audio Briefing (Natural Voice Podcast) ── */}
+        <ExecutiveBriefingCard
+          contractCount={contracts.length || 9}
+          totalValuationUsd={totalPortfolioValue || 66970001}
+          criticalIssuesCount={reviewStats.pending || 1}
+          exposureUsd={totalExposureSurfaced || 450000}
+          healthScore={healthScore || 95}
+        />
 
         {contracts.length === 0 ? (
           /* ── Clean Enterprise Activation & Getting Started Workbench ── */

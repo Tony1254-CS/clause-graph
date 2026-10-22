@@ -10,14 +10,17 @@ import { GlobalCopilot } from "./GlobalCopilot";
 import { NotificationProvider } from "@/lib/notifications.context";
 import { ToastContainer } from "./ToastContainer";
 import { NotificationChannelsModal } from "./NotificationChannelsModal";
+import { VoiceProvider } from "@/lib/voice.context";
+import { AudioWaveform } from "./AudioWaveform";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   return (
-    <NotificationProvider>
-      <CopilotProvider>
+    <VoiceProvider>
+      <NotificationProvider>
+        <CopilotProvider>
       <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-1.5 sm:p-4 lg:p-6">
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
         {/* Ambient drifting mint aura — very subtle */}
@@ -64,8 +67,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <GlobalCopilot />
       <ToastContainer />
       <NotificationChannelsModal />
+      <AudioWaveform />
     </div>
   </CopilotProvider>
 </NotificationProvider>
+</VoiceProvider>
   );
 }
