@@ -85,3 +85,32 @@ While audio is actively playing:
 - Renders **4 animated equalizer frequency bars** that dynamically dance during playback.
 - Displays the active persona badge (e.g., `Aria Neural`).
 - Provides 1-click **Pause / Play** and **Stop** controls.
+
+---
+
+## 7. Headless & Restricted Audio Fallback Engine
+
+In environments where physical audio hardware is absent (e.g., CI/CD headless browser pipelines, Playwright automated testing, virtual desktop containers):
+- Standard `SpeechSynthesisUtterance` can emit immediate `onerror: "not-allowed"` or audio buffer disconnects.
+- ClauseGraph's engine detects this condition and transitions to a **Dynamic Reading-Pace Fallback Timer**.
+- Instead of terminating instantly, each sentence chunk holds its active visual state for `Math.min(8000, Math.max(3000, words * 320))` ms, maintaining realistic human pacing (~180 WPM), animating the equalizer bars, and preserving video recording fidelity.
+
+---
+
+## 8. Supported Neural Personas & Localization
+
+| Persona Key | Voice Match | Accent / Cadence | Ideal Use Case |
+| :--- | :--- | :--- | :--- |
+| `executive_female` (Default) | `Microsoft Aria Online (Natural)` | Neutral US Executive | Morning Briefing, Global Regulatory Alerts |
+| `executive_male` | `Microsoft Guy Online (Natural)` | Authoritative Resonant | Critical Exposure Violations & Audit Logs |
+| `bengali_natural` | `Microsoft Pradeep/Nabaniita Online` / `bn-BD` | Fluent Bengali | Bangladesh Gazette, CSA 2023 Alerts |
+
+---
+
+## 9. Verification & Video Artifacts
+
+- **Full Walkthrough Video**: `clausegraph_natural_voice_system_full_demo.webm` (5.76 MB)
+- **Morning Briefing Card**: `15_executive_audio_briefing_card.png`
+- **Notification Voice Narration**: `18_notification_voice_narration_active.png`
+- **Voice Copilot & Read Aloud**: `19_copilot_mic_and_read_aloud.png`
+
