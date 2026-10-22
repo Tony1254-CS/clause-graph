@@ -4,13 +4,24 @@ import { Sidebar, MobileRail } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { PlanLimitDialog } from "@/components/PlanLimitDialog";
 import { PlanStatusBanner } from "./PlanStatusBanner";
+import { CopilotProvider } from "./CopilotContext";
+import { InspectLensOverlay } from "./InspectLensOverlay";
+import { GlobalCopilot } from "./GlobalCopilot";
+import { NotificationProvider } from "@/lib/notifications.context";
+import { ToastContainer } from "./ToastContainer";
+import { NotificationChannelsModal } from "./NotificationChannelsModal";
+import { VoiceProvider } from "@/lib/voice.context";
+import { AudioWaveform } from "./AudioWaveform";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-1.5 sm:p-4 lg:p-6">
+    <VoiceProvider>
+      <NotificationProvider>
+        <CopilotProvider>
+      <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-1.5 sm:p-4 lg:p-6">
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
         {/* Ambient drifting mint aura — very subtle */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] ambient-drift bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--brass)_10%,transparent),transparent_70%)]" />
@@ -52,6 +63,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
       <PlanLimitDialog />
+      <InspectLensOverlay />
+      <GlobalCopilot />
+      <ToastContainer />
+      <NotificationChannelsModal />
+      <AudioWaveform />
     </div>
+  </CopilotProvider>
+</NotificationProvider>
+</VoiceProvider>
   );
 }

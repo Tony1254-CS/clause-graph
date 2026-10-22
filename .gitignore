@@ -16,9 +16,17 @@ dist-ssr
 .nitro
 *.local
 
-# Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+# Media, Videos and Audio Recordings (Never push to Git)
+recordings/
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+*.wav
+*.mp3
 
 # Editor directories and files
 .vscode/*

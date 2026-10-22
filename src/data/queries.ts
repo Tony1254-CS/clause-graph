@@ -20,6 +20,10 @@ import {
   getTeamMembersFn,
   getMyRoleFn,
 } from "@/lib/data.functions";
+import {
+  getComplianceProfileFn,
+  type ComplianceProfile,
+} from "@/lib/compliance-profile.functions";
 
 type ClauseRow = {
   id: string;
@@ -182,6 +186,18 @@ export const profileQuery = queryOptions({
     }
   },
   staleTime: 60_000,
+});
+
+export const complianceProfileQuery = queryOptions({
+  queryKey: ["compliance-profile"],
+  queryFn: async (): Promise<ComplianceProfile | null> => {
+    try {
+      return await getComplianceProfileFn();
+    } catch {
+      return null;
+    }
+  },
+  staleTime: 30_000,
 });
 
 export type BacktestCaseRow = {

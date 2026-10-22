@@ -13,6 +13,19 @@ export function ContractCard({ contract }: { contract: Contract }) {
     <Link
       to="/contracts/$contractId"
       params={{ contractId: contract.id }}
+      data-copilot-context={JSON.stringify({
+        type: "contract",
+        id: contract.id,
+        title: contract.name,
+        content: `Contract '${contract.name}' with counterparty '${contract.counterparty}'. Notional Value: ${formatUSD(contract.value)}. Contains ${contract.clauses.length} extracted clauses mapped to regulatory frameworks: ${uniqueRegs.join(", ") || "No active links"}.`,
+        metadata: {
+          contract_id: contract.id,
+          counterparty: contract.counterparty,
+          value: contract.value,
+          clauses_count: contract.clauses.length,
+          linked_regs: uniqueRegs,
+        },
+      })}
       className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-6 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[color-mix(in_oklab,var(--brass)_45%,transparent)] hover:shadow-[0_20px_50px_-18px_rgba(94,234,212,0.22)]"
     >
       {/* Top glowing hairline accent on hover */}

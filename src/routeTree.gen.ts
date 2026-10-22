@@ -9,54 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as RefundRouteImport } from './routes/refund'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
-import { Route as AuthenticatedSupplyChainRouteImport } from './routes/_authenticated/supply-chain'
-import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
-import { Route as AuthenticatedReviewQueueRouteImport } from './routes/_authenticated/review-queue'
-import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
-import { Route as AuthenticatedLegalSourcesRouteImport } from './routes/_authenticated/legal-sources'
-import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
-import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
-import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedActionsRouteImport } from './routes/_authenticated/actions'
+import { Route as AuthenticatedBacktestRouteImport } from './routes/_authenticated/backtest'
+import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
+import { Route as AuthenticatedLegalSourcesRouteImport } from './routes/_authenticated/legal-sources'
+import { Route as AuthenticatedPredictiveRouteImport } from './routes/_authenticated/predictive'
+import { Route as AuthenticatedReviewQueueRouteImport } from './routes/_authenticated/review-queue'
+import { Route as AuthenticatedSimulateRouteImport } from './routes/_authenticated/simulate'
+import { Route as AuthenticatedSupplyChainRouteImport } from './routes/_authenticated/supply-chain'
+import { Route as AuthenticatedWhatIfRouteImport } from './routes/_authenticated/what-if'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
-import { Route as ApiPublicVerifyCitationsRouteImport } from './routes/api/public/verify-citations'
-import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
-import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
-import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
-import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings.account'
-import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
-import { Route as AuthenticatedPredictiveRegulationIdRouteImport } from './routes/_authenticated/predictive.$regulationId'
 import { Route as AuthenticatedContractsContractIdRouteImport } from './routes/_authenticated/contracts.$contractId'
+import { Route as AuthenticatedPredictiveRegulationIdRouteImport } from './routes/_authenticated/predictive.$regulationId'
+import { Route as AuthenticatedRegulationsRegIdRouteImport } from './routes/_authenticated/regulations.$regId'
+import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings.account'
+import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
+import { Route as AuthenticatedSettingsComplianceProfileRouteImport } from './routes/_authenticated/settings.compliance-profile'
+import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicVerifyCitationsRouteImport } from './routes/api/public/verify-citations'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RefundRoute = RefundRouteImport.update({
-  id: '/refund',
-  path: '/refund',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -64,40 +54,54 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWhatIfRoute = AuthenticatedWhatIfRouteImport.update({
-  id: '/what-if',
-  path: '/what-if',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedActionsRoute = AuthenticatedActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSupplyChainRoute =
-  AuthenticatedSupplyChainRouteImport.update({
-    id: '/supply-chain',
-    path: '/supply-chain',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
-  id: '/simulate',
-  path: '/simulate',
+const AuthenticatedBacktestRoute = AuthenticatedBacktestRouteImport.update({
+  id: '/backtest',
+  path: '/backtest',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedReviewQueueRoute =
-  AuthenticatedReviewQueueRouteImport.update({
-    id: '/review-queue',
-    path: '/review-queue',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedPredictiveRoute = AuthenticatedPredictiveRouteImport.update({
-  id: '/predictive',
-  path: '/predictive',
+const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
+  id: '/contracts',
+  path: '/contracts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLegalSourcesRoute =
@@ -106,34 +110,31 @@ const AuthenticatedLegalSourcesRoute =
     path: '/legal-sources',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
+const AuthenticatedPredictiveRoute = AuthenticatedPredictiveRouteImport.update({
+  id: '/predictive',
+  path: '/predictive',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
+const AuthenticatedReviewQueueRoute =
+  AuthenticatedReviewQueueRouteImport.update({
+    id: '/review-queue',
+    path: '/review-queue',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSimulateRoute = AuthenticatedSimulateRouteImport.update({
+  id: '/simulate',
+  path: '/simulate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
-  id: '/contracts',
-  path: '/contracts',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedBacktestRoute = AuthenticatedBacktestRouteImport.update({
-  id: '/backtest',
-  path: '/backtest',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedActionsRoute = AuthenticatedActionsRouteImport.update({
-  id: '/actions',
-  path: '/actions',
+const AuthenticatedSupplyChainRoute =
+  AuthenticatedSupplyChainRouteImport.update({
+    id: '/supply-chain',
+    path: '/supply-chain',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWhatIfRoute = AuthenticatedWhatIfRouteImport.update({
+  id: '/what-if',
+  path: '/what-if',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedContractsIndexRoute =
@@ -142,27 +143,22 @@ const AuthenticatedContractsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedContractsRoute,
   } as any)
-const ApiPublicVerifyCitationsRoute =
-  ApiPublicVerifyCitationsRouteImport.update({
-    id: '/api/public/verify-citations',
-    path: '/api/public/verify-citations',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedContractsContractIdRoute =
+  AuthenticatedContractsContractIdRouteImport.update({
+    id: '/$contractId',
+    path: '/$contractId',
+    getParentRoute: () => AuthenticatedContractsRoute,
   } as any)
-const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
-  id: '/api/public/health',
-  path: '/api/public/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedSettingsTeamRoute =
-  AuthenticatedSettingsTeamRouteImport.update({
-    id: '/settings/team',
-    path: '/settings/team',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedPredictiveRegulationIdRoute =
+  AuthenticatedPredictiveRegulationIdRouteImport.update({
+    id: '/$regulationId',
+    path: '/$regulationId',
+    getParentRoute: () => AuthenticatedPredictiveRoute,
   } as any)
-const AuthenticatedSettingsBillingRoute =
-  AuthenticatedSettingsBillingRouteImport.update({
-    id: '/settings/billing',
-    path: '/settings/billing',
+const AuthenticatedRegulationsRegIdRoute =
+  AuthenticatedRegulationsRegIdRouteImport.update({
+    id: '/regulations/$regId',
+    path: '/regulations/$regId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsAccountRoute =
@@ -171,23 +167,34 @@ const AuthenticatedSettingsAccountRoute =
     path: '/settings/account',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedRegulationsRegIdRoute =
-  AuthenticatedRegulationsRegIdRouteImport.update({
-    id: '/regulations/$regId',
-    path: '/regulations/$regId',
+const AuthenticatedSettingsBillingRoute =
+  AuthenticatedSettingsBillingRouteImport.update({
+    id: '/settings/billing',
+    path: '/settings/billing',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPredictiveRegulationIdRoute =
-  AuthenticatedPredictiveRegulationIdRouteImport.update({
-    id: '/$regulationId',
-    path: '/$regulationId',
-    getParentRoute: () => AuthenticatedPredictiveRoute,
+const AuthenticatedSettingsComplianceProfileRoute =
+  AuthenticatedSettingsComplianceProfileRouteImport.update({
+    id: '/settings/compliance-profile',
+    path: '/settings/compliance-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedContractsContractIdRoute =
-  AuthenticatedContractsContractIdRouteImport.update({
-    id: '/$contractId',
-    path: '/$contractId',
-    getParentRoute: () => AuthenticatedContractsRoute,
+const AuthenticatedSettingsTeamRoute =
+  AuthenticatedSettingsTeamRouteImport.update({
+    id: '/settings/team',
+    path: '/settings/team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVerifyCitationsRoute =
+  ApiPublicVerifyCitationsRouteImport.update({
+    id: '/api/public/verify-citations',
+    path: '/api/public/verify-citations',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/settings/compliance-profile': typeof AuthenticatedSettingsComplianceProfileRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
@@ -249,6 +257,7 @@ export interface FileRoutesByTo {
   '/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/settings/compliance-profile': typeof AuthenticatedSettingsComplianceProfileRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
@@ -281,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/regulations/$regId': typeof AuthenticatedRegulationsRegIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/_authenticated/settings/compliance-profile': typeof AuthenticatedSettingsComplianceProfileRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/verify-citations': typeof ApiPublicVerifyCitationsRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/regulations/$regId'
     | '/settings/account'
     | '/settings/billing'
+    | '/settings/compliance-profile'
     | '/settings/team'
     | '/api/public/health'
     | '/api/public/verify-citations'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/regulations/$regId'
     | '/settings/account'
     | '/settings/billing'
+    | '/settings/compliance-profile'
     | '/settings/team'
     | '/api/public/health'
     | '/api/public/verify-citations'
@@ -373,6 +385,7 @@ export interface FileRouteTypes {
     | '/_authenticated/regulations/$regId'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/billing'
+    | '/_authenticated/settings/compliance-profile'
     | '/_authenticated/settings/team'
     | '/api/public/health'
     | '/api/public/verify-citations'
@@ -395,39 +408,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/refund': {
-      id: '/refund'
-      path: '/refund'
-      fullPath: '/refund'
-      preLoaderRoute: typeof RefundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -437,81 +422,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/what-if': {
-      id: '/_authenticated/what-if'
-      path: '/what-if'
-      fullPath: '/what-if'
-      preLoaderRoute: typeof AuthenticatedWhatIfRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/supply-chain': {
-      id: '/_authenticated/supply-chain'
-      path: '/supply-chain'
-      fullPath: '/supply-chain'
-      preLoaderRoute: typeof AuthenticatedSupplyChainRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/simulate': {
-      id: '/_authenticated/simulate'
-      path: '/simulate'
-      fullPath: '/simulate'
-      preLoaderRoute: typeof AuthenticatedSimulateRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/review-queue': {
-      id: '/_authenticated/review-queue'
-      path: '/review-queue'
-      fullPath: '/review-queue'
-      preLoaderRoute: typeof AuthenticatedReviewQueueRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/predictive': {
-      id: '/_authenticated/predictive'
-      path: '/predictive'
-      fullPath: '/predictive'
-      preLoaderRoute: typeof AuthenticatedPredictiveRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/legal-sources': {
-      id: '/_authenticated/legal-sources'
-      path: '/legal-sources'
-      fullPath: '/legal-sources'
-      preLoaderRoute: typeof AuthenticatedLegalSourcesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/jobs': {
-      id: '/_authenticated/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof AuthenticatedJobsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/feed': {
-      id: '/_authenticated/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof AuthenticatedFeedRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contracts': {
-      id: '/_authenticated/contracts'
-      path: '/contracts'
-      fullPath: '/contracts'
-      preLoaderRoute: typeof AuthenticatedContractsRouteImport
+    '/_authenticated/actions': {
+      id: '/_authenticated/actions'
+      path: '/actions'
+      fullPath: '/actions'
+      preLoaderRoute: typeof AuthenticatedActionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/backtest': {
@@ -521,11 +471,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBacktestRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/actions': {
-      id: '/_authenticated/actions'
-      path: '/actions'
-      fullPath: '/actions'
-      preLoaderRoute: typeof AuthenticatedActionsRouteImport
+    '/_authenticated/contracts': {
+      id: '/_authenticated/contracts'
+      path: '/contracts'
+      fullPath: '/contracts'
+      preLoaderRoute: typeof AuthenticatedContractsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs': {
+      id: '/_authenticated/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof AuthenticatedJobsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/legal-sources': {
+      id: '/_authenticated/legal-sources'
+      path: '/legal-sources'
+      fullPath: '/legal-sources'
+      preLoaderRoute: typeof AuthenticatedLegalSourcesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/predictive': {
+      id: '/_authenticated/predictive'
+      path: '/predictive'
+      fullPath: '/predictive'
+      preLoaderRoute: typeof AuthenticatedPredictiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/review-queue': {
+      id: '/_authenticated/review-queue'
+      path: '/review-queue'
+      fullPath: '/review-queue'
+      preLoaderRoute: typeof AuthenticatedReviewQueueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/simulate': {
+      id: '/_authenticated/simulate'
+      path: '/simulate'
+      fullPath: '/simulate'
+      preLoaderRoute: typeof AuthenticatedSimulateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/supply-chain': {
+      id: '/_authenticated/supply-chain'
+      path: '/supply-chain'
+      fullPath: '/supply-chain'
+      preLoaderRoute: typeof AuthenticatedSupplyChainRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/what-if': {
+      id: '/_authenticated/what-if'
+      path: '/what-if'
+      fullPath: '/what-if'
+      preLoaderRoute: typeof AuthenticatedWhatIfRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts/': {
@@ -535,32 +548,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
       parentRoute: typeof AuthenticatedContractsRoute
     }
-    '/api/public/verify-citations': {
-      id: '/api/public/verify-citations'
-      path: '/api/public/verify-citations'
-      fullPath: '/api/public/verify-citations'
-      preLoaderRoute: typeof ApiPublicVerifyCitationsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/contracts/$contractId': {
+      id: '/_authenticated/contracts/$contractId'
+      path: '/$contractId'
+      fullPath: '/contracts/$contractId'
+      preLoaderRoute: typeof AuthenticatedContractsContractIdRouteImport
+      parentRoute: typeof AuthenticatedContractsRoute
     }
-    '/api/public/health': {
-      id: '/api/public/health'
-      path: '/api/public/health'
-      fullPath: '/api/public/health'
-      preLoaderRoute: typeof ApiPublicHealthRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/predictive/$regulationId': {
+      id: '/_authenticated/predictive/$regulationId'
+      path: '/$regulationId'
+      fullPath: '/predictive/$regulationId'
+      preLoaderRoute: typeof AuthenticatedPredictiveRegulationIdRouteImport
+      parentRoute: typeof AuthenticatedPredictiveRoute
     }
-    '/_authenticated/settings/team': {
-      id: '/_authenticated/settings/team'
-      path: '/settings/team'
-      fullPath: '/settings/team'
-      preLoaderRoute: typeof AuthenticatedSettingsTeamRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings/billing': {
-      id: '/_authenticated/settings/billing'
-      path: '/settings/billing'
-      fullPath: '/settings/billing'
-      preLoaderRoute: typeof AuthenticatedSettingsBillingRouteImport
+    '/_authenticated/regulations/$regId': {
+      id: '/_authenticated/regulations/$regId'
+      path: '/regulations/$regId'
+      fullPath: '/regulations/$regId'
+      preLoaderRoute: typeof AuthenticatedRegulationsRegIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/account': {
@@ -570,26 +576,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/regulations/$regId': {
-      id: '/_authenticated/regulations/$regId'
-      path: '/regulations/$regId'
-      fullPath: '/regulations/$regId'
-      preLoaderRoute: typeof AuthenticatedRegulationsRegIdRouteImport
+    '/_authenticated/settings/billing': {
+      id: '/_authenticated/settings/billing'
+      path: '/settings/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof AuthenticatedSettingsBillingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/predictive/$regulationId': {
-      id: '/_authenticated/predictive/$regulationId'
-      path: '/$regulationId'
-      fullPath: '/predictive/$regulationId'
-      preLoaderRoute: typeof AuthenticatedPredictiveRegulationIdRouteImport
-      parentRoute: typeof AuthenticatedPredictiveRoute
+    '/_authenticated/settings/compliance-profile': {
+      id: '/_authenticated/settings/compliance-profile'
+      path: '/settings/compliance-profile'
+      fullPath: '/settings/compliance-profile'
+      preLoaderRoute: typeof AuthenticatedSettingsComplianceProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/contracts/$contractId': {
-      id: '/_authenticated/contracts/$contractId'
-      path: '/$contractId'
-      fullPath: '/contracts/$contractId'
-      preLoaderRoute: typeof AuthenticatedContractsContractIdRouteImport
-      parentRoute: typeof AuthenticatedContractsRoute
+    '/_authenticated/settings/team': {
+      id: '/_authenticated/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AuthenticatedSettingsTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/verify-citations': {
+      id: '/api/public/verify-citations'
+      path: '/api/public/verify-citations'
+      fullPath: '/api/public/verify-citations'
+      preLoaderRoute: typeof ApiPublicVerifyCitationsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -649,6 +669,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRegulationsRegIdRoute: typeof AuthenticatedRegulationsRegIdRoute
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsBillingRoute: typeof AuthenticatedSettingsBillingRoute
+  AuthenticatedSettingsComplianceProfileRoute: typeof AuthenticatedSettingsComplianceProfileRoute
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
 }
 
@@ -668,6 +689,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRegulationsRegIdRoute: AuthenticatedRegulationsRegIdRoute,
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
   AuthenticatedSettingsBillingRoute: AuthenticatedSettingsBillingRoute,
+  AuthenticatedSettingsComplianceProfileRoute:
+    AuthenticatedSettingsComplianceProfileRoute,
   AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
 }
 
