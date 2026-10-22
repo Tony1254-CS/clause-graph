@@ -1,120 +1,120 @@
 # ClauseGraph: Manual Input Capabilities & System-Wide Audit
 
 > [!IMPORTANT]
-> এই ডকুমেন্টটি ব্যবহারকারীর মূল প্রশ্নের পূর্ণাঙ্গ ও বিস্তারিত উত্তর দেয়: **"সিস্টেমের সব জায়গায় কি আমরা এখন ম্যানুয়ালি ইনপুট দিতে পারবো?"**
-> নিচে প্রতিটি মডিউলের বর্তমান ইনপুট সক্ষমতা, কোনটি ১০০% ম্যানুয়াল এবং কোন জায়গায় কী ধরনের ইনপুট দেওয়া যায় তার সম্পূর্ণ অডিট রিপোর্ট দেওয়া হলো।
+> This document provides a comprehensive, production-grade audit answering the critical operational question: **"Can users manually provide input across every module of the system?"**
+> Below is the complete audit of input capabilities across all platform modules, detailing what is 100% manually configurable, supported input types, and future enhancement paths.
 
 ---
 
-## ১. সংক্ষেপিত সারসংক্ষেপ (Executive Summary)
+## 1. Executive Summary
 
-| মডিউল / ফিচার | বর্তমান স্ট্যাটাস | ব্যবহারকারী কী কী ম্যানুয়ালি ইনপুট দিতে পারেন? |
+| Module / Platform Feature | Current Status | Manual Input Capabilities Supported |
 | :--- | :--- | :--- |
-| **১. Onboarding Wizard** | ✅ **১০০% ম্যানুয়াল** | কোম্পানির নাম, দেশ, পাবলিক লিস্টিং, ইন্ডাস্ট্রি, ৫টি ডেটা ফুটপ্রিন্ট টগল, ক্লাউড প্রোভাইডার। |
-| **২. Compliance Scope Settings** | ✅ **১০০% ম্যানুয়াল** | প্রোফাইলের প্রতিটি প্যারামিটার পরিবর্তন, লাইভ রিক্যালকুলেশন এবং ডাটাবেজ সেভ। |
-| **৩. Contract Ingestion (`/contracts`)** | ✅ **১০০% ম্যানুয়াল** | যে কোনো আসল চুক্তি (PDF) আপলোড, কাউন্টারপার্টির নাম, চুক্তির ডলার মূল্য। |
-| **৪. What-If & Blast Radius (`/simulate`)** | ✅ **১০০% ম্যানুয়াল** | টেক্সট-এরিয়ায় যে কোনো প্রস্তাবিত আইন বা ড্রাফট সরাসরি টাইপ/পেস্ট করে সিমুলেশন চালানো। |
-| **৫. Review Queue (`/review-queue`)** | ✅ **১০০% ম্যানুয়াল** | ক্লজ অনুমোদন (Approve), বাতিল (Reject), টেক্সট এডিট/সংশোধন, অডিট নোট ও রিভিউয়ার অ্যাসাইন। |
-| **৬. Action Plans (`/actions`)** | ✅ **১০০% ম্যানুয়াল** | রিমিডিয়েশন প্ল্যান জেনারেট করা, টাস্ক সম্পন্ন (Complete) মার্ক করা। |
-| **৭. Team Management (`/settings/team`)** | ✅ **১০০% ম্যানুয়াল** | নতুন টিম মেম্বারদের ইমেইল ইনপুট দিয়ে ইনভাইট করা, অ্যাডমিন/মেম্বার রোল সেট করা। |
-| **৮. Account Security (`/settings/account`)** | ✅ **১০০% ম্যানুয়াল** | নিজের নাম আপডেট করা, নতুন পাসওয়ার্ড সেট করা। |
-| **৯. Regulatory Feed (`/feed`)** | ⚡ **সেমি-অটোমেটেড** | সার্চ, ফিল্টার ও ফুল টেক্সট ভিউ। নতুন কাস্টম আইন সরাসরি ডাটাবেজে ইনসার্ট করার বাটন এখনও অপশনাল। |
-| **১০. Supply Chain Graph** | ⚡ **অটোমেটিক ডিরাইভড** | কন্ট্রাক্ট ও ক্লাউড স্ট্যাকের ওপর ভিত্তি করে গ্রাফ গঠিত হয়। সরাসরি ম্যানুয়াল নোড অ্যাড বাটন অপশনাল। |
+| **1. Onboarding Wizard** | ✅ **100% Manual** | Organization name, incorporation country, public listing toggle, industry vertical, 5 operational data footprint toggles, and cloud provider selector. |
+| **2. Compliance Scope Settings** | ✅ **100% Manual** | Modify any profile parameter, inspect live statutory recalculation, and persist directly to PostgreSQL. |
+| **3. Contract Ingestion (`/contracts`)** | ✅ **100% Manual** | Upload any production contract PDF, input counterparty name, and assign contract dollar valuation ($). |
+| **4. What-If & Blast Radius (`/simulate`)** | ✅ **100% Manual** | Type or paste any prospective statutory draft, circular, or legislative amendment into a free-form textarea to execute instant shock simulations. |
+| **5. Review Queue (`/review-queue`)** | ✅ **100% Manual** | Approve clauses, reject false detections, edit/correct clause text inline, record internal audit notes, and assign colleagues for review. |
+| **6. Action Plans (`/actions`)** | ✅ **100% Manual** | Generate structured remediation roadmaps and toggle tasks as completed via interactive checkboxes. |
+| **7. Team Management (`/settings/team`)** | ✅ **100% Manual** | Invite colleagues via email input and manually assign organizational access roles (`Admin` vs. `Member`). |
+| **8. Account Security (`/settings/account`)** | ✅ **100% Manual** | Update display name and enter new account passwords (securely hashed via Bcrypt with salt). |
+| **9. Regulatory Feed (`/feed`)** | ⚡ **Semi-Automated** | Search, filter, and inspect full statutory texts. Direct custom regulation ingestion modal is optional. |
+| **10. Supply Chain Graph** | ⚡ **Automatically Derived** | Topologies are programmatically derived from ingested contracts and cloud footprints. Manual supplier node creator is optional. |
 
 ---
 
-## ২. মডিউলভিত্তিক বিস্তারিত অডিট (Detailed Module Breakdown)
+## 2. Detailed Module Breakdown
 
-### ১. Onboarding & Workspace Initialization
-* **ইউআরএল**: `/dashboard` (স্বয়ংক্রিয় মডাল)
-* **ইনপুট টাইপ**: ফর্ম ফিল্ড, সিলেক্ট ড্রপডাউন, সুইচ টগল, ক্লাউড সিলেক্টর।
-* **সক্ষমতা**:
-  - যে কোনো কোম্পানির আসল নাম ইনপুট দেওয়া যায় (যেমন: RMC, FinTech, Healthcare, ইত্যাদি)।
-  - হেডকোয়ার্টার দেশ ও ইন্ডাস্ট্রি নির্বাচন করা যায়।
-  - ৫টি ডেটা ফুটপ্রিন্ট টগল দিয়ে নির্দিষ্ট আইনের স্কোপ সক্রিয় করা যায়।
-* **ফলাফল**: কোনো আন্দাজে বসানো ডেটা থাকে না, ওয়ার্কস্পেস ১০০% ক্লিন শুরু হয়।
-
----
-
-### ২. Compliance Scope Settings
-* **ইউআরএল**: `/settings/compliance-profile`
-* **ইনপুট টাইপ**: লাইভ সেটিংস ফর্ম।
-* **সক্ষমতা**:
-  - ইউজার পরবর্তীতে যে কোনো সময় তার কোম্পানির দেশ, ক্লাউড ইনফ্রাস্ট্রাকচার বা ডেটা প্রসেসিং টগল পরিবর্তন করতে পারবেন।
-  - প্রতিটি পরিবর্তনের সাথে সাথে ডানপাশের **Active Legal Frameworks (Live Mapping)** রিয়েল-টাইমে আপডেট হয়।
-  - `Save Changes` বোতাম চাপলে সাথে সাথে ডাটাবেজে পারসিস্ট হয়।
+### 1. Enterprise Onboarding & Workspace Initialization
+* **Route**: `/dashboard` (Automated modal on cold-start workspaces)
+* **Input Mechanisms**: Form text inputs, select dropdowns, switch toggles, multi-select cloud provider chips.
+* **Capabilities**:
+  - Input the verified legal entity name (e.g., enterprise clients across Fintech, Healthtech, Manufacturing, SaaS).
+  - Select incorporation jurisdiction and market vertical.
+  - Configure 5 distinct operational footprint switches to activate precise statutory scopes.
+* **Operational Outcome**: Eliminates synthetic sample contracts; initializes a clean, customized enterprise workspace.
 
 ---
 
-### ৩. Contract Portfolio & PDF Extraction
-* **ইউআরএল**: `/contracts`
-* **ইনপুট টাইপ**: ফাইল ড্র্যাগ-অ্যান্ড-ড্রপ / সিলেক্টর, টেক্সট ইনপুট, কারেন্সি ইনপুট।
-* **সক্ষমতা**:
-  - ব্যবহারকারী তার নিজের যে কোনো ভেন্ডর এগ্রিমেন্ট, কাস্টমার MSA, বা DPA (PDF ফরম্যাটে) আপলোড করতে পারেন।
-  - চুক্তির পার্টনারের নাম (`Counterparty Name`) এবং চুক্তির মোট আর্থিক মূল্য (`Contract Value $`) টাইপ করে দেওয়া যায়।
-  - Gemini AI ইঞ্জিন ওই চুক্তি থেকে স্বয়ংক্রিয়ভাবে ক্লজ এক্সট্রাক্ট করে এবং অ্যাক্টিভ আইনের সাথে লিংক করে।
+### 2. Compliance Scope Settings
+* **Route**: `/settings/compliance-profile`
+* **Input Mechanisms**: Real-time settings form with instant feedback.
+* **Capabilities**:
+  - Update organizational domicile, cloud providers, or data processing toggles at any stage in the company lifecycle.
+  - Real-time recalculation of the **Active Legal Frameworks (Live Mapping)** panel on the right upon toggle change.
+  - Clicking `Save Changes` commits updates atomically to PostgreSQL.
 
 ---
 
-### ৪. What-If & Adversarial Simulation Engine
-* **ইউআরএল**: `/simulate`
-* **ইনপুট টাইপ**: ফ্রি-ফর্ম বড় টেক্সট-এরিয়া (Textarea), ট্যাব সুইচ, প্রিসেট বাটন।
-* **সক্ষমতা**:
-  - ব্যবহারকারী **যে কোনো প্রস্তাবিত আইন, সরকারি সার্কুলার বা ড্রাফট রেগুলেশন** সরাসরি নিজের মতো লিখে বা কপি-পেস্ট করে ইনপুট দিতে পারেন।
-  - ইনপুটকৃত টেক্সটের ওপর ভিত্তি করে সিস্টেম রিয়েল-টাইমে তার সক্রিয় কন্ট্রাক্টগুলোর ওপর ফাইন্যান্সিয়াল ব্লাস্ট রেডিয়াস ($ এক্সপোজার) এবং হাই/মিডিয়াম/লো রিস্ক ক্লজ হিসাব করে।
-  - প্রিসেট ড্রাফট সিলেক্ট করার সুবিধাও রাখা আছে।
+### 3. Contract Portfolio & PDF Ingestion
+* **Route**: `/contracts`
+* **Input Mechanisms**: Drag-and-drop file uploader, native file selector, text inputs, currency fields.
+* **Capabilities**:
+  - Upload authentic client agreements, vendor DPAs, MSAs, or SLAs in PDF format.
+  - Manually input the counterparty name (`Counterparty Name`) and contract dollar value (`Contract Value $`).
+  - The extraction pipeline parses clauses and automatically maps them to governing statutory articles.
 
 ---
 
-### ৫. Human-in-the-Loop Review Queue
-* **ইউআরএল**: `/review-queue`
-* **ইনপুট টাইপ**: ইন্টার‍্যাক্টিভ রিভিউ প্যানেল, টেক্সট এডিটর, অ্যাকশন বাটন।
-* **সক্ষমতা**:
-  - এআই ক্লজ এক্সট্রাক্ট করার পর লিগ্যাল টিম প্রতিটি ক্লজ ম্যানুয়ালি রিভিউ করতে পারে।
-  - **Approve**: ক্লজটিকে বৈধ বলে অনুমোদন করা।
-  - **Reject**: ভুল ডিটেকশন বাতিল করা।
-  - **Correct / Edit**: যদি ক্লজের উদ্ধৃত টেক্সট সংশোধন করার প্রয়োজন হয়, ইউজার ম্যানুয়ালি টেক্সট এডিট করে সেভ করতে পারেন।
-  - **Review Notes**: ম্যানুয়ালি ইন্টারনাল অডিট নোট যোগ করা যায়।
-  - **Assign Reviewer**: নির্দিষ্ট সহকর্মীকে টাস্ক অ্যাসাইন করা যায়।
+### 4. What-If & Adversarial Simulation Engine
+* **Route**: `/simulate`
+* **Input Mechanisms**: Multi-line free-form textarea, tab selectors, scenario preset buttons.
+* **Capabilities**:
+  - Legal teams can **type or paste any proposed statutory draft, government circular, or hypothetical regulatory rule** directly into the interface.
+  - The engine analyzes the portfolio against the input text, calculating the financial blast radius ($ exposure) and classifying affected clauses by risk severity (`HIGH`, `MEDIUM`, `LOW`).
+  - Includes quick-load preset buttons for testing common international regulatory shocks.
 
 ---
 
-### ৬. Remediation Action Plans
-* **ইউআরএল**: `/actions`
-* **ইনপুট টাইপ**: অ্যাকশন ট্র্যাকার ও চেকলিস্ট চেকবক্স।
-* **সক্ষমতা**:
-  - কোনো রেগুলেশন লঙ্ঘনের ঝুঁকি থাকলে সিস্টেম স্বয়ংক্রিয়ভাবে টেকনিক্যাল ও লিগ্যাল অ্যাকশন প্ল্যান তৈরি করে।
-  - ব্যবহারকারী ম্যানুয়ালি প্রতিটি অ্যাকশন আইটেম সম্পন্ন হলে চেকবক্স টিক দিয়ে "Completed" মার্ক করতে পারেন।
+### 5. Human-in-the-Loop Review Queue
+* **Route**: `/review-queue`
+* **Input Mechanisms**: Interactive review cards, inline text editors, form input fields, action buttons.
+* **Capabilities**:
+  - Counsel reviews every extracted operational clause with full human oversight.
+  - **Approve**: Confirms the clause extraction and statutory linking as valid.
+  - **Reject**: Dismisses incorrect or irrelevant detections.
+  - **Correct / Edit**: Allows manual inline editing of extracted clause text and citations before final sign-off.
+  - **Review Notes**: Add manual internal audit remarks and justification records.
+  - **Assign Reviewer**: Allocate review tasks to specific team members.
 
 ---
 
-### ৭. Team Collaboration & Access Control
-* **ইউআরএল**: `/settings/team`
-* **ইনপুট টাইপ**: ইমেইল ইনপুট ফিল্ড ও রোল ড্রপডাউন।
-* **সক্ষমতা**:
-  - সহকর্মীদের ইমেইল ইনপুট দিয়ে ইনভাইট পাঠানো যায়।
-  - ম্যানুয়ালি ভূমিকা নির্ধারণ (`Admin` নাকি `Member`) করা যায়।
-  - মেম্বার রিমুভ করা যায়।
+### 6. Remediation Action Plans
+* **Route**: `/actions`
+* **Input Mechanisms**: Interactive action tracking cards and task completion checkboxes.
+* **Capabilities**:
+  - Synthesizes automated technical and legal remediation plans in response to statutory vulnerabilities.
+  - Team members manually mark checklist items as "Completed" upon resolving contractual or infrastructure gaps.
 
 ---
 
-### ৮. Account Security & Credentials
-* **ইউআরএল**: `/settings/account`
-* **ইনপুট টাইপ**: টেক্সট ও পাসওয়ার্ড ইনপুট।
-* **সক্ষমতা**:
-  - ব্যবহারকারী তার ডিসপ্লে নাম পরিবর্তন করতে পারেন।
-  - নতুন পাসওয়ার্ড ম্যানুয়ালি ইনপুট দিয়ে আপডেট করতে পারেন (যা সার্ভারে Bcrypt সল্ট হ্যাশ হিসেবে নিরাপদে সংরক্ষিত হয়)।
+### 7. Team Collaboration & Access Control
+* **Route**: `/settings/team`
+* **Input Mechanisms**: Email address input field and role selection dropdown.
+* **Capabilities**:
+  - Dispatch enterprise invitations by entering colleague email addresses.
+  - Manually configure permission tiers (`Admin` vs. `Member`).
+  - Remove departed team members from the organization workspace.
 
 ---
 
-## ৩. যেসব জায়গায় আরও ইনপুট যোগ করা সম্ভব (Future Enhancements)
+### 8. Account Security & Credentials
+* **Route**: `/settings/account`
+* **Input Mechanisms**: Profile display text field and secure password inputs.
+* **Capabilities**:
+  - Update user display name and profile identifiers.
+  - Manually enter and confirm new account passwords (persisted with secure Bcrypt hashing).
 
-বর্তমানে অ্যাপ্লিকেশনের সব প্রধান অপারেশনাল অংশে ম্যানুয়াল ইনপুট কাজ করছে। তবে দুটি ক্ষেত্রে আরও সুবিধা যোগ করা যেতে পারে:
+---
+
+## 3. Potential Future Enhancements
+
+While all core operational workflows currently support direct manual inputs, two optional enhancements can be considered for future feature roadmaps:
 
 1. **Custom Regulation Creator (`/feed`)**:
-   - *বর্তমান অবস্থা*: সিস্টেমে আগে থেকেই ১০টি প্রধান আন্তর্জাতিক ও জাতীয় আইন ইনডেক্স করা আছে এবং Federal Register থেকে লাইভ ফিড আসে।
-   - *সম্ভাব্য উন্নয়ন*: ইউজার যদি নিজস্ব কোনো কাস্টম রেগুলেশন বা লোকাল সার্কুলার নাম, ধারা ও সম্পূর্ণ বিবরণী সহ ম্যানুয়ালি ডাটাবেজে ইনসার্ট করতে চান, তবে একটি `Add Custom Regulation` মডাল যুক্ত করা যেতে পারে।
+   - *Current State*: The platform indexes 10 major international and domestic frameworks alongside live Federal Register updates.
+   - *Enhancement Path*: An optional `Add Custom Regulation` modal enabling legal teams to manually input proprietary industry standards, local municipal guidelines, or internal compliance covenants.
 
 2. **Supply Chain Manual Node Builder (`/simulate?tab=supply-chain`)**:
-   - *বর্তমান অবস্থা*: সাপ্লাই চেইনের ৩-স্তরের ডিপেনডেন্সি গ্রাফ কন্ট্রাক্ট ভেন্ডর ও ক্লাউড প্রোভাইডারের ওপর ভিত্তি করে গঠিত হয়।
-   - *সম্ভাব্য উন্নয়ন*: ইউজার যদি ড্র্যাগ-অ্যান্ড-ড্রপ বা ফর্মের মাধ্যমে সরাসরি নিজের কোনো সাব-ভেন্ডর বা টিয়ার-২ সাপ্লায়ার নোড যুক্ত করতে চান, তবে একটি `Add Supplier Node` ফর্ম যোগ করা যেতে পারে।
+   - *Current State*: Multi-tier supply chain dependency trees are programmatically derived from ingested contracts and cloud architecture profiles.
+   - *Enhancement Path*: An optional `Add Supplier Node` form enabling counsel to manually inject uncontracted Tier-2 and Tier-3 vendors directly into the topology graph.

@@ -1,88 +1,90 @@
 # ClauseGraph: Complete AI Features & Machine Learning Architecture
 
-ClauseGraph একটি হাইব্রিড **AI + Deterministic Legal Graph Engine**। এখানে শুধু সাধারণ চ্যাটবট ব্যবহারের পরিবর্তে লিগ্যাল টেকনোলজি, কন্ট্রাক্ট অ্যানালাইসিস এবং ক্লাউড কমপ্লায়েন্সের জন্য **৮টি বিশেষায়িত এআই ফিচার** বাস্তবায়ন করা হয়েছে।
+ClauseGraph is a hybrid **AI + Deterministic Legal Graph Engine**. Rather than relying on a generic conversational chatbot, ClauseGraph implements **8 specialized AI features** engineered specifically for legal technology, contract risk analysis, and regulatory compliance graph traversal.
 
 ---
 
-## ১. এআই ফিচারগুলোর একনজরে তালিকা (Overview)
+## 1. Overview of AI Features
 
-| # | এআই ফিচারের নাম | ব্যবহৃত মডেল | মূল কাজ ও আউটপুট |
+| # | AI Feature Name | Primary Model | Core Responsibility & Output |
 | :-: | :--- | :--- | :--- |
-| **১** | **Autonomous Contract Segmentation & Extraction** | `gpt-4o-mini` | র' চুক্তি (PDF) থেকে স্বয়ংক্রিয়ভাবে ক্লজ পৃথকীকরণ ও নির্দিষ্ট আইনের সাথে ট্যাগিং। |
-| **২** | **Zero-Hallucination Quote & Citation Verifier** | Hybrid (NLP + Regex) | এআই যেন কোনো মিথ্যা ক্লজ বা আইন না বানায়, তার জন্য অবিকল স্ট্রিং ও অথরিটেটিভ সাইটেশন ভেরিফিকেশন। |
-| **৩** | **Regulatory Blast Radius & Financial Impact Simulator** | `gpt-4o` | নতুন বা প্রস্তাবিত আইনের কারণে চুক্তির ওপর ডলার এক্সপোজার ($) ও রিয়েল-টাইম সংশোধনী তৈরি। |
-| **৪** | **Multi-Tier Supply Chain Cascade Traversal** | `gpt-4o` | ভেন্ডর গ্রাফে (টিয়ার ১, ২, ৩) রেগুলেটরি শকের ৩-হপ প্রোপাগেশন ও পরোক্ষ আর্থিক ক্ষতি নির্ণয়। |
-| **৫** | **Predictive Radar & Adversarial What-If Formulator** | `gpt-4o` | আইনের পূর্ববর্তী সংশোধনী প্যাটার্ন বিশ্লেষণ করে ভবিষ্যতের কঠোর আইনের ড্রাফট তৈরি ও আর্লি-ওয়ার্নিং। |
-| **৬** | **Automated Legal Remediation Action Planner** | `gpt-4o` | নীতিমালা ড্রাফট, চুক্তি সংশোধনীর ভাষা এবং P0/P1/P2 টেকনিক্যাল চেকলিস্ট তৈরি। |
-| **৭** | **Compliance-as-Code Synthesizer** | `gpt-4o` | আইনি বাধ্যবাধকতা পূরণের জন্য ক্লাউড অডিট স্ক্রিপ্ট (Python/boto3) এবং Terraform/YAML কোড তৈরি। |
-| **৮** | **Historical Enforcement Backtesting Engine** | `gpt-4o` | ঐতিহাসিক বড় অঙ্কের জরিমানা (যেমন: Meta €1.2B fine) থেকে নিজের চুক্তি সুরক্ষিত কি না তা পরীক্ষা। |
+| **1** | **Autonomous Contract Segmentation & Extraction** | `gpt-4o-mini` | Ingests raw contract PDFs, segments distinct operational clauses, and links them to governing statutory articles. |
+| **2** | **Zero-Hallucination Quote & Citation Verifier** | Hybrid (NLP + Regex) | Enforces exact substring matching against source documents and verifies active vs. repealed statutory citations. |
+| **3** | **Regulatory Blast Radius & Financial Impact Simulator** | `gpt-4o` | Evaluates new or proposed statutory drafts against contract portfolios to determine dollar exposure ($) and generate remedial amendments. |
+| **4** | **Multi-Tier Supply Chain Cascade Traversal** | `gpt-4o` | Recursively traverses vendor graphs (Tier 1, 2, 3) to model 3-hop statutory shock propagation and calculate indirect financial exposure. |
+| **5** | **Predictive Radar & Adversarial What-If Formulator** | `gpt-4o` | Analyzes historical amendment trajectories (tightening vs. loosening) to formulate prospective adversarial regulatory drafts. |
+| **6** | **Automated Legal Remediation Action Planner** | `gpt-4o` | Synthesizes 3-part executable action plans: corporate policy drafts, contract amendment language, and P0/P1/P2 engineering checklists. |
+| **7** | **Compliance-as-Code Synthesizer** | `gpt-4o` | Translates legal mandates into actionable cloud audit scripts (Python/boto3) and Infrastructure-as-Code (Terraform/YAML). |
+| **8** | **Historical Enforcement Backtesting Engine** | `gpt-4o` | Stress-tests active contract portfolios against historical multimillion-dollar enforcement cases (e.g., Meta €1.2B fine, British Airways). |
 
 ---
 
-## ২. প্রতিটি এআই ফিচারের বিস্তারিত বিবরণ
+## 2. Detailed Technical Breakdown of Each AI Feature
 
-### ১. Autonomous Contract Segmentation & Regulatory Linking
-- **কোড ফাইল**: `src/lib/upload.server.ts` ও `src/lib/jobs.worker.ts`
-- **কীভাবে কাজ করে**: 
-  - ইউজার যে কোনো চুক্তি (Customer MSA, Vendor DPA, SLA) আপলোড করলে টেক্সট এক্সট্রাক্ট করা হয়।
-  - এআই প্রম্পটের মাধ্যমে চুক্তিটিকে ৫ থেকে ২০টি নির্দিষ্ট ক্লজে (বাধ্যবাধকতা, সংজ্ঞা, টার্মিনেশন, ডাটা ট্রান্সফার ইত্যাদি) বিভক্ত করে।
-  - একই সাথে প্রতিটি ক্লজ কোন কোন রেগুলেশনের (যেমন: `REG-GDPR-33`, `REG-BD-CSO-2025`, `REG-BB-DPS-2023`) অধীনে পড়ে তা স্বয়ংক্রিয়ভাবে লিঙ্ক করে।
+### 1. Autonomous Contract Segmentation & Regulatory Linking
+- **Source Files**: `src/lib/upload.server.ts` & `src/lib/jobs.worker.ts`
+- **Execution Mechanism**:
+  - When an enterprise user uploads a contract (Customer MSA, Vendor DPA, SLA), raw text and layout vectors are extracted.
+  - The AI model segments the unstructured document into 5 to 20 discrete operational clauses (Obligations, Definitions, Termination, Data Transfer, Liability, Incident Reporting).
+  - Simultaneously, each clause is tagged and cross-linked to matching statutory authorities within the knowledge graph (e.g., `REG-GDPR-33`, `REG-BD-CSO-2025`, `REG-BB-DPS-2023`).
 
-### ২. Zero-Hallucination Verbatim Verification Pipeline
-- **কোড ফাইল**: `src/lib/citation-verifier.ts` ও `src/lib/citation-extractor.ts`
-- **কীভাবে কাজ করে**:
-  - আইন ও চুক্তির ক্ষেত্রে জেনারেটিভ এআই-এর কাল্পনিক তথ্য (Hallucination) সম্পূর্ণ নিষিদ্ধ।
-  - সিস্টেম এআই থেকে প্রাপ্ত প্রতিটি ক্লজের উদ্ধৃতি মূল ডকুমেন্টের সাথে **হুবহু সাবস্ট্রিং ম্যাচ (Exact Substring Matching)** করে। যদি ১টি শব্দও পরিবর্তিত হয়, সিস্টেম তা সংশোধন করে।
-  - উদ্ধৃত ধারাগুলো (Section/Article) ডাটাবেজের অফিসিয়াল গেজেট ও সাইটেশন করপাসের সাথে মিলিয়ে বাতিল (Repealed) বা সক্রিয় (In Force) স্ট্যাটাস যাচাই করে।
+### 2. Zero-Hallucination Verbatim Verification Pipeline
+- **Source Files**: `src/lib/citation-verifier.ts` & `src/lib/citation-extractor.ts`
+- **Execution Mechanism**:
+  - In legal and compliance domains, generative hallucination is strictly impermissible.
+  - The verification engine extracts raw quotes produced by LLM pipelines and runs **Exact Substring Matching** against the immutable source document text. If even a single word is altered or hallucinated, the citation is flagged and corrected.
+  - Extracted statutory citations (Section/Article numbers) are verified against the active official gazette corpus to determine whether the cited law is currently `In Force`, `Amended`, or `Repealed`.
 
-### ৩. Regulatory Blast Radius & Financial Exposure Simulator
-- **কোড ফাইল**: `src/lib/simulate.functions.ts`
-- **কীভাবে কাজ করে**:
-  - সরকার বা রেগুলেটরি বডি যদি কোনো নতুন আইন প্রস্তাব করে (যেমন: "ডাটা ব্রিচ নোটিশ ৭২ ঘণ্টার পরিবর্তে ২৪ ঘণ্টার মধ্যে দিতে হবে"), ইউজার ওই ড্রাফটটি ইনপুট দেন।
-  - এআই পুরো কন্ট্রাক্ট পোর্টফোলিওর প্রতিটি ক্লজ অ্যানালাইসিস করে বের করে:
-    - কোন কোন কন্ট্রাক্ট সরাসরি ঝুঁকিতে পড়বে।
-    - ঝুঁকির মাত্রা: High, Medium, নাকি Low।
-    - মোট আর্থিক ক্ষতি / এক্সপোজার কত ($)।
-    - `suggested_amendment`: ক্ষতি এড়াতে চুক্তিতে ঠিক কোন ১টি বাক্য যোগ বা পরিবর্তন করতে হবে।
+### 3. Regulatory Blast Radius & Financial Exposure Simulator
+- **Source Files**: `src/lib/simulate.functions.ts`
+- **Execution Mechanism**:
+  - When a government authority or regulatory agency proposes a new statutory requirement (e.g., "Data breach notification deadline shortened from 72 hours to 24 hours"), the user supplies or selects the draft rule.
+  - The AI evaluates every clause in the organization's contract portfolio and determines:
+    - Which contracts are directly in violation or non-compliant.
+    - Risk severity score: `HIGH`, `MEDIUM`, or `LOW`.
+    - Total aggregated portfolio dollar exposure (`$`).
+    - `suggested_amendment`: A single, prescriptive remedial sentence ready to be executed as an addendum to eliminate the liability.
 
-### ৪. Recursive Upstream Supply Chain Cascade Engine
-- **কোড ফাইল**: `src/lib/supply-chain.functions.ts`
-- **কীভাবে কাজ করে**:
-  - কোম্পানি শুধু সরাসরি সরবরাহকারী (Tier 1) নয়, তাদের ক্লাউড হোস্টিং (Tier 2) ও ডাটা সেন্টার বা সাবপ্রসেসরের (Tier 3) ওপরও নির্ভরশীল।
-  - একটি নতুন নিয়ম আসলে এআই পুরো সাপ্লাই চেইন টপোলজি গ্রাফ রিকার্সিভলি ট্রাভার্স করে।
-  - কয়টি হপ (Hop) দূরে কোন সাব-ভেন্ডরের চুক্তি ভঙ্গ হবে এবং তার কারণে মূল কোম্পানির কত ডলার পরোক্ষ আর্থিক ক্ষতি (`indirect_exposure_usd`) হবে তা হিসাব করে।
+### 4. Recursive Upstream Supply Chain Cascade Engine
+- **Source Files**: `src/lib/supply-chain.functions.ts`
+- **Execution Mechanism**:
+  - Enterprises rely not only on direct suppliers (Tier 1), but also on their suppliers' cloud hosting providers (Tier 2) and subprocessors or data centers (Tier 3).
+  - When a statutory shock occurs, the engine traverses the supply chain topology graph recursively across up to 3 hops.
+  - It identifies which downstream dependencies will breach statutory obligations and computes the cumulative indirect financial exposure (`indirect_exposure_usd`) borne by the primary enterprise.
 
-### ৫. Predictive Regulatory Radar & Adversarial What-If Formulator
-- **কোড ফাইল**: `src/lib/predict.functions.ts`
-- **কীভাবে কাজ করে**:
-  - একটি আইনের অতীতের সমস্ত সংশোধনীর গতিবিধি (Tightening vs Loosening direction) বিশ্লেষণ করে।
-  - ভবিষ্যতের সম্ভাব্য কঠোর আইনি ধারা তৈরি করে (নির্দিষ্ট সময়সীমা ও জরিমানার সংখ্যা সহ)।
-  - আইনটি পাস হওয়ার আগেই কোম্পানিকে "What-If" টেস্ট চালানোর সুযোগ দেয়।
+### 5. Predictive Regulatory Radar & Adversarial What-If Formulator
+- **Source Files**: `src/lib/predict.functions.ts`
+- **Execution Mechanism**:
+  - Ingests the historical amendment timeline of a specific regulatory framework to compute regulatory momentum (tightening vs. loosening vector).
+  - Synthesizes prospective adversarial drafts reflecting plausible upcoming legislative revisions (including specific quantitative thresholds, shortened notification windows, and statutory penalties).
+  - Allows compliance leadership to run proactive "What-If" stress tests months before prospective legislation is enacted into law.
 
-### ৬. Automated Legal Remediation Action Plan Generator
-- **কোড ফাইল**: `src/lib/action-plan.functions.ts`
-- **কীভাবে কাজ করে**:
-  - ব্লাস্ট রেডিয়াস সিমুলেশনের ফলাফলের ওপর ভিত্তি করে এআই একটি ৩-অংশের বাস্তবমুখী অ্যাকশন প্ল্যান তৈরি করে:
-    1. **Internal Policy Draft**: কোম্পানির অভ্যন্তরীণ পলিসির খসড়া প্যারাগ্রাফ।
-    2. **Contract Amendments**: ক্ষতিগ্রস্ত প্রতিটি চুক্তির জন্য সুনির্দিষ্ট আইনি সংশোধনী ভাষা ও যুক্তি।
-    3. **Prioritized Tech Fixes**: ইঞ্জিনিয়ারিং টিমের জন্য P0 (তাৎক্ষণিক), P1 (উচ্চ), এবং P2 (সাধারণ) প্রযুক্তিগত পদক্ষেপ।
+### 6. Automated Legal Remediation Action Plan Generator
+- **Source Files**: `src/lib/action-plan.functions.ts`
+- **Execution Mechanism**:
+  - Leverages the output of blast radius simulations to produce a structured, 3-tier remediation action plan:
+    1. **Internal Policy Draft**: Ready-to-publish enterprise corporate policy clauses addressing the new statutory requirement.
+    2. **Contract Amendments**: Contract-specific legal addendum language and rationale for counterparty negotiation.
+    3. **Prioritized Technical Checklists**: Engineering and DevOps backlog tasks partitioned by urgency (`P0` Immediate, `P1` High, `P2` Routine).
 
-### ৭. Compliance-as-Code Synthesizer (আইন থেকে ক্লাউড কোড)
-- **কোড ফাইল**: `src/lib/compliance-code.functions.ts`
-- **কীভাবে কাজ করে**:
-  - আইনি কমপ্লায়েন্স এবং সফটওয়্যার ইঞ্জিনিয়ারিংয়ের মধ্যে দূরত্ব দূর করে।
-  - নির্বাচিত ক্লাউড স্ট্যাকের (AWS, Azure, GCP, Kubernetes) ওপর ভিত্তি করে এআই কোড জেনারেট করে:
-    - **Audit Script**: Python (boto3) বা Bash স্ক্রিপ্ট যা ক্লাউডে গিয়ে স্ক্যান করে দেখে কমপ্লায়েন্স গ্যাপ আছে কি না।
-    - **Infrastructure-as-Code (Terraform / YAML)**: স্বয়ংক্রিয়ভাবে ওই গ্যাপ ঠিক করার রিমিডিয়েশন কোড।
+### 7. Compliance-as-Code Synthesizer (Bridging Law to Cloud Infrastructure)
+- **Source Files**: `src/lib/compliance-code.functions.ts`
+- **Execution Mechanism**:
+  - Bridges the communication and implementation gap between General Counsel and Cloud Engineering.
+  - Based on the enterprise's deployed cloud architecture (AWS, Azure, GCP, Kubernetes), the AI synthesizes:
+    - **Cloud Audit Scripts**: Python (`boto3`) or Bash automation scripts that programmatically scan cloud infrastructure for statutory gaps (e.g., verifying KMS encryption, IAM MFA enforcement, log retention windows).
+    - **Infrastructure-as-Code (Terraform / YAML)**: Automated remediation templates that configure infrastructure to satisfy the legal mandate.
 
-### ৮. Historical Enforcement Backtesting Engine
-- **কোড ফাইল**: `src/lib/backtest.functions.ts`
-- **কীভাবে কাজ করে**:
-  - অতীতের বড় বড় আন্তর্জাতিক রেগুলেটরি পেনাল্টি কেস (যেমন: Meta €1.2B GDPR ট্রান্সফার ফাইন, British Airways ব্রিচ জরিমানা, ইত্যাদি) ডাটাবেজে সংরক্ষিত আছে।
-  - এআই ইউজারের বর্তমান চুক্তিগুলোর ওপর ওই ঐতিহাসিক কেস প্রম্পট প্রয়োগ করে দেখে যে কোম্পানি ওই সময়ে উপস্থিত থাকলে কতটুকু ঝুঁকিতে পড়তো।
+### 8. Historical Enforcement Backtesting Engine
+- **Source Files**: `src/lib/backtest.functions.ts`
+- **Execution Mechanism**:
+  - Maintains an indexed repository of landmark historical regulatory enforcement actions and penalty decisions (e.g., Meta €1.2B GDPR cross-border transfer penalty, British Airways breach fine, Amazon GDPR fine).
+  - The backtesting engine tests the organization's existing contracts against these precedent enforcement actions to evaluate whether current contractual safeguards would withstand similar regulatory scrutiny.
 
 ---
 
-## ৩. এআই গেটওয়ে ও ব্যাকআপ আর্কিটেকচার (`src/lib/ai.server.ts`)
-- **প্রাথমিক ইঞ্জিন**: OpenAI `gpt-4o` ও `gpt-4o-mini` / Google Gemini API।
-- **ফলব্যাক মেকানিজম**: API কী অনুপস্থিত থাকলে বা কোটা শেষ হলে সিস্টেম ক্র্যাশ করে না; পরিবর্তে ডিটারমিনিস্টিক রুল-বেসড অ্যানালাইসিস এবং প্রি-কম্পিউটেড ক্যাশ থেকে সঠিক আউটপুট প্রদান করে।
+## 3. AI Gateway & Resilient Fallback Architecture (`src/lib/ai.server.ts`)
+
+- **Primary Inference Providers**: OpenAI (`gpt-4o` & `gpt-4o-mini`) and Google Gemini API.
+- **Ultra-Fast Edge Copilot**: Groq LPU inference engine powering the interactive Copilot and Inspect Lens with sub-200ms Time-To-First-Token (TTFT).
+- **Graceful Deterministic Fallback**: In production environments where API keys are unavailable, network connectivity is disrupted, or quota limits are exceeded, ClauseGraph does not fail. The gateway seamlessly falls back to pre-computed semantic knowledge graph traversals and deterministic rule-based algorithms to guarantee uninterrupted enterprise uptime.

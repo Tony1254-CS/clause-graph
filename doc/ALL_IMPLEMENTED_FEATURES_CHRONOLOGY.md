@@ -176,7 +176,7 @@ The platform now provides:
 * **Side-by-Side Visual Diff**:
   - **Original (Repealed Reference)**: Red strikethrough styling highlighting invalidated clauses citing repealed legislation (`Digital Security Act 2018`).
   - **Proposed Compliant Redline**: Emerald green highlighting presenting the compliant replacement clause citing Section 8 of the `Cyber Security Act 2023` and mandatory Critical Information Infrastructure (CII) in-country data residency.
-* **Statutory Alignment Rationale**: Full legal analysis explaining penalties under Act No. 38 of 2023 (administrative fines up to ৳10,000,000).
+* **Statutory Alignment Rationale**: Full legal analysis explaining penalties under Act No. 38 of 2023 (administrative fines up to BDT 10,000,000).
 * **1-Click Execution Tools**:
   - `Copy Clause`: Instant clipboard copy of the sanitized compliant clause.
   - `Download Addendum`: Generates and downloads a formal `.txt` Contract Addendum complete with **SHA-256 cryptographic attestation**, signature blocks, and governing law citations.
