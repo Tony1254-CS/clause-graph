@@ -79,6 +79,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   const queueIndexRef = useRef<number>(0);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const optionsRef = useRef<SpeakOptions | undefined>(undefined);
+  const fallbackTimerRef = useRef<any>(null);
 
   // Discover voices on mount
   useEffect(() => {
@@ -109,6 +110,10 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
 
   // Stop function
   const stop = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -122,6 +127,11 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
 
   // Play next sentence in queue
   const playNextChunk = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       setPlaybackState("idle");
       return;
@@ -160,9 +170,14 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     };
 
     utterance.onerror = (e) => {
-      console.warn("[VoiceService] Chunk synthesis error:", e);
+      console.warn("[VoiceService] Chunk synthesis fallback triggered:", e);
       optionsRef.current?.onError?.(e);
-      playNextChunk();
+      // In headless or audio-restricted browser sessions, fallback to simulated reading pace
+      const words = chunk.split(" ").length;
+      const fallbackMs = Math.min(8000, Math.max(3000, words * 320));
+      fallbackTimerRef.current = setTimeout(() => {
+        playNextChunk();
+      }, fallbackMs);
     };
 
     setPlaybackState("speaking");
