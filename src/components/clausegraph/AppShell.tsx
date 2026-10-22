@@ -7,13 +7,17 @@ import { PlanStatusBanner } from "./PlanStatusBanner";
 import { CopilotProvider } from "./CopilotContext";
 import { InspectLensOverlay } from "./InspectLensOverlay";
 import { GlobalCopilot } from "./GlobalCopilot";
+import { NotificationProvider } from "@/lib/notifications.context";
+import { ToastContainer } from "./ToastContainer";
+import { NotificationChannelsModal } from "./NotificationChannelsModal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   return (
-    <CopilotProvider>
+    <NotificationProvider>
+      <CopilotProvider>
       <div className="h-dvh w-full overflow-hidden bg-[var(--page-bg)] p-1.5 sm:p-4 lg:p-6">
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[var(--hairline)] bg-[var(--shell-bg)] shadow-[var(--shadow-lift)] sm:rounded-[28px]">
         {/* Ambient drifting mint aura — very subtle */}
@@ -58,7 +62,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <PlanLimitDialog />
       <InspectLensOverlay />
       <GlobalCopilot />
+      <ToastContainer />
+      <NotificationChannelsModal />
     </div>
   </CopilotProvider>
+</NotificationProvider>
   );
 }

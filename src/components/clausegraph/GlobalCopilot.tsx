@@ -30,6 +30,8 @@ export function GlobalCopilot() {
     toggleInspectMode,
     groqApiKey,
     setGroqApiKey,
+    pendingPrompt,
+    setPendingPrompt,
   } = useCopilot();
 
   const [messages, setMessages] = useState<CopilotChatMessage[]>([
@@ -61,6 +63,13 @@ export function GlobalCopilot() {
   useEffect(() => {
     setTempApiKey(groqApiKey);
   }, [groqApiKey]);
+
+  useEffect(() => {
+    if (pendingPrompt && isChatOpen) {
+      setInput(pendingPrompt);
+      setPendingPrompt(null);
+    }
+  }, [pendingPrompt, isChatOpen, setPendingPrompt]);
 
   // When activeContext changes, add a system notification in chat
   useEffect(() => {

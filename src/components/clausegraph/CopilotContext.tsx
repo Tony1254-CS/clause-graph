@@ -11,6 +11,9 @@ interface CopilotContextType {
   clearContext: () => void;
   isChatOpen: boolean;
   setIsChatOpen: (open: boolean) => void;
+  pendingPrompt: string | null;
+  setPendingPrompt: (prompt: string | null) => void;
+  openWithPrompt: (prompt: string, ctx?: CopilotInspectContext) => void;
   groqApiKey: string;
   setGroqApiKey: (key: string) => void;
 }
@@ -23,6 +26,7 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
   const [isInspectModeActive, setInspectModeActive] = useState(false);
   const [activeContext, setActiveContext] = useState<CopilotInspectContext | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
   const [groqApiKey, setGroqApiKeyState] = useState("");
 
   useEffect(() => {
@@ -53,6 +57,16 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
     setInspectModeActive(false);
   }, []);
 
+  const openWithPrompt = useCallback(
+    (prompt: string, ctx?: CopilotInspectContext) => {
+      if (ctx) setActiveContext(ctx);
+      setPendingPrompt(prompt);
+      setIsChatOpen(true);
+      setInspectModeActive(false);
+    },
+    []
+  );
+
   const clearContext = useCallback(() => {
     setActiveContext(null);
   }, []);
@@ -80,6 +94,9 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
         clearContext,
         isChatOpen,
         setIsChatOpen,
+        pendingPrompt,
+        setPendingPrompt,
+        openWithPrompt,
         groqApiKey,
         setGroqApiKey,
       }}

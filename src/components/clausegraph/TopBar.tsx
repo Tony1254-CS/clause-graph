@@ -9,6 +9,7 @@ import { profileQuery, contractsQuery } from "@/data/queries";
 import { signOut } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useCopilot } from "./CopilotContext";
+import { NotificationBell } from "./NotificationBell";
 
 export function TopBar() {
   const { data: profile } = useQuery(profileQuery);
@@ -99,8 +100,10 @@ export function TopBar() {
           }`}
         >
           <Crosshair className={`h-3.5 w-3.5 ${isInspectModeActive ? "rotate-90 text-emerald-400" : "text-[var(--brass)]"} transition-transform duration-300`} />
-          <span className="hidden md:inline">{isInspectModeActive ? "Inspecting..." : "Inspect Context"}</span>
         </button>
+
+        {/* Enterprise Compliance Notification Bell */}
+        <NotificationBell />
 
         <ThemeToggle />
 
