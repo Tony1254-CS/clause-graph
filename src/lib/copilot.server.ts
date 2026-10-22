@@ -130,12 +130,12 @@ ${(contracts ?? []).map((c) => `- [${c.id}] ${c.name} with ${c.counterparty} ($$
     content: params.message,
   });
 
-  thoughtSteps.push("🧠 Dispatching Deontic Reasoning to Groq LPU (Llama 3.3 70B Versatile)");
+  thoughtSteps.push("🧠 Dispatching Deontic Reasoning to Groq LPU (GPT-OSS 120B Flagship)");
 
   // Step 3: Call Groq LPU
   const groqResult = await callGroqChat({
     messages,
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     temperature: 0.2,
     max_tokens: 1500,
     userApiKey: params.userApiKey,
