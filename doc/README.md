@@ -82,6 +82,12 @@ Below is the complete catalog of architectural specifications available in this 
 ### 7. [Manual Input System Audit](./MANUAL_INPUT_SYSTEM_AUDIT.md)
 - Audit of contract upload workflows, manual overrides, metadata corrections, and human-in-the-loop audit logs.
 
+### 8. [Enterprise Shock Simulator, Redline Diff & Compliance Dossier Engine](./ENTERPRISE_SHOCK_REDLINE_AND_DOSSIER.md)
+- **Live Statutory Shock Simulator**: Interactive scenario injector (Bangladesh CSA 2023, EU DORA Art 30, US SEC 24h Directive) with instant audio alert and exposure recalculation.
+- **Autonomous Redline Diff & Contract Addendum Generator**: Visual side-by-side strikethrough/emerald diff, formal contract addendum generation with SHA-256 integrity hash, and 1-click merge.
+- **Board-Ready Executive Compliance Dossier**: Zero-leakage client-side cryptographic PDF audit report generation using `jspdf` and dark executive styling.
+- **Alexa+ for Legal Voice Agent**: Hands-free voice commands ("pause", "resume", "faster", "shock", "redline", "dossier") and speed/persona switching.
+
 ---
 
 ## 🚀 Local Runbook & Environment Setup

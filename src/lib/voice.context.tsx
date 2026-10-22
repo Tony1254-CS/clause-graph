@@ -37,6 +37,9 @@ interface VoiceContextValue {
 
   voiceSettings: VoiceSettings;
   updateVoiceSettings: (settings: Partial<VoiceSettings>) => void;
+  togglePlaybackRate: () => void;
+  setVoicePersona: (persona: VoicePersona) => void;
+  executeVoiceCommand: (cmd: string) => boolean;
   availableVoices: SpeechSynthesisVoice[];
   isSpeechSupported: boolean;
   isMicSupported: boolean;
@@ -286,6 +289,62 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     setVoiceSettings((prev) => ({ ...prev, ...settings }));
   }, []);
 
+  const togglePlaybackRate = useCallback(() => {
+    setVoiceSettings((prev) => {
+      const nextRate = prev.rate === 1.0 ? 1.25 : prev.rate === 1.25 ? 1.5 : 1.0;
+      return { ...prev, rate: nextRate };
+    });
+  }, []);
+
+  const setVoicePersona = useCallback((persona: VoicePersona) => {
+    setVoiceSettings((prev) => ({ ...prev, persona }));
+  }, []);
+
+  const executeVoiceCommand = useCallback(
+    (cmd: string): boolean => {
+      const lower = cmd.toLowerCase().trim();
+      if (!lower) return false;
+
+      if (lower.includes("pause") || lower.includes("wait")) {
+        pause();
+        return true;
+      }
+      if (lower.includes("resume") || lower.includes("continue")) {
+        resume();
+        return true;
+      }
+      if (lower.includes("stop") || lower.includes("quiet")) {
+        stop();
+        return true;
+      }
+      if (lower.includes("faster") || lower.includes("speed")) {
+        togglePlaybackRate();
+        return true;
+      }
+      if (lower.includes("shock") || lower.includes("simulate") || lower.includes("emergency")) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("clausegraph:open_shock_modal"));
+        }
+        return true;
+      }
+      if (lower.includes("redline") || lower.includes("amend") || lower.includes("fix clause")) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("clausegraph:open_redline_modal"));
+        }
+        return true;
+      }
+      if (lower.includes("dossier") || lower.includes("export") || lower.includes("pdf")) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("clausegraph:export_dossier"));
+        }
+        return true;
+      }
+
+      return false;
+    },
+    [pause, resume, stop, togglePlaybackRate]
+  );
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -312,6 +371,9 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       transcript,
       voiceSettings,
       updateVoiceSettings,
+      togglePlaybackRate,
+      setVoicePersona,
+      executeVoiceCommand,
       availableVoices,
       isSpeechSupported,
       isMicSupported,
@@ -331,6 +393,9 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       transcript,
       voiceSettings,
       updateVoiceSettings,
+      togglePlaybackRate,
+      setVoicePersona,
+      executeVoiceCommand,
       availableVoices,
       isSpeechSupported,
       isMicSupported,

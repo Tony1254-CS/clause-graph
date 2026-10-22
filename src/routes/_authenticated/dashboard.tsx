@@ -438,7 +438,37 @@ function Dashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* 1-Click Shock Simulator Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("clausegraph:open_shock_modal"));
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-2 text-xs font-mono font-medium text-amber-300 transition-all shadow-[0_0_12px_rgba(245,158,11,0.2)] cursor-pointer"
+              title="Simulate live overnight statutory amendment"
+            >
+              <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400/40" />
+              Simulate Live Shock
+            </button>
+
+            {/* Board Dossier PDF Export */}
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("clausegraph:export_dossier"));
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/80 hover:bg-white/[0.06] hover:border-emerald-500/40 px-3 py-2 text-xs font-mono font-medium text-foreground transition-all shadow-sm cursor-pointer"
+              title="Export cryptographic compliance audit dossier (PDF)"
+            >
+              <FileText className="h-3.5 w-3.5 text-emerald-400" />
+              Board Dossier PDF
+            </button>
+
             <Link
               to="/review-queue"
               className="inline-flex items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/80 hover:bg-white/[0.06] hover:border-white/20 px-3.5 py-2 text-xs font-mono font-medium text-foreground transition-all shadow-sm"

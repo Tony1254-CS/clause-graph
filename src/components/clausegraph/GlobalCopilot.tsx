@@ -44,14 +44,18 @@ export function GlobalCopilot() {
     startListening,
     stopListening,
     listeningState,
+    executeVoiceCommand,
   } = useVoice();
 
   const handleMicToggle = () => {
     if (listeningState === "listening") {
       stopListening();
     } else {
-      startListening((text) => {
+      startListening((text, isFinal) => {
         setInput(text);
+        if (isFinal) {
+          executeVoiceCommand(text);
+        }
       });
     }
   };

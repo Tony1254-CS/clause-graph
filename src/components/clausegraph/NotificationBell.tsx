@@ -16,6 +16,7 @@ import {
   Info,
   Volume2,
   Pause,
+  GitCompare,
 } from "lucide-react";
 import { useNotifications } from "@/lib/notifications.context";
 import { useCopilot } from "./CopilotContext";
@@ -348,6 +349,21 @@ export function NotificationBell() {
                         <Bot className="h-3 w-3" />
                         Ask Copilot 🎯
                       </button>
+
+                      {/* Auto Redline Button for Critical Alerts */}
+                      {(notif.severity === "critical" || notif.type === "critical_violation") && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsOpen(false);
+                            window.dispatchEvent(new CustomEvent("clausegraph:open_redline_modal"));
+                          }}
+                          className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                        >
+                          <GitCompare className="h-3 w-3" />
+                          Auto Redline
+                        </button>
+                      )}
 
                       {/* Right icons */}
                       <div className="ml-auto flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">

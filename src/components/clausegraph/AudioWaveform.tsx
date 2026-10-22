@@ -12,6 +12,8 @@ export function AudioWaveform() {
     stopListening,
     currentSpeechText,
     voiceSettings,
+    togglePlaybackRate,
+    setVoicePersona,
   } = useVoice();
 
   const isSpeaking = playbackState === "speaking" || playbackState === "paused";
@@ -73,9 +75,26 @@ export function AudioWaveform() {
           <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
             {isListening ? "Listening..." : "Natural Audio Narration"}
           </span>
-          <span className="rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono text-[var(--text-muted)]">
-            {voiceSettings.persona === "executive_female" ? "Aria Neural" : voiceSettings.persona === "bengali_natural" ? "Bangla Neural" : "Guy Neural"}
-          </span>
+          <button
+            type="button"
+            onClick={() => {
+              const next =
+                voiceSettings.persona === "executive_female"
+                  ? "executive_male"
+                  : voiceSettings.persona === "executive_male"
+                  ? "bengali_natural"
+                  : "executive_female";
+              setVoicePersona(next);
+            }}
+            className="rounded bg-white/10 px-1.5 py-0.2 text-[9px] font-mono text-[var(--text-muted)] hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+            title="Click to cycle voice persona"
+          >
+            {voiceSettings.persona === "executive_female"
+              ? "Aria Neural"
+              : voiceSettings.persona === "bengali_natural"
+              ? "Bangla Neural"
+              : "Guy Neural"}
+          </button>
         </div>
         {currentSpeechText && (
           <p className="truncate text-[11px] text-[var(--text-muted)]">
@@ -84,8 +103,18 @@ export function AudioWaveform() {
         )}
       </div>
 
-      {/* Playback Controls */}
-      <div className="flex items-center gap-1 border-l border-stone-800 pl-2">
+      {/* Speed & Controls */}
+      <div className="flex items-center gap-1.5 border-l border-stone-800 pl-2">
+        {!isListening && (
+          <button
+            type="button"
+            onClick={togglePlaybackRate}
+            className="rounded px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-400 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+            title="Toggle playback speed (1x -> 1.25x -> 1.5x)"
+          >
+            {voiceSettings.rate}x
+          </button>
+        )}
         {isListening ? (
           <button
             type="button"
