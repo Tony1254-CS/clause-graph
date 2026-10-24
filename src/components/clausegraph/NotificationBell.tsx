@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import {
   Bell,
@@ -39,7 +40,35 @@ export function NotificationBell() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "critical" | "regulatory" | "pipeline">("all");
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const updateCoords = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setCoords({
+      top: rect.bottom + 8,
+      right: window.innerWidth - rect.right,
+    });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener("resize", updateCoords);
+      window.addEventListener("scroll", updateCoords, true);
+    }
+    return () => {
+      window.removeEventListener("resize", updateCoords);
+      window.removeEventListener("scroll", updateCoords, true);
+    };
+  }, [isOpen]);
 
   const handleListenNotification = (notif: LegalNotification) => {
     markAsRead(notif.id);
@@ -53,7 +82,13 @@ export function NotificationBell() {
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
@@ -129,15 +164,16 @@ export function NotificationBell() {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative inline-flex items-center">
       {/* Trigger Button in TopBar */}
       <button
+        ref={triggerRef}
         type="button"
         id="notification-bell-trigger"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="View compliance notifications"
         aria-expanded={isOpen}
-        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all cursor-pointer ${
           isOpen
             ? "border-emerald-400 bg-emerald-500/15 text-emerald-300 shadow-[0_0_14px_rgba(16,185,129,0.3)]"
             : "border-[var(--hairline-strong)] bg-[var(--surface-glass)] text-[var(--ink)] hover:border-emerald-400/50 hover:bg-[var(--surface-glass-strong)] hover:text-emerald-400"
@@ -159,11 +195,20 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown Panel */}
-      {isOpen && (
-        <div className="absolute right-0 top-11 z-[999] w-[360px] sm:w-[420px] rounded-2xl border border-stone-700/80 bg-[#0c1017] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-150 overflow-hidden text-[var(--ink)]">
+      {/* Dropdown Panel rendered via Portal so it never gets clipped and always maintains a clean bottom gap */}
+      {isOpen && isMounted && coords && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: "fixed",
+            top: `${coords.top}px`,
+            right: `${Math.max(16, coords.right)}px`,
+            maxHeight: `min(520px, calc(100vh - ${coords.top + 32}px))`,
+          }}
+          className="z-[9999] flex w-[360px] sm:w-[420px] max-w-[calc(100vw-2rem)] flex-col rounded-2xl border border-stone-700/80 bg-[#0c1017]/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-150 overflow-hidden text-[var(--ink)]"
+        >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--hairline)] px-4 py-3 bg-white/[0.02]">
+          <div className="flex items-center justify-between border-b border-[var(--hairline)] px-4 py-3 bg-white/[0.02] shrink-0">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-xs tracking-tight">Compliance Notifications</h3>
               {unreadCount > 0 && (
@@ -179,7 +224,7 @@ export function NotificationBell() {
                   type="button"
                   onClick={markAllAsRead}
                   title="Mark all as read"
-                  className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-emerald-400 hover:bg-white/5 transition-colors"
+                  className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-emerald-400 hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                 </button>
@@ -191,7 +236,7 @@ export function NotificationBell() {
                   setIsChannelsModalOpen(true);
                 }}
                 title="Configure alert channels & webhooks"
-                className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-[var(--ink)] hover:bg-white/5 transition-colors"
+                className="rounded-lg p-1.5 text-[var(--text-muted)] hover:text-[var(--ink)] hover:bg-white/5 transition-colors cursor-pointer"
               >
                 <Sliders className="h-3.5 w-3.5" />
               </button>
@@ -199,11 +244,11 @@ export function NotificationBell() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-1 border-b border-[var(--hairline)] px-3 py-1.5 bg-black/20 text-[11px]">
+          <div className="flex items-center gap-1 border-b border-[var(--hairline)] px-3 py-1.5 bg-black/20 text-[11px] shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab("all")}
-              className={`rounded-lg px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded-lg px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                 activeTab === "all"
                   ? "bg-white/10 text-[var(--ink)]"
                   : "text-[var(--text-muted)] hover:text-[var(--ink)]"
@@ -214,7 +259,7 @@ export function NotificationBell() {
             <button
               type="button"
               onClick={() => setActiveTab("critical")}
-              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                 activeTab === "critical"
                   ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                   : "text-[var(--text-muted)] hover:text-rose-400"
@@ -226,7 +271,7 @@ export function NotificationBell() {
             <button
               type="button"
               onClick={() => setActiveTab("regulatory")}
-              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                 activeTab === "regulatory"
                   ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                   : "text-[var(--text-muted)] hover:text-amber-400"
@@ -238,7 +283,7 @@ export function NotificationBell() {
             <button
               type="button"
               onClick={() => setActiveTab("pipeline")}
-              className={`rounded-lg px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded-lg px-2.5 py-1 font-medium transition-colors cursor-pointer ${
                 activeTab === "pipeline"
                   ? "bg-white/10 text-[var(--ink)]"
                   : "text-[var(--text-muted)] hover:text-[var(--ink)]"
@@ -249,7 +294,7 @@ export function NotificationBell() {
           </div>
 
           {/* List Content */}
-          <div className="max-h-[380px] overflow-y-auto divide-y divide-[var(--hairline)]">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[var(--hairline)] premium-scrollbar">
             {filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-[var(--text-muted)]">
                 <Bell className="h-8 w-8 text-stone-600 mb-2 stroke-[1.5]" />
@@ -394,7 +439,7 @@ export function NotificationBell() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-[var(--hairline)] px-4 py-2.5 bg-black/30 flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+          <div className="border-t border-[var(--hairline)] px-4 py-2.5 bg-black/30 flex items-center justify-between text-[11px] text-[var(--text-muted)] shrink-0">
             <span>Enterprise Statutory Watcher</span>
             <button
               type="button"
@@ -407,7 +452,8 @@ export function NotificationBell() {
               Slack & Webhooks &rarr;
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
