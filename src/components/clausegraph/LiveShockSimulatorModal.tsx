@@ -123,11 +123,12 @@ export function LiveShockSimulatorModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl overflow-hidden rounded-[24px] border border-amber-500/40 bg-[var(--shell-bg)] p-0 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+      <DialogContent className="max-w-xl max-h-[calc(100vh-3rem)] flex flex-col overflow-hidden rounded-[24px] border border-amber-500/40 bg-[var(--shell-bg)] p-0 shadow-[0_25px_70px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
         {/* Ambient Top Glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-amber-500/15 via-transparent to-transparent" />
 
-        <div className="relative p-6 sm:p-7">
+        {/* Modal Header - Fixed */}
+        <div className="relative px-6 pt-6 pb-4 sm:px-7 sm:pt-7 sm:pb-4 border-b border-[var(--hairline)] shrink-0">
           <DialogHeader className="space-y-2">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/15 text-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]">
@@ -146,9 +147,12 @@ export function LiveShockSimulatorModal({
               Select an overnight regulatory gazette to inject into the live portfolio. Demonstrates real-time autonomous detection, blast radius recalculation, notification dispatch, and neural voice advisory.
             </DialogDescription>
           </DialogHeader>
+        </div>
 
+        {/* Scrollable Body Content */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 sm:px-7 space-y-4 premium-scrollbar">
           {/* Scenario Selection Grid */}
-          <div className="mt-5 space-y-2.5">
+          <div className="space-y-2.5">
             {PRESET_SHOCK_SCENARIOS.map((scenario) => {
               const isSelected = scenario.id === selectedId;
               return (
@@ -156,20 +160,20 @@ export function LiveShockSimulatorModal({
                   key={scenario.id}
                   type="button"
                   onClick={() => setSelectedId(scenario.id)}
-                  className={`w-full text-left rounded-xl border p-3 transition-all cursor-pointer ${
+                  className={`w-full text-left rounded-xl border p-3.5 transition-all cursor-pointer ${
                     isSelected
-                      ? "border-amber-400/80 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                      ? "border-amber-400/80 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)] ring-1 ring-amber-400/30"
                       : "border-[var(--hairline)] bg-[var(--surface-raised)]/40 hover:border-white/20 hover:bg-[var(--surface-raised)]/70"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-base shrink-0">{scenario.flag}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-lg shrink-0">{scenario.flag}</span>
                       <div className="min-w-0">
                         <h4 className="text-xs font-semibold text-foreground truncate">
                           {scenario.title}
                         </h4>
-                        <p className="font-mono text-[10px] text-muted-foreground truncate">
+                        <p className="font-mono text-[10px] text-muted-foreground truncate mt-0.5">
                           {scenario.statutoryInstrument}
                         </p>
                       </div>
@@ -178,7 +182,7 @@ export function LiveShockSimulatorModal({
                       <span className="font-mono text-xs font-bold text-rose-400">
                         {scenario.exposureDelta}
                       </span>
-                      <p className="text-[10px] text-stone-400">
+                      <p className="text-[10px] text-stone-400 mt-0.5">
                         {scenario.affectedContracts} contracts
                       </p>
                     </div>
@@ -189,46 +193,46 @@ export function LiveShockSimulatorModal({
           </div>
 
           {/* Detailed Selected Shock Preview */}
-          <div className="mt-4 rounded-xl border border-[var(--hairline)] bg-black/40 p-3.5 space-y-2">
+          <div className="rounded-xl border border-[var(--hairline)] bg-black/40 p-3.5 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <ShieldAlert className="h-3 w-3 text-amber-400" /> Expected Cascade Reaction:
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <ShieldAlert className="h-3.5 w-3.5 text-amber-400" /> Expected Cascade Reaction:
               </span>
-              <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
-                <Volume2 className="h-3 w-3" /> Voice Narration Active
+              <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1.5">
+                <Volume2 className="h-3.5 w-3.5" /> Voice Narration Active
               </span>
             </div>
             <p className="text-xs text-[var(--text-muted)] leading-relaxed">
               {selectedScenario.summary}
             </p>
           </div>
+        </div>
 
-          {/* Action Trigger Button */}
-          <div className="mt-6 flex items-center justify-end gap-3 border-t border-[var(--hairline)] pt-4">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={injecting}
-              onClick={handleExecuteShock}
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 hover:bg-amber-400 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] cursor-pointer disabled:opacity-50"
-            >
-              {injecting ? (
-                <>Injecting Telemetry...</>
-              ) : (
-                <>
-                  <Zap className="h-3.5 w-3.5 fill-current" />
-                  Execute Live Shock
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </>
-              )}
-            </button>
-          </div>
+        {/* Action Trigger Footer - Fixed */}
+        <div className="px-6 py-4 sm:px-7 border-t border-[var(--hairline)] bg-black/30 flex items-center justify-end gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="rounded-xl px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={injecting}
+            onClick={handleExecuteShock}
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 hover:bg-amber-400 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] cursor-pointer disabled:opacity-50"
+          >
+            {injecting ? (
+              <>Injecting Telemetry...</>
+            ) : (
+              <>
+                <Zap className="h-3.5 w-3.5 fill-current" />
+                Execute Live Shock
+                <ArrowRight className="h-3.5 w-3.5" />
+              </>
+            )}
+          </button>
         </div>
       </DialogContent>
     </Dialog>
