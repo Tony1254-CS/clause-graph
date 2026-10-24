@@ -194,29 +194,39 @@ export function TopBar() {
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 top-[calc(100%+8px)] z-30 w-64 rounded-[20px] border border-[var(--hairline)] bg-[var(--surface-raised)] p-2 shadow-[var(--shadow-lift)] backdrop-blur-2xl"
+                className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 rounded-2xl border border-[var(--hairline-strong)] bg-[#0c1017] dark:bg-[#0c1017] p-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-150"
               >
-                <div className="px-3 py-2 border-b border-[var(--hairline)]">
+                {/* Profile Header */}
+                <div className="px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.04]">
                   <div className="flex items-center gap-2 text-[var(--ink)]">
-                    <UserIcon className="h-3.5 w-3.5 text-[var(--brass)]" strokeWidth={1.6} />
-                    <span className="text-[13px] truncate font-medium">
-                      {profile?.full_name || profile?.email || "Signed in"}
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--brass)]/15 text-[var(--brass)] shrink-0">
+                      <UserIcon className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    </div>
+                    <span className="text-[13px] font-semibold truncate text-foreground">
+                      {profile?.full_name || profile?.email || "Judge Evaluation Account"}
                     </span>
                   </div>
-                  {profile?.email && profile?.full_name && (
-                    <p className="mt-0.5 text-[11px] text-[var(--text-muted)] truncate">
+                  {profile?.email && (
+                    <p className="mt-1 text-[11px] font-mono text-[var(--text-muted)] truncate pl-8">
                       {profile.email}
                     </p>
                   )}
                 </div>
+
+                <div className="my-1.5 h-px bg-[var(--hairline)]" />
+
+                {/* Sign Out Button */}
                 <button
                   type="button"
                   onClick={handleSignOut}
                   role="menuitem"
-                  className="mt-1 inline-flex w-full items-center gap-2 rounded-[12px] px-3 py-2 text-left text-[13px] text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--surface-glass)]"
+                  className="group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-medium text-rose-400 hover:text-rose-200 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/25 transition-all duration-150 cursor-pointer"
                 >
-                  <LogOut className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={1.6} />
-                  Sign out
+                  <div className="flex items-center gap-2">
+                    <LogOut className="h-3.5 w-3.5 text-rose-400 group-hover:scale-110 transition-transform" strokeWidth={1.8} />
+                    <span>Sign out</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground/60 group-hover:text-rose-300">Exit</span>
                 </button>
               </div>
             )}
