@@ -38,3 +38,7 @@ recordings/
 *.njsproj
 *.sln
 *.sw?
+
+# Graphify transient caches and machine sidecars
+graphify-out/cache/
+graphify-out/.*
