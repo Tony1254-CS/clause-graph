@@ -200,14 +200,15 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onComplete()}>
       <DialogContent
-        className="max-w-2xl overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] p-0 shadow-[var(--shadow-lift)] backdrop-blur-2xl sm:max-w-2xl"
+        className="max-w-2xl max-h-[92vh] w-[95vw] flex flex-col overflow-hidden rounded-[24px] border border-[var(--hairline)] bg-[var(--shell-bg)] p-0 shadow-[var(--shadow-lift)] backdrop-blur-2xl sm:max-w-2xl"
       >
         {/* Ambient Top Glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[var(--brass)]/15 via-transparent to-transparent" />
 
-        <div className="relative p-6 sm:p-8">
-          {/* Header */}
-          <DialogHeader className="space-y-2">
+        <div className="relative p-5 sm:p-7 overflow-y-auto max-h-[92vh] flex flex-col justify-between space-y-4">
+          <div>
+            {/* Header */}
+            <DialogHeader className="space-y-1.5 pr-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--brass)]/30 bg-[var(--brass)]/10 text-[var(--brass)] shadow-[var(--glow-brass)]">
@@ -318,12 +319,12 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
 
           {/* Step 2: Industry & Data Footprint */}
           {step === 2 && (
-            <div className="mt-6 space-y-4 animate-in fade-in duration-300">
+            <div className="mt-5 space-y-3.5 animate-in fade-in duration-300">
               <p className="text-xs font-medium text-muted-foreground">
                 Select your company's operational footprint and data processing activities:
               </p>
 
-              <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                 {/* EU Residents Data */}
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
                   <div className="min-w-0 space-y-0.5">
@@ -498,46 +499,47 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
             </div>
           )}
 
-          {/* Footer Controls */}
-          <div className="mt-8 flex items-center justify-between border-t border-[var(--hairline)] pt-4">
-            {step > 1 ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
-                className="gap-1.5 border-[var(--hairline)] text-xs"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back
-              </Button>
-            ) : (
-              <div />
-            )}
+            {/* Footer Controls */}
+            <div className="mt-6 flex items-center justify-between border-t border-[var(--hairline)] pt-4">
+              {step > 1 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
+                  className="gap-1.5 border-[var(--hairline)] text-xs"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Back
+                </Button>
+              ) : (
+                <div />
+              )}
 
-            {step < 3 ? (
-              <Button
-                size="sm"
-                onClick={() => {
-                  if (step === 1 && !entityName.trim()) {
-                    toast.error("Please enter your organization name");
-                    return;
-                  }
-                  setStep((s) => (s + 1) as 1 | 2 | 3);
-                }}
-                className="gap-1.5 bg-[var(--brass)] text-black hover:bg-[var(--brass)]/90 text-xs font-semibold"
-              >
-                Continue <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                disabled={saveMutation.isPending}
-                onClick={handleFinish}
-                className="gap-1.5 bg-[var(--brass)] text-black hover:bg-[var(--brass)]/90 text-xs font-semibold shadow-[var(--glow-brass)]"
-              >
-                {saveMutation.isPending ? "Configuring..." : "Launch Clean Workspace"}
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
+              {step < 3 ? (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (step === 1 && !entityName.trim()) {
+                      toast.error("Please enter your organization name");
+                      return;
+                    }
+                    setStep((s) => (s + 1) as 1 | 2 | 3);
+                  }}
+                  className="gap-1.5 bg-[var(--brass)] text-black hover:bg-[var(--brass)]/90 text-xs font-semibold"
+                >
+                  Continue <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  disabled={saveMutation.isPending}
+                  onClick={handleFinish}
+                  className="gap-1.5 bg-[var(--brass)] text-black hover:bg-[var(--brass)]/90 text-xs font-semibold shadow-[var(--glow-brass)]"
+                >
+                  {saveMutation.isPending ? "Configuring..." : "Launch Clean Workspace"}
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
