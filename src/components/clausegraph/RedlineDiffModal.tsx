@@ -129,12 +129,12 @@ SHA-256 Digest: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl overflow-hidden rounded-[24px] border border-emerald-500/40 bg-[var(--shell-bg)] p-0 shadow-[0_20px_60px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+      <DialogContent className="max-w-3xl max-h-[92vh] w-[95vw] flex flex-col overflow-hidden rounded-[24px] border border-emerald-500/40 bg-[var(--shell-bg)] p-0 shadow-[0_20px_60px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
         {/* Ambient Top Glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-emerald-500/15 via-transparent to-transparent" />
 
-        <div className="relative p-6 sm:p-7">
-          <DialogHeader className="space-y-2">
+        <div className="relative p-5 sm:p-6 overflow-y-auto max-h-[92vh] space-y-4">
+          <DialogHeader className="space-y-1.5 pr-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.3)]">
@@ -161,26 +161,28 @@ SHA-256 Digest: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
           </DialogHeader>
 
           {/* Visual Redline Diff Grid */}
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Left: Original Offending Clause */}
-            <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs">
+            <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-3.5 space-y-2 flex flex-col">
+              <div className="flex items-center justify-between text-xs shrink-0">
                 <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-rose-500 inline-block" />
                   Original (Repealed Reference)
                 </span>
-                <span className="font-mono text-[9px] text-rose-300/80 bg-rose-500/20 px-1.5 py-0.5 rounded">
+                <span className="font-mono text-[9px] text-rose-300/80 bg-rose-500/20 px-1.5 py-0.5 rounded font-bold">
                   VIOLATION
                 </span>
               </div>
-              <p className="font-mono text-[11px] leading-relaxed text-rose-200/90 whitespace-pre-wrap line-through opacity-85">
-                {item.originalClause}
-              </p>
+              <div className="max-h-52 overflow-y-auto pr-1">
+                <p className="font-mono text-[11px] leading-relaxed text-rose-200/90 whitespace-pre-wrap line-through opacity-85">
+                  {item.originalClause}
+                </p>
+              </div>
             </div>
 
             {/* Right: Autonomous Compliant Redline */}
-            <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/25 p-4 space-y-2 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-              <div className="flex items-center justify-between text-xs">
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/25 p-3.5 space-y-2 shadow-[0_0_20px_rgba(16,185,129,0.1)] flex flex-col">
+              <div className="flex items-center justify-between text-xs shrink-0">
                 <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block" />
                   Proposed Compliant Redline
@@ -189,16 +191,18 @@ SHA-256 Digest: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
                   ENACTED 2026
                 </span>
               </div>
-              <p className="font-mono text-[11px] leading-relaxed text-emerald-200 whitespace-pre-wrap">
-                {item.proposedRedline}
-              </p>
+              <div className="max-h-52 overflow-y-auto pr-1">
+                <p className="font-mono text-[11px] leading-relaxed text-emerald-200 whitespace-pre-wrap">
+                  {item.proposedRedline}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Legal Deontic Rationale Box */}
-          <div className="mt-4 rounded-xl border border-[var(--hairline)] bg-black/40 p-3.5 space-y-1.5">
+          <div className="rounded-xl border border-[var(--hairline)] bg-black/40 p-3.5 space-y-1.5">
             <div className="flex items-center gap-1.5 text-xs text-stone-300 font-semibold">
-              <Scale className="h-3.5 w-3.5 text-amber-400" />
+              <Scale className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <span>Statutory Alignment Rationale</span>
             </div>
             <p className="text-xs text-[var(--text-muted)] leading-relaxed">
@@ -207,7 +211,7 @@ SHA-256 Digest: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
           </div>
 
           {/* Action Footer */}
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hairline)] pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hairline)] pt-3.5">
             <div className="flex items-center gap-2">
               <button
                 type="button"

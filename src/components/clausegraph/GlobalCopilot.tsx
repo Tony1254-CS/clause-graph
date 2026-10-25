@@ -72,7 +72,7 @@ export function GlobalCopilot() {
     {
       role: "assistant",
       content:
-        "Hello! I am your **ClauseGraph Legal Intelligence Copilot**, accelerated by **Groq LPU** inference.\n\nYou can ask me anything about your contract portfolio, simulate regulatory shocks, or click the **Inspect Lens (🎯)** to point at any card or contract on the screen to analyze it in depth.",
+        "Hello! I am your **ClauseGraph Legal Intelligence Copilot**, accelerated by **QUINTESSENCE MINUS INFINITY** inference.\n\nYou can ask me anything about your contract portfolio, simulate regulatory shocks, or click the **Inspect Lens (🎯)** to point at any card or contract on the screen to analyze it in depth.",
       suggested_actions: [
         "What is our maximum regulatory exposure right now?",
         "Simulate what happens if breach notice is shortened to 24h",
@@ -217,7 +217,7 @@ export function GlobalCopilot() {
         <button
           type="button"
           id="copilot-floating-trigger"
-          title="ClauseGraph AI Copilot (Groq LPU)"
+          title="ClauseGraph AI Copilot (QUINTESSENCE MINUS INFINITY)"
           onClick={() => setIsChatOpen(true)}
           className="fixed bottom-6 right-6 z-[9999] group flex items-center gap-3 rounded-full border border-[var(--brass)]/40 bg-[var(--shell-bg)]/90 px-4 py-2.5 shadow-[0_12px_40px_-6px_rgba(94,234,212,0.4)] backdrop-blur-2xl transition-all duration-300 hover:scale-[1.05] hover:border-[var(--brass)] hover:shadow-[0_14px_50px_-4px_rgba(94,234,212,0.65)] active:scale-95 cursor-pointer ring-1 ring-white/10"
         >
@@ -232,7 +232,7 @@ export function GlobalCopilot() {
             <div className="flex items-center gap-1.5">
               <span className="font-display text-xs font-bold text-foreground">ClauseGraph Copilot</span>
               <span className="font-mono text-[9px] font-bold uppercase text-[var(--brass)] bg-[var(--brass)]/15 px-1.5 py-0.5 rounded-full border border-[var(--brass)]/30">
-                Groq LPU
+                QMI
               </span>
             </div>
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -268,7 +268,7 @@ export function GlobalCopilot() {
                       ClauseGraph Copilot
                     </h3>
                     <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-[var(--brass)] bg-[var(--brass)]/15 px-1.5 py-0.5 rounded-full border border-[var(--brass)]/30 shrink-0">
-                      <Zap className="h-2.5 w-2.5 fill-current" /> Groq LPU
+                      <Zap className="h-2.5 w-2.5 fill-current" /> QUINTESSENCE MINUS INFINITY
                     </span>
                   </div>
                   <p className="text-[10px] text-muted-foreground/80 font-mono truncate">
@@ -549,7 +549,7 @@ export function GlobalCopilot() {
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--brass)]"></span>
                       </span>
                       <span className="font-mono text-[11px] font-medium text-[var(--brass)]">
-                        Groq LPU reasoning across legal graph...
+                        QUINTESSENCE MINUS INFINITY reasoning across legal graph...
                       </span>
                     </div>
                   </div>
