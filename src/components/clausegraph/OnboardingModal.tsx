@@ -324,90 +324,135 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
                 Select your company's operational footprint and data processing activities:
               </p>
 
-              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {/* EU Residents Data */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Globe2 className="h-4 w-4 text-sky-400 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">Process European (EU/EEA) Residents' Data</span>
-                      <Badge variant="outline" className="text-[9px] font-mono border-sky-500/30 text-sky-400">
-                        EU GDPR
+                <div 
+                  onClick={() => setProcessesEu(!processesEu)}
+                  className={`flex items-start justify-between gap-2.5 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                    processesEu 
+                      ? "border-sky-500/50 bg-sky-950/20 shadow-[0_0_12px_rgba(56,189,248,0.12)]" 
+                      : "border-[var(--hairline)] bg-[var(--surface-raised)]/50 hover:border-sky-500/30"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Globe2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                      <span className="text-xs font-semibold text-foreground leading-tight">EU/EEA Data</span>
+                      <Badge variant="outline" className="text-[8.5px] px-1 py-0 font-mono border-sky-500/30 text-sky-400">
+                        GDPR
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Applies if your services are accessible to European citizens, triggering 72h breach notices & transfer restrictions.
+                    <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
+                      72h breach notices & transfer restrictions.
                     </p>
                   </div>
-                  <Switch checked={processesEu} onCheckedChange={setProcessesEu} />
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                    <Switch checked={processesEu} onCheckedChange={setProcessesEu} />
+                  </div>
                 </div>
 
                 {/* Digital Payments */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">Process Digital Payments & Transactions</span>
-                      <Badge variant="outline" className="text-[9px] font-mono border-emerald-500/30 text-emerald-400">
-                        BB Payment Sec 2023
+                <div 
+                  onClick={() => setProcessesPayments(!processesPayments)}
+                  className={`flex items-start justify-between gap-2.5 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                    processesPayments 
+                      ? "border-emerald-500/50 bg-emerald-950/20 shadow-[0_0_12px_rgba(16,185,129,0.12)]" 
+                      : "border-[var(--hairline)] bg-[var(--surface-raised)]/50 hover:border-emerald-500/30"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <CreditCard className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                      <span className="text-xs font-semibold text-foreground leading-tight">Digital Payments</span>
+                      <Badge variant="outline" className="text-[8.5px] px-1 py-0 font-mono border-emerald-500/30 text-emerald-400">
+                        BB 2023
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Mandates 2FA, tokenisation, and continuous fraud detection under Bangladesh Bank guidelines.
+                    <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
+                      2FA, tokenisation, fraud detection compliance.
                     </p>
                   </div>
-                  <Switch checked={processesPayments} onCheckedChange={setProcessesPayments} />
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                    <Switch checked={processesPayments} onCheckedChange={setProcessesPayments} />
+                  </div>
                 </div>
 
                 {/* US Healthcare */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <HeartPulse className="h-4 w-4 text-rose-400 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">Handle US Protected Health Info (ePHI)</span>
-                      <Badge variant="outline" className="text-[9px] font-mono border-rose-500/30 text-rose-400">
-                        HIPAA Rule
+                <div 
+                  onClick={() => setProcessesHealth(!processesHealth)}
+                  className={`flex items-start justify-between gap-2.5 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                    processesHealth 
+                      ? "border-rose-500/50 bg-rose-950/20 shadow-[0_0_12px_rgba(244,63,94,0.12)]" 
+                      : "border-[var(--hairline)] bg-[var(--surface-raised)]/50 hover:border-rose-500/30"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <HeartPulse className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+                      <span className="text-xs font-semibold text-foreground leading-tight">US Health Info (ePHI)</span>
+                      <Badge variant="outline" className="text-[8.5px] px-1 py-0 font-mono border-rose-500/30 text-rose-400">
+                        HIPAA
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Mandates Business Associate Agreements (BAA) and cryptographic storage safeguards.
+                    <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
+                      BAA agreements & encrypted health storage.
                     </p>
                   </div>
-                  <Switch checked={processesHealth} onCheckedChange={setProcessesHealth} />
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                    <Switch checked={processesHealth} onCheckedChange={setProcessesHealth} />
+                  </div>
                 </div>
 
                 {/* California Consumers */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-amber-400 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">Serve California / US Retail Consumers</span>
-                      <Badge variant="outline" className="text-[9px] font-mono border-amber-500/30 text-amber-400">
-                        CCPA / CPRA
+                <div 
+                  onClick={() => setProcessesUsConsumer(!processesUsConsumer)}
+                  className={`flex items-start justify-between gap-2.5 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                    processesUsConsumer 
+                      ? "border-amber-500/50 bg-amber-950/20 shadow-[0_0_12px_rgba(245,158,11,0.12)]" 
+                      : "border-[var(--hairline)] bg-[var(--surface-raised)]/50 hover:border-amber-500/30"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Users className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      <span className="text-xs font-semibold text-foreground leading-tight">California / US Retail</span>
+                      <Badge variant="outline" className="text-[8.5px] px-1 py-0 font-mono border-amber-500/30 text-amber-400">
+                        CCPA
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Requires explicit Do-Not-Sell opt-out clauses and third-party sharing disclosures.
+                    <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
+                      Do-Not-Sell opt-out & consumer disclosures.
                     </p>
                   </div>
-                  <Switch checked={processesUsConsumer} onCheckedChange={setProcessesUsConsumer} />
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                    <Switch checked={processesUsConsumer} onCheckedChange={setProcessesUsConsumer} />
+                  </div>
                 </div>
 
-                {/* AI / LLM Tech */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3.5">
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="h-4 w-4 text-purple-400 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">Build, Fine-tune, or Deploy AI Models</span>
-                      <Badge variant="outline" className="text-[9px] font-mono border-purple-500/30 text-purple-400">
+                {/* AI / LLM Tech (Spans 2 columns on sm for balance) */}
+                <div 
+                  onClick={() => setDevelopsAi(!developsAi)}
+                  className={`sm:col-span-2 flex items-start justify-between gap-2.5 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                    developsAi 
+                      ? "border-purple-500/50 bg-purple-950/20 shadow-[0_0_12px_rgba(168,85,247,0.12)]" 
+                      : "border-[var(--hairline)] bg-[var(--surface-raised)]/50 hover:border-purple-500/30"
+                  }`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Cpu className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                      <span className="text-xs font-semibold text-foreground leading-tight">AI & LLM Model Deployment</span>
+                      <Badge variant="outline" className="text-[8.5px] px-1 py-0 font-mono border-purple-500/30 text-purple-400">
                         EU AI Act 2024
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Activates High-Risk AI conformity assessments and human-in-the-loop oversight checks.
+                    <p className="text-[10px] text-muted-foreground leading-normal">
+                      High-Risk AI conformity assessments and human-in-the-loop oversight checks.
                     </p>
                   </div>
-                  <Switch checked={developsAi} onCheckedChange={setDevelopsAi} />
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0 pt-0.5">
+                    <Switch checked={developsAi} onCheckedChange={setDevelopsAi} />
+                  </div>
                 </div>
               </div>
 
