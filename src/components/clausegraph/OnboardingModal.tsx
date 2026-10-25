@@ -486,60 +486,92 @@ export function OnboardingModal({ open, profile, onComplete }: OnboardingModalPr
 
           {/* Step 3: Discovered Statutory Scope */}
           {step === 3 && (
-            <div className="mt-6 space-y-5 animate-in fade-in duration-300">
-              <div className="rounded-2xl border border-[var(--brass)]/30 bg-gradient-to-r from-[var(--brass)]/10 via-[var(--surface-raised)] to-[var(--brass)]/5 p-4 sm:p-5">
+            <div className="mt-5 space-y-4 animate-in fade-in duration-300">
+              {/* Modern Discovery Header Banner */}
+              <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/25 via-[var(--surface-raised)] to-emerald-950/10 p-4 shadow-[0_0_25px_rgba(16,185,129,0.08)]">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--brass)] text-black">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-[#0d9488] text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]">
                     <Sparkles className="h-5 w-5" />
                   </div>
-                  <div>
-                    <h4 className="font-display text-sm sm:text-base font-bold text-foreground">
+                  <div className="min-w-0">
+                    <h4 className="font-display text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
                       Applicable Regulatory Scope Discovered
+                      <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
                     </h4>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Based on your operational profile, we have automatically activated{" "}
-                      <span className="font-semibold text-[var(--brass)]">
-                        {deducedFrameworkIds.length} Statutory Frameworks
-                      </span>{" "}
-                      for your contracts and blast radius engine.
+                      Automatically mapped to your operational footprint and contract blast radius engine.
                     </p>
                   </div>
                 </div>
+
+                {/* Micro Metrics Chips */}
+                <div className="mt-3 flex flex-wrap items-center gap-2 pt-2.5 border-t border-emerald-500/15">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                    <ShieldCheck className="h-3 w-3" />
+                    {deducedFrameworkIds.length} Laws Enforced
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hairline)] bg-white/5 px-2 py-0.5 font-mono text-[10px] text-stone-300">
+                    ⚡ Continuous Audit Sync
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hairline)] bg-white/5 px-2 py-0.5 font-mono text-[10px] text-stone-400">
+                    🎯 Zero Manual Rule Config
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {/* 2-Column Responsive Card Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[290px] overflow-y-auto pr-1">
                 {deducedFrameworkIds.map((id) => {
                   const meta = FRAMEWORK_DESCRIPTIONS[id] || {
                     title: id,
                     citation: "Statutory Instrument",
                     jurisdiction: "International",
                   };
+
+                  const getJurisdictionBadge = (j: string) => {
+                    const lower = j.toLowerCase();
+                    if (lower.includes("bangladesh")) return { label: "BD National", flag: "🇧🇩", color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" };
+                    if (lower.includes("united states") || lower.includes("us") || lower.includes("california")) return { label: "US Federal", flag: "🇺🇸", color: "border-sky-500/30 text-sky-400 bg-sky-500/10" };
+                    if (lower.includes("european")) return { label: "EU Statutory", flag: "🇪🇺", color: "border-purple-500/30 text-purple-400 bg-purple-500/10" };
+                    return { label: j, flag: "🌐", color: "border-amber-500/30 text-amber-400 bg-amber-500/10" };
+                  };
+
+                  const jBadge = getJurisdictionBadge(meta.jurisdiction);
+
                   return (
                     <div
                       key={id}
-                      className="flex items-start justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/50 p-3"
+                      className="group flex flex-col justify-between rounded-xl border border-[var(--hairline)] bg-[var(--surface-raised)]/60 p-3 hover:border-emerald-500/40 hover:bg-emerald-950/15 transition-all shadow-sm"
                     >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-[var(--brass)] shrink-0" />
-                          <span className="text-xs font-semibold text-foreground truncate">
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-1.5">
+                          <span className="font-semibold text-xs text-foreground group-hover:text-emerald-300 transition-colors line-clamp-1">
                             {meta.title}
                           </span>
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md font-mono text-[9px] font-medium border shrink-0 ${jBadge.color}`}>
+                            <span>{jBadge.flag}</span>
+                            <span>{jBadge.label}</span>
+                          </span>
                         </div>
-                        <p className="mt-0.5 text-[11px] font-mono text-muted-foreground pl-6">
-                          {meta.citation} · {meta.jurisdiction}
+                        <p className="font-mono text-[10px] text-muted-foreground line-clamp-1">
+                          {meta.citation}
                         </p>
                       </div>
-                      <Badge className="shrink-0 bg-[var(--brass)]/15 text-[var(--brass)] border-[var(--brass)]/30 font-mono text-[9px]">
-                        ACTIVE
-                      </Badge>
+
+                      <div className="mt-2.5 flex items-center justify-between border-t border-[var(--hairline)] pt-2">
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[9px] text-emerald-400 font-medium">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                          LIVE ENFORCEMENT
+                        </span>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                      </div>
                     </div>
                   );
                 })}
               </div>
 
-              <p className="text-[11px] text-muted-foreground italic text-center">
-                Your workspace will start with a clean portfolio. You can update your compliance scope anytime in Settings.
+              <p className="text-[10px] text-muted-foreground/80 italic text-center">
+                Your workspace will start with a clean portfolio. You can customize regulatory scope anytime in Settings.
               </p>
             </div>
           )}
