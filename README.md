@@ -9,15 +9,61 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://clausegraph.165.99.219.253.sslip.io/dashboard" target="_blank"><strong>🚀 Open Live Production App</strong></a> &nbsp;&bull;&nbsp;
+  <a href="https://youtu.be/xGlXGpqjbkA" target="_blank"><strong>🎬 Watch Full Demo on YouTube (3 Min)</strong></a> &nbsp;&bull;&nbsp;
+  <a href="#-judges-2-minute-speed-run-cheat-sheet"><strong>⚡ Judge Speed-Run Walkthrough</strong></a>
+</p>
+
 ---
 
-## 🌐 Live Production Access & Evaluation
+## ⚡ Key Engineering Benchmarks
 
-| Environment | Access Link | Credentials / Instructions |
+| Metric | Measurement / Specification | Architectural Implementation |
 |---|---|---|
-| **Live Production Deployment** | [**clausegraph.165.99.219.253.sslip.io/dashboard**](https://clausegraph.165.99.219.253.sslip.io/dashboard) | Click **`⚡ Instant Hackathon Demo (1-Click Judge Access)`** for instant auto-provisioning into a pre-seeded enterprise workspace. |
-| **Direct Blast Simulator** | [**clausegraph.165.99.219.253.sslip.io/simulate**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=portfolio) | Run live regulatory simulations against active commercial agreements. |
-| **Supply Chain Cascades** | [**clausegraph.165.99.219.253.sslip.io/simulate?tab=supply-chain**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=supply-chain) | Trace 3-hop recursive vendor SLA dependencies and indirect risk. |
+| **Inference Latency (TTFT)** | **< 200 ms** | Ultra-high throughput Groq LPUs (`gpt-oss-120b` & `llama-3.1-8b-instant`) |
+| **Supply Chain Blast Depth** | **3-Hop Recursive Tree** | PostgreSQL recursive CTEs over `supply_chain_nodes` & `supply_chain_edges` |
+| **Audit Integrity Stamp** | **SHA-256 Digital Attestation** | Web Crypto API cryptographic fingerprinting on all generated legal addenda |
+| **Data Privacy & Leakage** | **100% Zero-Egress Client PDF** | In-browser PDF compilation via `jspdf` (sensitive contract terms never leave memory) |
+| **Audio Voice Synthesis** | **$0 API Cost / Local Neural** | Web Speech Synthesis API with Microsoft Online Natural Neural Voice models |
+| **Jurisdictional Coverage** | **3 Continents / 10 Frameworks** | Structured ontologies across Bangladesh (CSA 2023), EU (DORA/GDPR), and US (SEC) |
+
+---
+
+## 🎬 Product Showcase Video
+
+Watch the complete broadcast-quality demonstration showcasing real-time statutory shock ingestion, recursive blast radius calculations across Tier-1 to Tier-3 supply chain agreements, sub-200ms Groq Copilot inspection, and automated Terraform compliance remediation:
+
+<p align="center">
+  <a href="https://youtu.be/xGlXGpqjbkA" target="_blank">
+    <img src="https://img.youtube.com/vi/xGlXGpqjbkA/maxresdefault.jpg" alt="ClauseGraph Full Product Showcase Video" width="90%" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.6);" />
+  </a>
+  <br/>
+  <em>Click image above or visit <a href="https://youtu.be/xGlXGpqjbkA" target="_blank"><strong>https://youtu.be/xGlXGpqjbkA</strong></a> to watch on YouTube.</em>
+</p>
+
+---
+
+## ⚡ Judge's 2-Minute Speed-Run Cheat Sheet
+
+If you are evaluating ClauseGraph during a judging session or demo review, follow this exact high-impact sequence:
+
+1. **Auto-Login:** Navigate to [**clausegraph.165.99.219.253.sslip.io/auth**](https://clausegraph.165.99.219.253.sslip.io/auth) and click **`⚡ Instant Hackathon Demo (1-Click Judge Access)`**. You are instantly provisioned into an enterprise tenant loaded with 9 monitored agreements and 10 regulatory ontologies.
+2. **Trigger a Live Statutory Shock:** On the top bar, click **`Live Shock`** $\rightarrow$ Select **"Bangladesh Cyber Security Act 2023 (Sec 8 Cloud Sovereignty Order)"** $\rightarrow$ Click **Simulate Disruption Shock**. Watch real-time exposure jump by **+$450,000 USD** with toast and voice notifications!
+3. **Lock Context with Inspect Lens (🎯):** Click the crosshair target icon (**`🎯`**) in the TopBar. Click **any** red-flagged contract card or notification. The **Groq LPU Copilot** will lock onto the entity and stream legal deontic analysis in **<200ms** with zero manual prompting.
+4. **Close the Loop (Remediate & Export):** Open the notification bell, click **`Auto Redline`** to see side-by-side clause diffs and download a **SHA-256 attested Contract Addendum**, or click **`Board Dossier`** in the TopBar to compile an instant cryptographic audit PDF.
+
+---
+
+## 🌐 Quick Access Navigation
+
+| Environment / View | Direct URL | Description |
+|---|---|---|
+| **Mission Control Dashboard** | [**/dashboard**](https://clausegraph.165.99.219.253.sslip.io/dashboard) | Portfolio valuation, open exposure metrics, and the Graph Medallion. |
+| **Direct Blast Simulator** | [**/simulate?tab=portfolio**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=portfolio) | Run live regulatory simulations against active commercial agreements. |
+| **Supply Chain Cascades** | [**/simulate?tab=supply-chain**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=supply-chain) | Trace 3-hop recursive vendor SLA dependencies and indirect risk. |
+| **Contract Corpus & Extraction** | [**/contracts**](https://clausegraph.165.99.219.253.sslip.io/contracts) | Monitored portfolio agreements, clause hierarchy, and PDF upload. |
+| **Regulatory Ontology Feed** | [**/feed**](https://clausegraph.165.99.219.253.sslip.io/feed) | Curated global statutory frameworks + live Federal Register API feed. |
 
 ---
 
