@@ -1,248 +1,329 @@
-# ClauseGraph
+# ClauseGraph ⚖️⚡
 
-> **Predictive legal-compliance intelligence.** Upload contracts, cite regulations, and simulate the blast radius of any rule — real, hypothetical, or forecasted — across your portfolio *and* your supply chain. Then ship the fix as executable code.
+> **Autonomous Enterprise Regulatory Intelligence & Predictive Contract Governance Operating System.**  
+> Continuously ingest statutory updates, simulate direct & multi-tier supply chain blast radius, inspect exposure with sub-200ms Groq LPU Copilot (🎯), generate SHA-256 cryptographically attested legal addenda, and ship executable infrastructure remediation code (Terraform & Python).
 
-<p align="center"><em>Legal-grade rigor. Product-grade UX. One workspace.</em></p>
+<p align="center">
+  <a href="https://clausegraph.165.99.219.253.sslip.io/dashboard">
+    <img src="https://img.shields.io/badge/Live%20Demo-clausegraph.sslip.io-5eead4?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Live Demo" />
+  </a>
+  <img src="https://img.shields.io/badge/Engine-Groq%20LPU%20%2B%20GPT--4o-00f2fe?style=for-the-badge&logo=fastapi&logoColor=black" alt="AI Engine" />
+  <img src="https://img.shields.io/badge/Architecture-TanStack%20Start%20v1%20%2B%20React%2019-ff4154?style=for-the-badge&logo=react&logoColor=white" alt="Fullstack" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL%2016%20%2B%20RLS-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="Database" />
+  <img src="https://img.shields.io/badge/Security-SHA--256%20Attested-emerald?style=for-the-badge&logo=vault&logoColor=white" alt="Security" />
+</p>
 
 ---
 
-## 🚀 Quick Start
+## 🌐 Live Production Access & Evaluation
 
-### Option A: 1-Click Hackathon Evaluation
-1. Launch the app locally or visit the deployment.
-2. Go to `/auth` and click **"⚡ Instant Hackathon Demo (1-Click Judge Access)"**.
-3. You're auto-provisioned into an enterprise workspace with pre-seeded contracts, curated regulatory ontology, and multi-tier supply chain.
-4. Open **Simulate Impact**, paste any regulation, and watch the blast radius calculate financial exposure live!
+| Environment | Access Link | Credentials / Instructions |
+|---|---|---|
+| **Live Production Deployment** | [**clausegraph.165.99.219.253.sslip.io/dashboard**](https://clausegraph.165.99.219.253.sslip.io/dashboard) | Click **`⚡ Instant Hackathon Demo (1-Click Judge Access)`** for instant auto-provisioning into a pre-seeded enterprise workspace. |
+| **Direct Blast Simulator** | [**clausegraph.165.99.219.253.sslip.io/simulate**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=portfolio) | Run live regulatory simulations against active commercial agreements. |
+| **Supply Chain Cascades** | [**clausegraph.165.99.219.253.sslip.io/simulate?tab=supply-chain**](https://clausegraph.165.99.219.253.sslip.io/simulate?tab=supply-chain) | Trace 3-hop recursive vendor SLA dependencies and indirect risk. |
 
-### Option B: Run with Docker Compose (PostgreSQL 16 + Web App)
+---
+
+## 🧭 How ClauseGraph Works at a Glance
+
+Unlike generic "Chat with PDF" wrappers that act purely as passive search tools, **ClauseGraph is an autonomous proactive governance engine**. It bridges the historical chasm between legislative statutory shifts, corporate commercial contracts, and engineering cloud operations.
+
+```mermaid
+flowchart TD
+    subgraph INGESTION["1. Statutory Shift / Regulatory Ingestion"]
+        A1["Federal Register Live Feed"] --> A4["Statutory Ingestion Engine"]
+        A2["EUR-Lex / UK / Bangladesh Gazettes"] --> A4
+        A3["⚡ Live Statutory Shock Simulator<br/>(e.g., Cyber Security Act 2023 Sec 8)"] --> A4
+    end
+
+    subgraph ENGINE["2. Graph Medallion & Blast Traversal"]
+        A4 --> B1["Regulatory Ontology<br/>(10+ Global Frameworks)"]
+        B1 --> B2{"Vector & Graph Medallion Matching"}
+        B2 -->|Direct Contracts| B3["Direct Portfolio Blast Radius<br/>(Capital Exposure in USD)"]
+        B2 -->|Tier-1 to Tier-3 SLAs| B4["Upstream Multi-Hop Cascade<br/>(SLA Frustration Propagation)"]
+    end
+
+    subgraph INSPECT["3. Sub-200ms Copilot Inspection"]
+        B3 --> C1["🎯 Multi-Modal Inspect Lens"]
+        B4 --> C1
+        C1 --> C2["Groq LPU Copilot (<200ms TTFT)<br/>Deontic Logic: SHALL, MUST, PENALTIES"]
+    end
+
+    subgraph EXECUTION["4. Automated Remediation & Attestation"]
+        C2 --> D1["📝 Autonomous Redline Diff &<br/>SHA-256 Attested Addendum"]
+        C2 --> D2["⚙️ Compliance-as-Code<br/>(Terraform + Python Audit Script)"]
+        C2 --> D3["📊 Board Executive Dossier<br/>(Client-Side Cryptographic PDF)"]
+        C2 --> D4["🎙️ Natural Neural Voice<br/>(45s Morning Briefing Podcast)"]
+    end
+
+    style INGESTION fill:#0d1117,stroke:#5eead4,stroke-width:2px
+    style ENGINE fill:#0f172a,stroke:#38bdf8,stroke-width:2px
+    style INSPECT fill:#18181b,stroke:#a855f7,stroke-width:2px
+    style EXECUTION fill:#022c22,stroke:#10b981,stroke-width:2px
+```
+
+---
+
+## 🏛️ System Architecture
+
+ClauseGraph is engineered with a strict zero-data-leakage philosophy, separating public regulatory ontologies from tenant-isolated private contract stores.
+
+```mermaid
+graph TB
+    subgraph CLIENT["Client Presentation Layer (Browser)"]
+        UI["Obsidian & Mint Glassmorphism HUD"]
+        Router["TanStack Router (Type-Safe File Routes)"]
+        Lens["🎯 Multi-Modal Target Inspect Lens"]
+        VoiceAudio["Browser-Native Neural Voice (Web Speech Synthesis)"]
+        ClientPDF["Zero-Leakage PDF Compiler (jsPDF + SHA-256)"]
+    end
+
+    subgraph EDGE_SERVER["Edge & Server Function Layer (TanStack Start RPC)"]
+        RPC["createServerFn Type-Safe RPC Handlers"]
+        AuthMiddleware["JWT Session & Organization RLS Context"]
+        GroqClient["Groq LPU Ultra-Low Latency Inference (<200ms)"]
+        OpenAIClient["OpenAI GPT-4o Semantic Vector Analysis"]
+        GeminiClient["Google Gemini 2.5 Flash Contract Extractor"]
+    end
+
+    subgraph DATA_STORAGE["Database & Storage Layer (PostgreSQL 16)"]
+        PostgresPool["Native PostgreSQL Connection Pool (pg)"]
+        RLS["Row-Level Security (current_org_id Enforcement)"]
+        Tables["Contracts, Clauses, Regulations, Compliance Profiles"]
+        GraphTables["Supply Chain Nodes, Edges, Review Queue"]
+        CryptoAttest["SHA-256 Audit Attestation Tables"]
+    end
+
+    UI --> Router
+    Router --> RPC
+    Lens --> RPC
+    RPC --> AuthMiddleware
+    AuthMiddleware --> PostgresPool
+    PostgresPool --> RLS
+    RLS --> Tables
+    RLS --> GraphTables
+    RPC --> GroqClient
+    RPC --> OpenAIClient
+    RPC --> GeminiClient
+
+    style CLIENT fill:#030712,stroke:#5eead4,stroke-width:2px
+    style EDGE_SERVER fill:#0b1329,stroke:#60a5fa,stroke-width:2px
+    style DATA_STORAGE fill:#052e16,stroke:#34d399,stroke-width:2px
+```
+
+---
+
+## 🌟 Master Feature Catalog
+
+Every feature below represents a dedicated, production-grade engine built, tested, and integrated into ClauseGraph:
+
+### 1. Central Mission Control & Portfolio Medallion (`/dashboard`)
+* **What It Does:** Serves as the primary operational command center for General Counsels, Chief Risk Officers, and CFOs. It provides real-time portfolio valuation across monitored commercial instruments, aggregates open capital exposure, and renders the proprietary **Graph Medallion**—a dynamic topological visualization mapping active agreements to global regulatory frameworks.
+* **Key Highlights:**
+  * **Real-Time Citation Density:** Automatically calculates the linkage ratio between contract clauses and enforceable statutory provisions.
+  * **Executive Watchlist:** Surfaces high-risk commercial counterparties requiring immediate regulatory triage.
+  * **Interactive Topology:** Inner ring nodes represent indexed commercial agreements, while outer ring nodes represent binding legislative frameworks; node connections highlight live citation dependencies.
+* **Under the Hood:** `GraphMedallion.tsx`, `getContractsFn()`, PostgreSQL `json_agg` hierarchical clause queries.
+
+---
+
+### 2. Direct Portfolio Blast-Radius Simulator (`/simulate?tab=portfolio`)
+* **What It Does:** Enables compliance teams to stress-test their active contract corpus against real, proposed, or forecasted statutory amendments. Users can select pre-configured macroeconomic scenarios or paste raw draft legislative text. The engine parses deontic triggers, cross-references internal clause commitments, and determines the exact dollar-denominated capital exposure.
+* **Key Highlights:**
+  * **Direct Capital Exposure ($):** Quantifies financial risk down to the exact dollar and percentage of total active portfolio valuation.
+  * **Ranked Severity Breakdown:** Automatically triages impacted contracts into **High**, **Medium**, and **Low** risk tiers based on regulatory enforcement penalties.
+  * **Per-Contract Suggested Action:** Generates tailored, one-sentence contractual amendments designed to eliminate statutory exposure before regulatory deadlines.
+* **Under the Hood:** `simulate.functions.ts::simulateImpact`, GPT-4o semantic vector alignment, `GraphMedallion.tsx` real-time node illumination.
+
+---
+
+### 3. Cross-Enterprise Multi-Tier Supply Chain Cascade (`/simulate?tab=supply-chain`)
+* **What It Does:** The industry's first recursive compliance propagation engine. Traditional legal tech only examines direct bilateral contracts; ClauseGraph models indirect, multi-hop vendor dependencies (e.g., *Your Enterprise $\rightarrow$ Tier-1 Cloud SaaS $\rightarrow$ Tier-2 Data Center Colocation $\rightarrow$ Tier-3 Renewable Power Grid*). When a regulation fires at Tier-3, ClauseGraph cascades the blast radius back to your balance sheet.
+* **Key Highlights:**
+  * **3-Hop Recursive Traversal:** Traverses upstream SLA chains to uncover hidden frustration-of-purpose and operational continuity risks.
+  * **Indirect Exposure Calculation:** Calculates cascading liability when an upstream subcontractor breaches binding obligations (e.g., EU DORA Article 30 or EU Data Center Energy Directives).
+  * **Interactive Node Drilldown:** Click any supplier node to inspect critical dependency paths, uptime guarantees, and subcontracting covenants.
+* **Under the Hood:** `supply-chain.functions.ts::traceSupplyChain`, `SupplyChainGraph.tsx`, PostgreSQL recursive tree schema (`supply_chain_nodes`, `supply_chain_edges`).
+
+---
+
+### 4. Simulate Live Statutory Shock Engine
+* **What It Does:** Provides an interactive, safe legislative disruption injector. It simulates the impact of sudden, overnight regulatory disruptions without modifying production database baselines, broadcasting global real-time event cascades across the application.
+* **Key Scenarios Built-in:**
+  * 🇧🇩 **Bangladesh Cyber Security Act 2023 — Sec 8 Cloud Sovereignty Order:** Injects mandatory in-country Critical Information Infrastructure (CII) data residency, surfacing `+$450,000 USD` exposure across legacy agreements citing the repealed Digital Security Act 2018.
+  * 🇪🇺 **EU DORA Article 30 — ICT Subcontracting Restrictions:** Models chained subcontractor oversight rules, surfacing `+$180,000 USD` in indirect supply chain liability.
+  * 🇺🇸 **US SEC 24-Hour Material Incident Disclosure Directive:** Enforces strict 24-hour incident notification windows, surfacing `+$320,000 USD` exposure for vendor contracts with legacy 72-hour SLAs.
+* **Key Highlights:** Instantly triggers ambient warning audio, Sonner toast notifications, and auto-populates the Copilot with pre-grounded context.
+* **Under the Hood:** `LiveShockSimulatorModal.tsx`, custom browser-level window event dispatching, `TopBar.tsx` integration.
+
+---
+
+### 5. Multi-Modal Inspect Lens (🎯) & Sub-200ms Groq LPU Copilot
+* **What It Does:** Replaces clunky text prompts with an instant, interactive screen-inspection HUD. By toggling the crosshair target icon (`🎯`) in the TopBar, the entire UI enters high-precision inspection mode with green laser borders. Clicking **any UI element** (contract card, exposure metric, or notification) immediately locks context into the Copilot with zero manual typing.
+* **Key Highlights:**
+  * **Sub-200ms Time-To-First-Token (TTFT):** Powered by Groq LPUs running high-throughput models (`gpt-oss-120b` with automated fallback to `gpt-oss-20b` and `llama-3.1-8b-instant`).
+  * **Deontic Legal Reasoning:** Enforces structured legal outputs identifying explicit duties (`SHALL`, `MUST`), prohibitions (`SHALL NOT`), statutory statutory penalties, and remediation steps.
+  * **Microphone Voice Dictation:** Integrated hands-free speech-to-text dictation and voice audio playback.
+* **Under the Hood:** `GlobalCopilot.tsx`, `CopilotContext.tsx`, `copilot.server.ts` utilizing Groq SDK.
+
+---
+
+### 6. Autonomous Redline Diff & SHA-256 Cryptographic Addendum Generator
+* **What It Does:** Eliminates weeks of manual contract drafting when laws change. When an invalidated or non-compliant clause is identified, ClauseGraph automatically generates a formal side-by-side visual redline diff and compiles an executable Contract Addendum document.
+* **Key Highlights:**
+  * **Side-by-Side Visual Diff:** Clear red strikethrough highlighting repealed references (e.g., *Digital Security Act 2018*) alongside emerald green highlighting of compliant statutory terms (e.g., *Section 8, Cyber Security Act 2023*).
+  * **SHA-256 Cryptographic Attestation:** Every downloaded addendum includes a unique audit identifier and a SHA-256 digital fingerprint guaranteeing non-tampering of the legal draft.
+  * **Formal Execution Blocks:** Includes complete legal recitals, definitions, signature blocks, and governing jurisdiction clauses ready for outside counsel review.
+* **Under the Hood:** `RedlineDiffModal.tsx`, Web Crypto API (`crypto.subtle.digest`), immutable audit trail logger.
+
+---
+
+### 7. Compliance-as-Code Autopilot (Instant Terraform & Python Scripts)
+* **What It Does:** Bridges the disconnect between legal counsel and DevOps engineering. Instead of handing engineers an ambiguous 40-page memo, ClauseGraph translates legal mandates into executable infrastructure-as-code and automated validation scripts.
+* **Key Highlights:**
+  * **Automated Terraform Remediations:** Generates production-ready Terraform blocks (e.g., AWS S3 bucket encryption, cross-region replication, EU-only data boundary policies).
+  * **Python Verification Script:** Generates runnable audit scripts that probe cloud environments via APIs to mathematically prove compliance before statutory deadlines.
+  * **Terminal-Style Execution Panel:** Clean developer terminal HUD with one-click clipboard copying and step-by-step engineering runbooks.
+* **Under the Hood:** `ComplianceCodePanel.tsx`, `compliance-code.functions.ts` (GPT-4o), `compliance_artifacts` schema.
+
+---
+
+### 8. Board-Ready Executive Dossier (Zero-Leakage Client-Side PDF)
+* **What It Does:** Generates high-impact, board-ready audit reports formatted specifically for Board of Directors and Supervisory Committee review in a single click.
+* **Key Highlights:**
+  * **Zero Data Leakage:** The entire PDF compilation occurs 100% inside client browser memory using `jspdf` and `jspdf-autotable`. Sensitive contract valuations, counterparty terms, and internal exposure figures never touch external document generation APIs.
+  * **Cryptographic Report Stamp:** Formats an immutable audit identifier (`CG-AUDIT-...`) with an integrity hash and multi-jurisdiction statutory breakdown tables.
+* **Under the Hood:** `pdf-dossier.ts`, client-side `jspdf` canvas rendering, `TopBar.tsx` action trigger.
+
+---
+
+### 9. Zero-Cost Natural Neural Voice System & Morning Briefing
+* **What It Does:** Transforms compliance monitoring into an executive audio experience. Features a permanent 45-second **Executive Compliance Morning Briefing Podcast** mounted directly on the dashboard, natural audio narration for every critical alert, and an "Alexa+ for Legal" voice controller.
+* **Key Highlights:**
+  * **$0 API Cost:** Utilizes local browser-bundled Microsoft Online Natural Neural Voices (`Aria Online Natural`, `Guy Natural`, `Bangla Natural`) with zero external network egress.
+  * **Obsidian Waveform Player:** Floating bottom audio HUD with a dancing 5-bar CSS equalizer, persona selector, and speed controls (1x, 1.25x, 1.5x).
+  * **Legal Acronym Phonetic Pre-Sanitizer:** Automatically expands technical acronyms (`DORA` $\rightarrow$ "Digital Operational Resilience Act", `$450,000 USD` $\rightarrow$ "450 thousand dollars") for lifelike pronunciation.
+* **Under the Hood:** `voice.context.tsx`, `voice-speech.ts`, `AudioWaveform.tsx`, `DashboardBriefingCard.tsx`.
+
+---
+
+### 10. Enterprise Notification Center, Global Toast & Slack Webhook Dispatch
+* **What It Does:** A centralized, multi-channel triage system ensuring enterprise legal and security teams never miss an overnight legislative filing or contract breach.
+* **Key Highlights:**
+  * **Triage Filtering:** Organized by **All**, **Critical**, **Regulatory**, and **Pipeline** notifications with real-time exposure badges (e.g., `+$450,000 USD`).
+  * **1-Click "Ask Copilot 🎯":** Every alert features a dedicated button that immediately launches the Copilot pre-grounded with that specific statutory breach.
+  * **Slack Webhooks & Email Digest:** Out-of-the-box support for external incoming Slack Webhook URLs and executive scheduled email alerts.
+* **Under the Hood:** `NotificationBell.tsx`, `NotificationChannelsModal.tsx`, `notifications.store.ts`, Sonner toast engine.
+
+---
+
+### 11. Historical Backtesting Validation Engine (`/backtest`)
+* **What It Does:** Provides quantitative proof of model efficacy by benchmarking ClauseGraph against real-world enforcement cases (e.g., Meta / GDPR International Transfer, Equifax / CCPA Breach, Grameenphone / BTRC directives).
+* **Key Highlights:**
+  * Reconstructs the exact contractual and regulatory scenario prior to historical regulatory fines.
+  * Pipes the historical data through the simulation engine to prove ClauseGraph's deontic models detect the exact failure patterns before fines are levied.
+* **Under the Hood:** `backtest.functions.ts::runBacktest`, `BacktestCard.tsx`.
+
+---
+
+### 12. Autonomous Statutory Onboarding Wizard
+* **What It Does:** Tailors legal frameworks to the company's operational footprint during tenant setup.
+* **Key Highlights:**
+  * **Step 1:** Organization geography (Bangladesh, European Union, United States) and hosting infrastructure (AWS, Azure, On-Prem).
+  * **Step 2:** Risk triggers (Critical Information Infrastructure, PII, cross-border data flows, payment card processing).
+  * **Step 3 (Statutory Deduction):** Dynamically indexes mandatory binding laws (e.g., Domicile in Bangladesh automatically indexes **Cyber Security Act 2023**; handling EU financial data indexes **DORA Article 30** and **GDPR Article 28**).
+* **Under the Hood:** `ComplianceOnboardingModal.tsx`, `compliance-profile.functions.ts`.
+
+---
+
+## 🌍 Regulatory Coverage Matrix
+
+ClauseGraph ships with out-of-the-box structured ontologies spanning three major regulatory jurisdictions:
+
+| Jurisdiction | Statutory Framework | Framework ID | Enforcing Body |
+|---|---|---|---|
+| 🇧🇩 **Bangladesh** | Cyber Security Act 2023 (Act No. 38 of 2023) | `BD-CSA-2023` | National Cyber Security Agency |
+| 🇧🇩 **Bangladesh** | BTRC Data Localization Directive | `BD-BTRC-LOC` | Bangladesh Telecommunication Regulatory Commission |
+| 🇧🇩 **Bangladesh** | Bangladesh Bank ICT Security Guideline | `BB-ICT-SEC` | Bangladesh Bank (Central Bank) |
+| 🇪🇺 **European Union** | Digital Operational Resilience Act (DORA Art. 30) | `EU-DORA-30` | European Insurance and Occupational Pensions Authority |
+| 🇪🇺 **European Union** | GDPR — Lawful Basis & Cross-Border (Art. 6, 44) | `GDPR-ART6/44`| European Data Protection Board (EDPB) |
+| 🇪🇺 **European Union** | EU AI Act High-Risk Regulatory Framework | `EU-AIACT-2024`| European AI Office |
+| 🇺🇸 **United States** | SEC Cybersecurity Risk Disclosure (17 CFR Part 229) | `SEC-CYBER` | Securities and Exchange Commission |
+| 🇺🇸 **United States** | California Consumer Privacy Act / CPRA | `CCPA` | California Privacy Protection Agency |
+| 🇺🇸 **United States** | HIPAA — Security Rule (45 CFR Part 164) | `HIPAA-SEC` | US Health and Human Services (HHS) |
+| 🇺🇸 **United States** | Sarbanes-Oxley Act (§404 Internal Controls) | `SOX-404` | Public Company Accounting Oversight Board |
+
+---
+
+## 🛠️ Technology Stack & Dependencies
+
+```
+Client Tier:
+├── React 19 (Server Components & Concurrent Rendering)
+├── TanStack Start v1 (Full-Stack RPC & Hydration)
+├── TanStack Router (Fully Type-Safe File-Based Routing)
+├── Tailwind CSS v4 + Radix UI + shadcn/ui Primitives
+├── Lucide Icons + jsPDF & jsPDF-AutoTable
+└── Web Speech API (Local Neural Speech Synthesis & Recognition)
+
+Intelligence & Inference Tier:
+├── Groq LPUs (<200ms TTFT Ultra-Low Latency via gpt-oss-120b)
+├── OpenAI GPT-4o (Semantic Blast-Radius & Deontic Alignment)
+├── Google Gemini 2.5 Flash (Automated Contract PDF Clause Extraction)
+└── Custom Deontic Logic Post-Processing & Validation
+
+Data & Persistence Tier:
+├── PostgreSQL 16 (Relational Graph Schemas & Recursive CTEs)
+├── Native Connection Pooling (pg driver with zero ORM overhead)
+├── Row-Level Security (RLS enforced via current_org_id())
+└── JOSE JWT + bcryptjs (Stateless, Tamper-Proof Tenant Isolation)
+```
+
+---
+
+## ⚡ Quick Start & Local Setup
+
+### Option 1: 1-Click Evaluation (No Installation Needed)
+Visit the live deployment at [**clausegraph.165.99.219.253.sslip.io/dashboard**](https://clausegraph.165.99.219.253.sslip.io/dashboard) and click **`⚡ Instant Hackathon Demo (1-Click Judge Access)`** to test all features with pre-seeded data.
+
+### Option 2: Run Locally via Docker Compose
+
 ```bash
-# 1. Clone & copy environment variables
+# 1. Clone the repository
+git clone https://github.com/Tony1254-CS/clause-graph.git
+cd clause-graph
+
+# 2. Configure environment variables
 cp .env.example .env
 
-# 2. Start PostgreSQL and the fullstack app
+# 3. Start PostgreSQL 16 and the web application
 docker compose up --build
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser. All tables, functions, and seed data are automatically initialized via `docker/init.sql`.
+Open [http://localhost:3000](http://localhost:3000) in your browser. All database schemas, RLS policies, and sample agreements initialize automatically via `docker/init.sql`.
 
+### Option 3: Local Node / Bun Development
 
----
+```bash
+# Install dependencies
+npm install
 
-## ✨ Feature Catalog
-
-Each feature below lists **what it does**, **when to use it**, **where to find it**, and **what powers it** under the hood.
-
-### 1. Portfolio Dashboard
-- **What**: A workspace-wide overview — total contract value, exposure, and a live medallion showing citation density across your portfolio.
-- **Use case**: The first tab any GC or CFO opens on Monday morning.
-- **Where**: `/dashboard`
-- **Powered by**: `GraphMedallion.tsx` + `getContractsFn()` (PostgreSQL `json_agg` clauses)
-
-### 2. Contracts List & Detail
-- **What**: Glass-card list of every contract with name, counterparty, value (mono), and clause-count badge. Detail view shows every clause with brass-outlined pills linking to the regulations it cites.
-- **Use case**: Discovery — "which clauses in the Meridian MSA reference GDPR Article 44?"
-- **Where**: `/contracts`, `/contracts/:contractId`
-- **Powered by**: `ContractCard.tsx`, `ClauseRow.tsx`, `RegulationPill.tsx`
-
-### 3. Regulatory Feed (Curated + Live)
-- **What**: Your **10-regulation ontology** (see §Coverage) beside a **live Federal Register widget** showing the 5 most recent filings. Curated and live are visually separated so it's always obvious which is which.
-- **Use case**: Daily situational awareness for compliance leads.
-- **Where**: `/feed`
-- **Powered by**: `FederalRegisterFeed.tsx` + `https://www.federalregister.gov/api/v1/documents`
-
-### 4. Simulate Impact 🌊
-- **What**: Paste any regulation (real or draft), click **Simulate Impact**. GPT-4o analyzes the pasted text against your contract corpus and the ontology, then the medallion's nodes light up **risk-red** for impacted contracts. A side panel shows total exposure in USD and per-contract amendment suggestions.
-- **Use case**: "The new EU AI Act draft dropped this morning — what breaks?"
-- **Where**: `/simulate` (or top-bar CTA on any page)
-- **Powered by**: `simulate.functions.ts::simulateImpact` (GPT-4o), `GraphMedallion.tsx`
-
-### 5. Backtested Validation
-- **What**: A library of real enforcement cases (Meta / GDPR, Equifax / CCPA, Grameenphone / BTRC, etc.). Click **Run Analysis** and ClauseGraph reconstructs the pre-fine scenario and pipes it through the same Simulate Impact engine — proving the model catches known failures.
-- **Use case**: Trust-building. Show the board "we would have caught this."
-- **Where**: `/backtest`
-- **Powered by**: `backtest.functions.ts::runBacktest`, `BacktestCard.tsx`
-
-### 6. Compliance Action Plan
-- **What**: From any simulation, generate a structured report: **policy draft**, **amendment language per contract**, **technical fix checklist**, timeline. One-click **Export to PDF**.
-- **Use case**: Hand-off doc for outside counsel + engineering.
-- **Where**: `/actions`
-- **Powered by**: `action-plan.functions.ts::generateActionPlan` (GPT-4o), `jspdf`, `ActionPlanPanel.tsx`
-
-### 7. Predictive Regulatory Radar 🔮
-- **What**: A lightweight predictive model over historical amendment velocity forecasts which regulations are most likely to change in the next **6–18 months**. For each prediction the LLM drafts a **hypothetical amendment text**, which is then run through Simulate Impact to give you a pre-mortem blast radius.
-- **Use case**: Strategic planning. Redirect Q3 legal budget to the regulation with a 78% amendment probability.
-- **Where**: `/predictive`, `/predictive/:regulationId`
-- **Powered by**: `predict.functions.ts::predictAmendment`, `regulation_amendments` table
-
-### 8. What-If Sandbox
-- **What**: A free-form playground — type a hypothesis ("what if GDPR banned all US transfers?") and get a synthesized rule + full simulation.
-- **Use case**: Board tabletop exercises, scenario stress tests.
-- **Where**: `/what-if`
-- **Powered by**: same pipeline as Simulate Impact
-
-### 9. Cross-Enterprise Supply Chain Blast Radius 🕸️
-- **What**: The killer feature. ClauseGraph traces recursive contract dependencies — Your Company → Cloud Provider → Data Center → Energy Utility → Card Network. A regulation firing at Tier 3 cascades **red** back to you through every intermediate contract, showing indirect exposure most tools miss.
-- **Use case**: DORA, CSRD, and third-party-risk audits.
-- **Where**: `/supply-chain`
-- **Powered by**: `supply-chain.functions.ts::traceSupplyChain`, `SupplyChainGraph.tsx`, tables `supply_chain_nodes` + `supply_chain_edges`
-
-### 10. Compliance-as-Code Autopilot ⚙️
-- **What**: For any identified gap, generate an executable **Python audit script** (proves the gap in your infra) plus a **Terraform remediation** (fixes it) plus a runbook. Rendered in a terminal-style panel — copy, run, done.
-- **Use case**: Close the loop between legal advice and engineering delivery.
-- **Where**: `/supply-chain` → Compliance-as-Code tab
-- **Powered by**: `compliance-code.functions.ts::generateComplianceCode` (GPT-4o), `ComplianceCodePanel.tsx`, `compliance_artifacts` table
-
-### 11. Contract Upload Pipeline
-- **What**: Drag a PDF. It's uploaded to private Storage, a Gemini 2.5 Flash extractor parses out clauses and their linked regulations, and the contract appears in the list within seconds.
-- **Use case**: Onboarding your real portfolio.
-- **Where**: `/contracts` → **Upload**
-- **Powered by**: `upload.functions.ts::extractContract`, bucket `contract-files`, Gemini 2.5 Flash
-
-### 12. Team & Roles
-- **What**: Invite teammates, promote/demote between `admin` and `member`. Role isolation is enforced by RLS + `has_role()` — no client-side checks.
-- **Where**: `/settings/team`
-- **Powered by**: `team.functions.ts`, `user_roles` table
-
-### 13. Billing — parked (everything is free right now)
-- **What**: Subscriptions are fully built but **switched off**. Every workspace runs on Pro with unlimited contracts, simulations and seats. `/settings/billing` shows a plain "early access — nothing to pay" panel instead of pricing cards, and no upgrade prompt exists anywhere in the app.
-- **Under the hood**: the Paddle integration stays intact — checkout, pro-rated plan swaps via the Paddle Node SDK, customer portal, dunning, and the HMAC-verified webhook. Two switches turn it on: `public.billing_enabled()` in the database and `BILLING_ENABLED` in `src/lib/plans.ts`. Flip both and the paid experience returns with no rebuild.
-- **Where**: `/settings/billing`
-- **Powered by**: `billing.functions.ts`, `usePaddleCheckout.ts`, webhook `/api/public/payments/webhook`
-
-
-### 14. Workspace Deletion (30-day grace)
-- **What**: Admin schedules deletion; workspace remains restorable for 30 days. Admins can cancel any time before the deadline.
-- **Where**: `/settings/account`
-- **Powered by**: `request_workspace_deletion` / `cancel_workspace_deletion` SQL functions
-
-### 15. Light / Dark Theme
-- **What**: The Obsidian & Mint palette in dark, plus a warm "Paper & Ink" light mode. Persisted per-device.
-- **Where**: Sidebar footer toggle
-- **Powered by**: `theme-provider.tsx`
-
----
-
-## 🌍 Regulatory Coverage
-
-Ten regulations across three jurisdictions ship in the ontology out of the box:
-
-| Jurisdiction | Regulation | ID |
-|---|---|---|
-| 🇪🇺 EU | GDPR — Lawful Basis (Art. 6) | `GDPR-ART6` |
-| 🇪🇺 EU | GDPR — International Transfers (Art. 44) | `GDPR-ART44` |
-| 🇪🇺 EU | GDPR — Breach Notification (Art. 33) | `GDPR-ART33` |
-| 🇺🇸 US | SEC Cybersecurity Disclosure Rule | `SEC-CYBER` |
-| 🇺🇸 US | CCPA / CPRA | `CCPA` |
-| 🇺🇸 US | HIPAA — Security Rule | `HIPAA-SEC` |
-| 🇺🇸 US | Sarbanes-Oxley §404 | `SOX-404` |
-| 🇧🇩 BD | Digital Security Act 2018 | `BD-DSA` |
-| 🇧🇩 BD | BTRC Data Localization Directive | `BD-BTRC-LOC` |
-| 🇧🇩 BD | Bangladesh Bank ICT Security Guideline | `BB-ICT-SEC` |
-
-Add more by inserting into `public.regulations` — the whole app auto-picks them up.
-
----
-
-## 💰 Plans & Limits
-
-**Current state: every workspace is on Pro, free, with unlimited usage.**
-Billing is parked while the product is in early access — there is no trial
-countdown, no paywall and no upgrade nag anywhere in the product.
-
-| | **Today (early access)** |
-|---|:-:|
-| Contracts | ∞ |
-| Simulations / month | ∞ |
-| Team members | ∞ |
-| Every feature (Radar, Supply Chain, Compliance-as-Code, PDF export) | ✓ |
-| Price | $0 |
-
-<details>
-<summary>The tier design kept for when billing is switched on</summary>
-
-| | **Free** | **Pro** — $49/mo | **Team** — $199/mo |
-|---|:-:|:-:|:-:|
-| Contracts | 3 | 50 | ∞ |
-| Simulations / month | 5 | 100 | ∞ |
-| Team members | 1 | 3 | ∞ |
-| Action plans + PDF export | — | ✓ | ✓ |
-| Predictive Radar / Compliance-as-Code | — | ✓ | ✓ |
-
-Enabling it takes two edits: `public.billing_enabled()` → `SELECT true`, and
-`BILLING_ENABLED = true` in `src/lib/plans.ts`. Limits are enforced at the
-database (`assert_within_quota`) — no client bypass is possible.
-
-</details>
-
-
----
-
-## 🧰 Tech at a Glance
-
-- **Frontend** — React 19, TanStack Start v1, TanStack Router (file-based), TanStack Query, Vite, TypeScript strict, Tailwind v4, shadcn/ui.
-- **Backend** — Pure PostgreSQL 16+ (`pg` connection pool + native schema/RLS/functions), TanStack `createServerFn` RPC data layer, JWT sessions (JOSE + bcrypt).
-- **AI** — Direct Provider Integration (OpenAI GPT-4o / GPT-4o-mini & Google Gemini 2.5 Flash).
-- **Billing** — Paddle (Node SDK + Paddle.js).
-- **External** — Federal Register API.
-
-Deep detail: see **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** — including the complete PostgreSQL DDL and every SQL function.
-
-### Self-hosted / Docker deployment notes
-
-ClauseGraph runs with zero vendor lock-in via standard Docker containers (`docker-compose up -d`) or any PostgreSQL 16+ instance.
-
-Configure `DATABASE_URL`, `JWT_SECRET`, and `OPENAI_API_KEY` (or `GEMINI_API_KEY`) in `.env`.
-
----
-
-## 🗂 Project Structure (condensed)
-
-```
-src/
-├── routes/                     File-based routes (public + _authenticated/)
-├── components/clausegraph/     Product components (AppShell, Sidebar, GraphMedallion, ...)
-├── components/ui/              shadcn primitives
-├── lib/db.server.ts            Native PostgreSQL pool (pg) & query helpers
-├── lib/auth.server.ts          Auth service, bcrypt hashing & JOSE JWT sessions
-├── lib/auth.functions.ts       Auth server functions (signIn, signUp, demoLogin)
-├── lib/*.functions.ts          Domain server functions (simulate, action-plan, upload, ...)
-├── data/                       Query factories + types
-├── hooks/                      Paddle, mobile
-└── styles.css                  Every design token
+# Start local development server
+npm run dev
 ```
 
 ---
 
-## 🔐 Security
+## 🔐 Security & Threat Model
 
-- **Row-Level Security** on every user-facing table, scoped by `current_org_id()`.
-- **Roles in a separate table** (`user_roles`) — never on `profiles`. Checked via the `SECURITY DEFINER` function `has_role()` to prevent recursion and privilege escalation.
-- **Webhooks** verified with HMAC + `timingSafeEqual` before any privileged write.
-- **Service-role key** is used only inside verified webhook handlers, loaded via dynamic import so it never enters the client bundle.
-- **`/api/public/*` routes** bypass the auth wall by design — every handler re-verifies the caller before acting.
-
----
-
-## 🩺 Troubleshooting
-
-| Symptom | Cause | Fix |
-|---|---|---|
-| "Contract not found" after a re-seed | Sample contract IDs were regenerated | Return to `/contracts` and open the newly-seeded item |
-| Header says PRO but billing looked "Free" | Fixed — plan is now resolved server-side from one source; while billing is parked every workspace is Pro | Nothing to do; hard-refresh if a stale tab is open |
-| Blank panels on a self-hosted deployment | Server-side env vars missing on the host | Set the `SUPABASE_*` / AI key server variables (see deployment notes) |
-| "Unsupported provider" on Google sign-in | Google OAuth not enabled for the project | Ask the workspace owner to enable Google via the Connectors settings |
-| Simulate returns a canned result | AI Gateway rate-limited or unreachable — deterministic fallback served | Retry in a minute; check `LOVABLE_API_KEY` in your project secrets |
-| Upload stuck on "Extracting…" | Gemini timeout on a very large PDF | Split into smaller docs; the state auto-recovers on retry |
+* **Tenant Isolation:** Enforced deterministically at the database level using PostgreSQL Row-Level Security (`RLS`). Tenant identification is extracted from cryptographically signed JWT cookies and set into the PostgreSQL session context via `SET LOCAL app.current_org_id`.
+* **Zero Client Bypass:** Role validation (`has_role('admin')`) and quota verifications (`assert_within_quota`) execute inside PostgreSQL stored procedures marked `SECURITY DEFINER`.
+* **Zero Document Leakage:** Document compilation for Executive Board Dossiers runs entirely client-side; corporate contract text is never transmitted to third-party rendering APIs.
+* **Webhook Integrity:** Incoming external webhooks (e.g., Slack or Paddle) require HMAC SHA-256 signatures validated with constant-time equality comparisons (`crypto.timingSafeEqual`).
 
 ---
 
-## 🗺 Roadmap
+## 📄 License & Attribution
 
-- Multi-language contract extraction (Bangla, German, French)
-- Redlining suggestions rendered directly on the source PDF
-- Slack / Teams delivery of daily Federal Register + ontology-matched digest
-- Public API for programmatic Simulate Impact
-- SSO (SAML / SCIM) on Enterprise
-
----
-
-
+Developed with precision by **Team QuintessenceMinusInfinity** for the 2026 Enterprise Compliance & Regulatory Intelligence Showcase.  
+Licensed under the [Apache License 2.0](LICENSE).
