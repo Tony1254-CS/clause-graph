@@ -4,13 +4,9 @@
 > Continuously ingest statutory updates, simulate direct & multi-tier supply chain blast radius, inspect exposure with sub-200ms Groq LPU Copilot (🎯), generate SHA-256 cryptographically attested legal addenda, and ship executable infrastructure remediation code (Terraform & Python).
 
 <p align="center">
-  <a href="https://clausegraph.165.99.219.253.sslip.io/dashboard">
-    <img src="https://img.shields.io/badge/Live%20Demo-clausegraph.sslip.io-5eead4?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Live Demo" />
+  <a href="https://clausegraph.165.99.219.253.sslip.io/dashboard" target="_blank">
+    <img src="./public/dashboard-preview.jpg" alt="ClauseGraph Executive Mission Control Dashboard" width="100%" />
   </a>
-  <img src="https://img.shields.io/badge/Engine-Groq%20LPU%20%2B%20GPT--4o-00f2fe?style=for-the-badge&logo=fastapi&logoColor=black" alt="AI Engine" />
-  <img src="https://img.shields.io/badge/Architecture-TanStack%20Start%20v1%20%2B%20React%2019-ff4154?style=for-the-badge&logo=react&logoColor=white" alt="Fullstack" />
-  <img src="https://img.shields.io/badge/Database-PostgreSQL%2016%20%2B%20RLS-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="Database" />
-  <img src="https://img.shields.io/badge/Security-SHA--256%20Attested-emerald?style=for-the-badge&logo=vault&logoColor=white" alt="Security" />
 </p>
 
 ---
